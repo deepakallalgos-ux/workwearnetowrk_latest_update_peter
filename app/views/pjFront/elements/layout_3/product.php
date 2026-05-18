@@ -186,7 +186,7 @@
 												<?php
 											}
 										}
-										if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+										if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 										{
 											$max_qty = (int) $tpl['stock_arr'][0]['qty'];
 											if($tpl['product_arr']['is_digital'] == '1')
@@ -276,7 +276,7 @@
 											}
 										}
 									}else{
-										if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+										if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 										{
 											?><div class="col-sm-12"><span class="scProductOutOfStock"><?php __('front_out_of_stock'); ?></span></div><?php
 										}
@@ -390,7 +390,7 @@
 					</div>
 				</div>
 				<?php
-				if ((int) $tpl['option_arr']['o_disable_orders'] === 1)
+				if (pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 				{
 					if (isset($tpl['extra_arr']) && !empty($tpl['extra_arr']))
 					{

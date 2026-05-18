@@ -165,7 +165,7 @@
 					      	<td class="hidden-xs pjScFavsProductPrice"><strong><?php echo (int) $product['status'] === 1 ? pjCurrency::formatPrice($price) : __('front_not_available', true, false);?></strong></td>
 					      	<td class="text-right">
 					      		<?php
-					      		if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+					      		if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 					      		{
 					      			if ((int) $product['status'] === 1)
 					      			{

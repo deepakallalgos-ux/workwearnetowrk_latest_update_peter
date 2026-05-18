@@ -1,3 +1,7 @@
+<?php
+$storefront_url = pjUtil::getStorefrontBaseUrl(isset($tpl['option_arr']['o_install_url']) ? $tpl['option_arr']['o_install_url'] : null);
+$page_prefix_seg = (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : '';
+?>
 <div class="container-fluid">
 	<nav class="navbar navbar-default pjScHeader" role="navigation">
     	<div class="container-fluid">
@@ -9,7 +13,7 @@
                 	<span class="icon-bar"></span>
                 	<span class="icon-bar"></span>
               </button>
-              <a class="scStoreName navbar-brand" href="<?php echo $tpl['option_arr']['o_install_url']; ?>/products"><?php __('lblStoreName')?></a>
+              <a class="scStoreName navbar-brand" href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>products"><?php __('lblStoreName')?></a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -35,19 +39,19 @@
 						}
 					}
               		?>
-                	<li<?php echo $controller->_get->toString('action') == 'pjActionFavs' ? ' class="active"' : null;?>><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>favorites" class="pjSelectorFavorites" ><?php __('front_favs'); ?><span class="badge"><?php echo !empty($myFavs) ? sprintf(" (%u)", $number_of_favs): NULL; ?></span></a></li>
+                	<li<?php echo $controller->_get->toString('action') == 'pjActionFavs' ? ' class="active"' : null;?>><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>favorites" class="pjSelectorFavorites" ><?php __('front_favs'); ?><span class="badge"><?php echo !empty($myFavs) ? sprintf(" (%u)", $number_of_favs): NULL; ?></span></a></li>
                 	<?php
                 	if (!$controller->isLoged())
                 	{ 
 	                	?>
-	                	<li<?php echo $controller->_get->toString('action') == 'pjActionLogin' ? ' class="active"' : null;?>><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>register" class="scSelectorLogin"><?php __('front_login'); ?></a></li>
-	                	<li<?php echo $controller->_get->toString('action') == 'pjActionRegister' ? ' class="active"' : null;?>><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>login" class="scSelectorRegister"><?php __('front_register'); ?></a></li>
+	                	<li<?php echo $controller->_get->toString('action') == 'pjActionLogin' ? ' class="active"' : null;?>><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>login" class="scSelectorLogin"><?php __('front_login'); ?></a></li>
+	                	<li<?php echo $controller->_get->toString('action') == 'pjActionRegister' ? ' class="active"' : null;?>><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>register" class="scSelectorRegister"><?php __('front_register'); ?></a></li>
 	                	<?php
                 	}else{
                 		?>
-	                	<li><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>logout" class="scSelectorLogout"><?php __('front_logout'); ?></a></li>
-	                	<li<?php echo $controller->_get->toString('action') == 'pjActionProfile' ? ' class="active"' : null;?>><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>profile" class="scSelectorProfile"><?php __('front_profile'); ?></a></li>
-	                	<li<?php echo in_array($controller->_get->toString('action'), array('pjActionOrdersHistory', 'pjActionOrderDetails'), true) ? ' class="active"' : null;?>><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>orders" class="scSelectorOrdersHistory"><?php echo pjSanitize::html(__('front_orders_history', true) ?: 'My orders'); ?></a></li>
+	                	<li><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>logout" class="scSelectorLogout"><?php __('front_logout'); ?></a></li>
+	                	<li<?php echo $controller->_get->toString('action') == 'pjActionProfile' ? ' class="active"' : null;?>><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>profile" class="scSelectorProfile"><?php __('front_profile'); ?></a></li>
+	                	<li<?php echo in_array($controller->_get->toString('action'), array('pjActionOrdersHistory', 'pjActionOrderDetails'), true) ? ' class="active"' : null;?>><a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>orders" class="scSelectorOrdersHistory"><?php echo pjSanitize::html(__('front_orders_history', true) ?: 'My orders'); ?></a></li>
 	                	<?php
                 	}                	
                 	if(isset($_SESSION[$controller->defaultLangMenu]) && $_SESSION[$controller->defaultLangMenu] == 'show')
@@ -143,7 +147,7 @@
         					{
         						?>
         						<li class="<?php echo $category['children'] > 0 ? 'sub-menu' : '';?>">
-        							<a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" class="scVerticalDropDownMenu">
+        							<a href="<?php echo $storefront_url; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" class="scVerticalDropDownMenu">
         				             	<?php echo pjSanitize::html($category['data']['name']); ?>
         				            </a>
         				            <?php pjUtil::verticalTreeMenuLayout3($tpl['category_arr'], $category, $tpl['option_arr']['o_page_prefix']); ?>
@@ -162,7 +166,7 @@
             	</div>
             	<?php
         		$isCheckoutReady = isset($tpl['price_arr']) && $tpl['price_arr']['status'] == 'OK';
-        		if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+        		if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
         		{
         			$qty = 0;
         			foreach($tpl['cart_arr'] as $v)
@@ -171,15 +175,15 @@
         			}
         			?>
         	      	<div class="btn-group pull-right" role="group" aria-label="...">
-                    	<a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/bookings/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>cart" class="btn btn-default scSelectorViewCart">
+                    	<a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>cart" class="btn btn-default scSelectorViewCart">
                       		<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>
                       		<span class="text-warning"><?php echo $qty; ?></span>
                       		<span class="text-uppercase"><?php $qty !== 1 ? __('front_items') : __('front_item'); ?></span>
                     	</a>
-                    	<a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/bookings/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>cart" class="btn btn-default scSelectorViewCart">
+                    	<a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>cart" class="btn btn-default scSelectorViewCart">
                       		<span class="text-warning"><?php echo pjCurrency::formatPrice($isCheckoutReady ? $tpl['price_arr']['data']['total'] : '0.00'); ?></span>
                     	</a>
-                    	<a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/bookings/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>cart" class="btn btn-default scSelectorViewCart"><?php __('front_cart'); ?></a>
+                    	<a href="<?php echo $storefront_url; ?>/<?php echo $page_prefix_seg; ?>cart" class="btn btn-default scSelectorViewCart"><?php __('front_cart'); ?></a>
                   	</div>  
         			<?php
         		} 
@@ -214,7 +218,7 @@
         			<li class="<?php echo (!$controller->_get->check('category_id') || $controller->_get->toInt('category_id') <= 0) && !in_array($controller->_get->toString('action'),
         				array('pjActionCart', 'pjActionCheckout', 'pjActionPreview', 'pjActionLogin',
         				'pjActionRegister', 'pjActionForgot', 'pjActionFavs', 'pjActionProfile', 'pjActionOrdersHistory', 'pjActionOrderDetails', 'pjActionGetPaymentForm')) ? ' active' : NULL; ?>" role="presentation">
-        				<a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products" class="scDropDownMenu"><?php __('front_all'); ?></a>
+        				<a href="<?php echo $storefront_url; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products" class="scDropDownMenu"><?php __('front_all'); ?></a>
         			</li>
         			
         			<?php
@@ -231,7 +235,7 @@
         					{
         						?>
         						<li class="dropdown<?php echo !isset($ancestor) || $ancestor != $category['data']['id'] ? NULL : ' active'; ?>" role="presentation">
-        							<a aria-expanded="false" role="button" href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-hover="dropdown" class="scDropDownMenu dropdown-toggle">
+        							<a aria-expanded="false" role="button" href="<?php echo $storefront_url; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-href="/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:/category:<?php echo $category['data']['id']; ?>/page:1" data-hover="dropdown" class="scDropDownMenu dropdown-toggle">
         				             	<?php echo pjSanitize::html($category['data']['name']); ?> <span class="caret"></span>
         				            </a>
         				            <?php pjUtil::treeMenuLayout3($tpl['category_arr'], $category, $tpl['option_arr']['o_page_prefix']); ?>
@@ -260,7 +264,7 @@
                     <span class="caret"></span></button>
                     <ul class="dropdown-menu">
                     	<?php foreach ($sort_arr as $k) { ?>
-                      		<li class="<?php echo $sort_by == $k ? 'active' : '';?>"><a href="<?php echo $tpl['option_arr']['o_install_url']; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:<?php echo urlencode($controller->_get->toString('q')); ?>/category:<?php echo $controller->_get->toInt('category_id'); ?>/page:<?php echo $page; ?>/sort:<?php echo $k;?>" class="scSelectorSort" data-sort="<?php echo $k;?>"><?php echo @$label_product_sort_by[$k];?></a></li>
+                      		<li class="<?php echo $sort_by == $k ? 'active' : '';?>"><a href="<?php echo $storefront_url; ?>/<?php echo (!empty($tpl['option_arr']['o_page_prefix'])) ? $tpl['option_arr']['o_page_prefix'] . '-' : ''; ?>products/q:<?php echo urlencode($controller->_get->toString('q')); ?>/category:<?php echo $controller->_get->toInt('category_id'); ?>/page:<?php echo $page; ?>/sort:<?php echo $k;?>" class="scSelectorSort" data-sort="<?php echo $k;?>"><?php echo @$label_product_sort_by[$k];?></a></li>
                       	<?php } ?>
                     </ul>
                   </div>

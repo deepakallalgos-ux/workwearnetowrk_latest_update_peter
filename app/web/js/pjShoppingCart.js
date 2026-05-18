@@ -20,6 +20,9 @@
 		fancybox = (pjQ.$.fn.fancybox !== undefined),
 		dialog = (pjQ.$.fn.dialog !== undefined),
 		routes = [
+			{ pattern: /^\/cart$/, eventName: "loadCart" },
+			{ pattern: /^\/checkout$/, eventName: "loadCheckout" },
+			{ pattern: /^\/preview$/, eventName: "loadPreview" },
 			{ pattern: /^\/bookings\/cart$/, eventName: "loadCart" },
 			{ pattern: /^\/bookings\/checkout$/, eventName: "loadCheckout" },
 			{ pattern: /^\/bookings\/preview$/, eventName: "loadPreview" },
@@ -199,7 +202,7 @@
 		},
 		isStandaloneStorefront: function () {
 			var install, current, suffix,
-				routePattern = /^\/(products|product|favorites|login|register|profile|orders|order|forgot-password|bookings)(\/|$)/i;
+				routePattern = /^\/(products|product|favorites|login|register|profile|orders|order|forgot-password|cart|checkout|preview|bookings)(\/|$)/i;
 
 			install = this.normalizeUrl(this.options.installUrl);
 			current = this.normalizeUrl(window.location.href.split("#")[0].split("?")[0]);
@@ -1083,7 +1086,7 @@
 			this.disableButtons.call(this);
 			pjQ.$.post([this.options.folder, "index.php?controller=pjFrontCart&action=pjActionAdd", "&session_id=", self.options.session_id].join(""), qs).done(function (data) {
 				var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-				self.hashBang("/bookings/" + prefix + "cart");
+				self.hashBang("/" + prefix + "cart");
 			}).fail(function () {
 				self.enableButtons.call(self);
 			});
@@ -1176,7 +1179,7 @@
 							self.disableButtons.call(self);
 
 							var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-							self.hashBang("/bookings/" + prefix + "checkout");
+							self.hashBang("/" + prefix + "checkout");
 							return false;
 						}
 					});
@@ -1266,7 +1269,7 @@
 								pjQ.$.post([self.options.folder, "index.php?controller=pjFrontPublic&action=pjActionCheckout", "&session_id=", self.options.session_id].join(""), $form.serialize()).done(function (data) {
 									if (data.status == "OK") {
 										var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-										self.hashBang("/bookings/" + prefix + "preview");
+										self.hashBang("/" + prefix + "preview");
 									} else if (data.status == "ERR") {
 										$form
 											.find(".scSelectorNoticeMsg")
@@ -1360,7 +1363,7 @@
 								pjQ.$.post([self.options.folder, "index.php?controller=pjFrontPublic&action=pjActionCheckout", "&session_id=", self.options.session_id].join(""), $form.serialize()).done(function (data) {
 									if (data.status == "OK") {
 										var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-										self.hashBang("/bookings/" + prefix + "preview");
+										self.hashBang("/" + prefix + "preview");
 									} else if (data.status == "ERR") {
 										$form
 											.find(".scSelectorNoticeMsg")
@@ -1890,7 +1893,7 @@
 					e.preventDefault();
 				}
 				var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-				self.hashBang("/bookings/" + prefix + "cart");
+				self.hashBang("/" + prefix + "cart");
 				return false;
 
 			}).on("change.sc", ".scSelectorOriginalB", function (e) {
@@ -1945,7 +1948,7 @@
 			}).on("click.sc", ".scSelectorCheckout", function (e) {
 				self.$container.find(".scSelectorCartForm").trigger("submit");
 				// var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-				//self.hashBang("/bookings/" + prefix + "checkout");
+				//self.hashBang("/" + prefix + "checkout");
 			}).on("click.sc", ".scSelectorTerms", function (e) {
 				if (e && e.preventDefault) {
 					e.preventDefault();
@@ -2010,7 +2013,7 @@
 				}
 			}).on("click.sc", ".scSelectorEditOrder", function () {
 				var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
-				self.hashBang("/bookings/" + prefix + "checkout");
+				self.hashBang("/" + prefix + "checkout");
 
 				// Front Accounts
 			}).on("click.sc", ".scSelectorLogin", function (e) {

@@ -191,7 +191,7 @@ if (isset($tpl['product_arr']) && !empty($tpl['product_arr']))
 			     		?>
 			     		<div aria-label="Default button group" role="group" class="btn-group">
 				     		<?php
-				     		if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+				     		if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 				     		{
 				     			?>
 				     			<form action="" method="post" class="scSelectorBuyNowForm" style="display: inline; vertical-align: top">
@@ -227,7 +227,7 @@ if (isset($tpl['product_arr']) && !empty($tpl['product_arr']))
 				      	</div>
 			     		<?php	
 			     	}else{
-		     			if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+		     			if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 		     			{
 		     				?>
 		     				<button class="btn btn-primary pjScBtnPrimary" disabled="disabled" type="button"><?php __('front_out_of_stock'); ?></button>

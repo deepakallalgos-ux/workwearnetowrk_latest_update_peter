@@ -188,7 +188,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 						<?php endif; ?>
 				
 						<?php
-						if ((int) $tpl['option_arr']['o_disable_payments'] !== 1)
+						if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_payments'))
 						{
 							$payment_methods = __('payment_methods', true);
 							$cc_types = __('cc_types', true);

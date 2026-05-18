@@ -58,7 +58,7 @@ class pjFrontPublic extends pjFront
 			if ($is_ip_blocked == true) {
 				$this->set('status', 'IP_BLOCKED');
 			} else {
-				if (!$this->cart->isEmpty() && (int) $this->option_arr['o_disable_orders'] === 0) {
+				if (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
 					$data = $this->pjActionGetCart();
 
 					if (isset($_SESSION[$this->defaultTax]) && (int) $_SESSION[$this->defaultTax] > 0) {
@@ -115,7 +115,7 @@ class pjFrontPublic extends pjFront
 					$_SESSION[$this->defaultForm] = $this->_post->raw();
 					pjAppController::jsonResponse(array('status' => 'OK', 'code' => 211, 'text' => __('system_211', true)));
 				} else {
-					if (!$this->cart->isEmpty() && (int) $this->option_arr['o_disable_orders'] === 0) {
+					if (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
 						if (
 							$this->pjActionShowShipping() && (!isset($_SESSION[$this->defaultTax]) || empty($_SESSION[$this->defaultTax])) &&
 							0 < pjTaxModel::factory()->findCount()->getData()
@@ -240,7 +240,7 @@ class pjFrontPublic extends pjFront
 			if ($is_ip_blocked == true) {
 				$this->set('status', 'IP_BLOCKED');
 			} else {
-				if (!$this->cart->isEmpty() && (int) $this->option_arr['o_disable_orders'] === 0) {
+				if (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
 					if (
 						$this->pjActionShowShipping() && (!isset($_SESSION[$this->defaultTax]) || empty($_SESSION[$this->defaultTax])) &&
 						0 < pjTaxModel::factory()->findCount()->getData()

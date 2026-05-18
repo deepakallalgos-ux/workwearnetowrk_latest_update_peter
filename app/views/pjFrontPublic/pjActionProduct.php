@@ -184,7 +184,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 										<?php
 									}
 								}
-								if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+								if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 								{
 									?>
 									<div class="scProductAttrBox">
@@ -286,7 +286,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 									?></div><?php
 								}
 							} else {
-								if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+								if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 								{
 									?><span class="scProductOutOfStock"><?php __('front_out_of_stock'); ?></span><?php
 								}

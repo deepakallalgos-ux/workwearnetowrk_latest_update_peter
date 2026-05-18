@@ -451,7 +451,7 @@
         					}
 						} 
 					}
-					if ((int) $tpl['option_arr']['o_disable_payments'] !== 1)
+					if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_payments'))
 					{
 						$payment_methods = $tpl['payment_titles'];
 						?>

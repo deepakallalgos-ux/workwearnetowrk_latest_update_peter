@@ -442,7 +442,7 @@
 					    <?php 
 					}
 					
-					if ((int) $tpl['option_arr']['o_disable_payments'] !== 1)
+					if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_payments'))
 					{
 						?>
 						<div class="panel panel-default">
