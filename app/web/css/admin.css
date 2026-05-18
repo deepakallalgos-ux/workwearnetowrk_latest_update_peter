@@ -1,0 +1,141 @@
+@CHARSET "UTF-8";
+/* Custom CSS */
+.ibox-heading { background-color: #f0f9f1 !important; }
+.hideEm .has-error .help-block,
+.hideEm em{display: none !important;}
+.pj-grid .table-responsive-actions .btn{padding: 6px 3px;}
+@media (max-width:1600px){
+	.timeline-item .badge { margin-bottom: 15px; }
+}
+.tox.tox-silver-sink{z-index: 9999;}
+.arrow_down .fa,
+.arrow_up .fa{font-size: 20px;}
+
+.tabs-product-info .pjProductAttr.disabled{pointer-events: none; filter: alpha(opacity=65);opacity: .65;}
+
+
+/********Gallery************/
+span.pj-button-down {
+    width: 14px !important;
+}
+.gallery-item{
+	background-color: #fdfdfd;
+	float: left;
+	width: 100px;
+	height: 140px;
+	margin: 0 5px 5px 0;
+	text-align: center;
+}
+.gallery-image{
+	cursor: move;
+	margin: 0 !important;
+}
+.gallery-image a.image{
+	cursor: move;
+}
+.gallery-image img{
+	border: solid 1px #ccc;
+	padding: 1px;
+	margin: 7px 0 0 0;
+}
+.cropper-container{
+	width: 100% !important;
+}
+.plugin_gallery_rotate_actions{margin: 0 0 0 0 !important;}
+.plugin_gallery_btn_icon i{font-size: 16px;}
+.pj-edit-gallery .form-group{overflow: hidden;}
+.pj-menu-list{list-style-type: none;}
+
+.attrBoxRowItems .pjScAttrItem{float: left; width: 70%;}
+.attrBoxRowItems .item-move-icon,
+.attrBoxRowItems .btnAttrRemove,
+.attrBoxRowItems .btnAttrGroupRemove,
+.attrBoxRowItems .btnAttrDelete{margin-left: 5px; margin-top: 2px;}
+.select2-container .select2-selection--multiple{height: unset !important;}
+.stock-image{
+	display: inline-block;
+	margin: 0 5px 5px 0;
+}
+.stock-image img,
+.in-stock{
+	padding: 1px;
+	border: solid 1px #ccc;
+}
+.stock-image img.current{
+	border: solid 1px #003399;
+}
+#product-similar .ibox-content{padding: 0; border: none;}
+.autocompleter {
+    width: 100%;
+    display: none;
+    background: #fff;
+    z-index: 10;
+   	border: 1px solid rgba(0,0,0,.15);
+   	border-radius: 4px;
+}
+
+.autocompleter-show {
+    display: block;
+}
+
+.autocompleter,
+.autocompleter-hint {
+    position: absolute;
+}
+
+.autocompleter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.autocompleter-item {
+    cursor: pointer;
+    padding: 5px;
+}
+
+.autocompleter-item:hover {
+    /* Hover State */
+	/*background-color: #337ab7;
+	color: #fff;*/
+}
+
+.autocompleter-item-selected {
+    /* Selected State */
+	/*background-color: #337ab7;
+	color: #fff;*/
+}
+
+.autocompleter-item strong {
+    /* Highlight Matches */
+}
+
+.autocompleter-hint {
+    width: 100%;
+    display: none;
+
+    /** Need absolute position over input text */
+}
+
+.autocompleter-hint-show {
+    display: block;
+}
+
+.autocompleter-hint span {
+    color: transparent;
+}
+.bg-new {
+  background-color: #329ACF;
+  border-color: #329ACF;
+  color: #fff;
+}
+#stockAddModal label{font-weight: normal;}
+#stockAddModal .select2-container{z-index: 2200;}
+#frmUpdateOrder .ibox-content{border: 0; padding: 0;}
+.boxAddress{
+	border-bottom: 1px solid #e7eaec;
+	margin: 0 0 20px 0;
+	padding-bottom: 10px;
+}

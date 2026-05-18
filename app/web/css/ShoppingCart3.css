@@ -1,0 +1,1343 @@
+@CHARSET "UTF-8";
+
+.scContainer {
+	margin-top: 10px;
+}
+
+.dropdown-menu {
+	margin-top: 0px !important;
+}
+
+.dropdown-submenu {
+	position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+	top: 0;
+	left: 100%;
+	margin-top: -6px;
+	margin-left: -1px;
+	-webkit-border-radius: 0 6px 6px 6px;
+	-moz-border-radius: 0 6px 6px;
+	border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+	display: block;
+}
+
+.dropdown-submenu>a:after {
+	display: block;
+	content: " ";
+	float: right;
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 5px 0 5px 5px;
+	border-left-color: #ccc;
+	margin-top: 5px;
+	margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+	border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+	float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+	left: -100%;
+	margin-left: 10px;
+	-webkit-border-radius: 6px 0 6px 6px;
+	-moz-border-radius: 6px 0 6px 6px;
+	border-radius: 6px 0 6px 6px;
+}
+
+.dropdown:hover>.dropdown-menu {
+	display: block;
+}
+
+.form-group.required label.control-label:after {
+	content: " *";
+	color: #a94442;
+}
+
+.form-group.required label.error {
+	color: #a94442;
+	font-weight: normal;
+	padding-left: 0px !important;
+}
+
+.scSelectorAddresses .scAddressHolder {
+	border-bottom: 2px solid #ddd;
+	padding-bottom: 10px;
+	margin-bottom: 14px;
+}
+
+.scSelectorAddresses .scAddressHolder:last-child {
+	border-bottom: none;
+	padding-bottom: 0px;
+	margin-bottom: 0px;
+}
+
+.modal-backdrop.fade {
+	opacity: 0;
+	filter: alpha(opacity=0);
+}
+
+.modal-backdrop.fade.in {
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+}
+
+.pjScHeader .pjScLocale img {
+	display: block;
+	float: left;
+	margin-right: 4px;
+	margin-top: 5px;
+}
+
+#pjWrapper .dropdown-menu>li>a {
+	padding-left: 15px;
+	padding-right: 28px;
+}
+
+/* ==========================================================================
+    #pjScEmptyCategoryMessage
+========================================================================== */
+#pjWrapper .pjScEmptyCategoryMessage {
+	padding: 0 15px;
+}
+
+#pjWrapper .pjScProduct .pjScProductImage {
+	margin: 0 auto;
+	width: 100%;
+}
+
+#pjWrapper label.scError {
+	color: #a94442 !important;
+	font-weight: normal !important;
+}
+
+#pjWrapper .scMaximumItems {
+	display: none;
+}
+
+[id^="pjWrapper"] .col-lg-1,
+[id^="pjWrapper"] .col-lg-10,
+[id^="pjWrapper"] .col-lg-11,
+[id^="pjWrapper"] .col-lg-12,
+[id^="pjWrapper"] .col-lg-2,
+[id^="pjWrapper"] .col-lg-3,
+[id^="pjWrapper"] .col-lg-4,
+[id^="pjWrapper"] .col-lg-5,
+[id^="pjWrapper"] .col-lg-6,
+[id^="pjWrapper"] .col-lg-7,
+[id^="pjWrapper"] .col-lg-8,
+[id^="pjWrapper"] .col-lg-9,
+[id^="pjWrapper"] .col-md-1,
+[id^="pjWrapper"] .col-md-10,
+[id^="pjWrapper"] .col-md-11,
+[id^="pjWrapper"] .col-md-12,
+[id^="pjWrapper"] .col-md-2,
+[id^="pjWrapper"] .col-md-3,
+[id^="pjWrapper"] .col-md-4,
+[id^="pjWrapper"] .col-md-5,
+[id^="pjWrapper"] .col-md-6,
+[id^="pjWrapper"] .col-md-7,
+[id^="pjWrapper"] .col-md-8,
+[id^="pjWrapper"] .col-md-9,
+[id^="pjWrapper"] .col-sm-1,
+[id^="pjWrapper"] .col-sm-10,
+[id^="pjWrapper"] .col-sm-11,
+[id^="pjWrapper"] .col-sm-12,
+[id^="pjWrapper"] .col-sm-2,
+[id^="pjWrapper"] .col-sm-3,
+[id^="pjWrapper"] .col-sm-4,
+[id^="pjWrapper"] .col-sm-5,
+[id^="pjWrapper"] .col-sm-6,
+[id^="pjWrapper"] .col-sm-7,
+[id^="pjWrapper"] .col-sm-8,
+[id^="pjWrapper"] .col-sm-9,
+[id^="pjWrapper"] .col-xs-1,
+[id^="pjWrapper"] .col-xs-10,
+[id^="pjWrapper"] .col-xs-11,
+[id^="pjWrapper"] .col-xs-12,
+[id^="pjWrapper"] .col-xs-2,
+[id^="pjWrapper"] .col-xs-3,
+[id^="pjWrapper"] .col-xs-4,
+[id^="pjWrapper"] .col-xs-5,
+[id^="pjWrapper"] .col-xs-6,
+[id^="pjWrapper"] .col-xs-7,
+[id^="pjWrapper"] .col-xs-8,
+[id^="pjWrapper"] .col-xs-9 {
+	position: inherit !important;
+	;
+}
+
+#pjWrapper .scSelectorProductForm label.error {
+	color: #a94442;
+	font-weight: normal;
+}
+
+#pjWrapper .pjScProducts .pjScProductName {
+	display: block;
+	line-height: 21px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#pjWrapper .pjScProducts .pjScProductName a {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pjScEyeIcon:hover {
+	cursor: pointer;
+}
+
+#pjWrapper .pjScProductDetails p.text-indent {
+	padding-left: 30px;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductImage {
+	text-align: center;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductImage img {
+	display: inline-block;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages {
+	position: relative;
+	overflow: hidden;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .pjScProductDefaultGalleryImage {
+	position: relative;
+	z-index: 2;
+	transition: opacity 0.25s ease;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 3;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .scSelectorAddFavFromProductsList,
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .scSelectorRemoveFavFromProductsList {
+	position: absolute;
+	top: 0;
+	right: 5px;
+	z-index: 10;
+	font-size: 25px;
+	padding: 0;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav {
+	display: none;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav {
+	font-size: 17px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav .owl-prev {
+	position: absolute;
+	top: 43%;
+	left: 5px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav .owl-next {
+	position: absolute;
+	top: 43%;
+	right: 5px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel.owl-carousel-hidden {
+	opacity: 0;
+	visibility: hidden;
+	height: auto;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel.owl-carousel-active {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+/* Listing buttons only — keep Bootstrap column grid intact */
+#pjWrapper .pjScProducts .pjScProduct > .btn-group {
+	display: block;
+	width: 100%;
+	margin-top: 10px;
+	clear: both;
+}
+
+#pjWrapper .pjScProducts .pjScProduct > .btn-group > form.scSelectorBuyNowForm {
+	display: flex !important;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 8px;
+	width: 100%;
+	margin: 0 !important;
+	vertical-align: top !important;
+}
+
+#pjWrapper .pjScProducts .pjScProduct > .btn-group > form.scSelectorBuyNowForm > .btn,
+#pjWrapper .pjScProducts .pjScProduct > .btn-group > form.scSelectorBuyNowForm > .scSelectorProduct {
+	flex: 1 1 0;
+	min-width: 0;
+	float: none !important;
+	margin: 0 !important;
+	white-space: normal;
+	text-align: center;
+}
+
+#pjWrapper .pjScProducts .pjScProduct > .btn-group .btn + .btn {
+	margin-left: 0;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .pjScProductAttributes {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	background: rgba(255, 255, 255, 0.95);
+	width: 100%;
+	text-align: left;
+	padding: 12px 10px;
+	transition: opacity 0.25s ease, visibility 0.25s ease;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	margin-bottom: 0;
+	z-index: 4;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .pjScProductAttributes.show {
+	opacity: 1;
+	visibility: visible;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-item img {
+	font-size: 0;
+	color: transparent;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductShortDesc {
+	margin: 10px 0;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductViewFullDesc {
+	margin-bottom: 15px;
+	text-decoration: underline;
+	display: block;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs {
+	margin: 10px 0 20px 0;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs .scSelectorProductThumb {
+	display: block;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs .scSelectorProductThumb img {
+	border-radius: 5px;
+}
+
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper {
+	width: 100%;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-slide {
+	text-align: center;
+	font-size: 18px;
+	background: #fff;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-slide img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+#pjWrapper .pjScProductDetails .pjScSeeMoreOnMobile .pjScProductInfo {
+	position: relative;
+}
+
+#pjWrapper .pjScProductDetails .pjScSeeMoreOnMobile .pjScProductInfo .pjScCloseSeeMoreOnMobile {
+	position: absolute;
+	font-size: 25px;
+	right: 5px;
+	top: 5px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch {
+	padding-top: 4px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch a {
+	font-size: 20px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch .pjScToggleSearch {
+	padding-left: 5px;
+}
+
+#pjWrapper .pjScBar .pjScSearchFormContainer {
+	display: block;
+}
+
+#pjWrapper .pjScSort {
+	position: relative;
+}
+
+#pjWrapper .pjScSort .btn {
+	font-weight: normal;
+	text-transform: inherit;
+}
+
+#pjWrapper .pjScSort .dropdown .dropdown-menu {
+	right: 0;
+	left: unset;
+	padding: 0;
+}
+
+/* ── Afbeelding overlay badges ── */
+
+/* Badge stapel container — linksboven */
+.sc-badge-stack {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 5px;
+	pointer-events: none;
+}
+
+/* Kortingsbadge op afbeelding */
+.sc-image-badge {
+	display: inline-block;
+	background-color: var(--accentColor);
+	color: #fff;
+	font-size: 0.82em;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 50px;
+	letter-spacing: 0.3px;
+	line-height: 1.4;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
+}
+
+/* Product badge (configureerbaar) */
+.sc-product-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 50px;
+	color: #fff;
+	font-size: 0.78em;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+	line-height: 1.4;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
+}
+
+/* Automatic “Digital product” badge (when is_digital=1) —
+   dark readable text, same dimensions/style as .sc-product-badge */
+.sc-product-badge--digital {
+	background: #1e293b;
+	color: #fff;
+}
+
+/* Automatic rental badges (Rent / Buy or rent) — use branding colours so they
+   follow the storefront theme. Rent = brandColor; Buy-or-rent = accentColor so
+   hybrid products stay visually distinct. */
+.sc-product-badge--rental {
+	background: var(--brandColor, #0a5114);
+	color: #fff;
+}
+
+.sc-product-badge--rental.sc-product-badge--hybrid,
+.sc-product-badge--hybrid {
+	background: var(--accentColor, #f7148b);
+	color: #fff;
+}
+
+/* Product gallery: position relative for overlay badges */
+.pjScProductGallery {
+	position: relative;
+}
+
+
+/* Product gallery: position relative for overlay badges */
+.pjScProductGallery {
+	position: relative;
+}
+
+/* Related products: image wrapper */
+.sc-similar-image-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+/* ── Placeholder when product image is missing ── */
+/*
+   Aspect ratio is set inline via PJ_GALLERY_MEDIUM (listing) or
+   PJ_GALLERY_PRODUCT (detail) so the placeholder matches the sizes configured
+   under System > Images.
+*/
+.sc-noimg-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	background: var(--surfaceSubtle, #f5f3fa);
+	border: 1px dashed var(--borderColor, #e8e4ef);
+	border-radius: 12px;
+	color: var(--brandColor, #0a5114);
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.sc-noimg-placeholder svg {
+	width: 38%;
+	max-width: 96px;
+	height: auto;
+	opacity: 0.45;
+}
+
+.sc-noimg-placeholder--detail {
+	border-radius: 16px;
+}
+
+.sc-noimg-placeholder--similar svg {
+	max-width: 56px;
+}
+
+/* ── Product Gallery: main image + thumbnail strip ── */
+
+/* Gallery container */
+#pjWrapper .pjScProductDetails .pjScProductGallery {
+	position: relative;
+}
+
+/* Grote hoofdafbeelding */
+.sc-gallery-main {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	border-radius: 12px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.sc-gallery-main-img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.sc-gallery-main-link {
+	display: block;
+}
+
+/* Zoom icon overlay on hover */
+.sc-gallery-zoom {
+	position: absolute;
+	bottom: 12px;
+	right: 12px;
+	width: 36px;
+	height: 36px;
+	background: rgba(255, 255, 255, 0.85);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
+	color: var(--textSecondary, #4a4a68);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+}
+
+.sc-gallery-main:hover .sc-gallery-zoom {
+	opacity: 1;
+}
+
+/* Thumbnail strip */
+.sc-gallery-thumbs {
+	display: flex;
+	gap: 8px;
+	margin-top: 10px;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	-webkit-overflow-scrolling: touch;
+	padding-bottom: 4px;
+}
+
+/* Verberg scrollbar maar behoud functionaliteit */
+.sc-gallery-thumbs::-webkit-scrollbar {
+	height: 0;
+	display: none;
+}
+
+.sc-gallery-thumbs {
+	scrollbar-width: none;
+}
+
+.sc-gallery-thumb {
+	flex: 0 0 auto;
+	width: 72px;
+	height: 72px;
+	border-radius: 8px;
+	overflow: hidden;
+	cursor: pointer;
+	border: 2px solid transparent;
+	transition: border-color 0.2s ease, opacity 0.2s ease;
+	scroll-snap-align: start;
+	opacity: 0.6;
+}
+
+.sc-gallery-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sc-gallery-thumb:hover {
+	opacity: 0.85;
+}
+
+.sc-gallery-thumb.active {
+	border-color: var(--brandColor);
+	opacity: 1;
+}
+
+/* ── Responsief: mobiel ── */
+@media (max-width: 767px) {
+	.sc-gallery-thumb {
+		width: 56px;
+		height: 56px;
+	}
+
+	.sc-gallery-thumbs {
+		gap: 6px;
+		margin-top: 8px;
+	}
+
+	.sc-gallery-zoom {
+		display: none;
+	}
+}
+
+@media only screen and (max-width: 480px) {
+	#pjWrapper .pjScBar .btn-group .btn {
+		padding: 6px 6px;
+	}
+}
+
+@media only screen and (max-width: 520px) {
+
+	/* ==========================================================================
+        #Product
+    ========================================================================== */
+	#pjWrapper .pjScProducts .pjScProduct > .btn-group > form.scSelectorBuyNowForm {
+		flex-direction: column;
+	}
+
+	#pjWrapper .pjScProduct .pjScBtnPrimary {
+		margin-bottom: 5px;
+	}
+}
+
+@media only screen and (max-width: 767px) {
+
+	/* ==========================================================================
+        #Product
+    ========================================================================== */
+	#pjWrapper .pjScBar .pjScCloseToggleWrap {
+		position: absolute;
+		right: 7px;
+		top: 3px;
+	}
+
+	#pjWrapper .pjScBar .pjScCloseToggleWrap a {
+		font-size: 25px
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer {
+		background: #fff;
+		position: fixed;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		left: 0;
+		padding: 35px 15px 15px 15px;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories {
+		margin: 0;
+		padding: 0;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li {
+		list-style: none;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li a {
+		font-size: 17px;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li a:hover {
+		text-decoration: none;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li ul {
+		padding-left: 25px;
+	}
+
+	#pjWrapper .pjScBar .pjScSearchFormContainer {
+		background: #fff;
+		position: fixed;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		left: 0;
+		display: none;
+		padding: 35px 15px 15px 15px;
+	}
+
+	#pjWrapper .pjScProducts .pjScProduct .pjScProductImages {
+		margin: 0 auto;
+	}
+}
+
+@media only screen and (max-width: 991px) {
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+		height: 400px;
+	}
+}
+
+
+@media only screen and (min-width: 992px) {
+	#pjWrapper .pjScProductDetails .pjScProductGallery {
+		width: 100%;
+		height: 100%;
+		position: relative;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+		height: 100%;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper .swiper-slide {
+		display: block;
+		width: 50% !important;
+		padding: 0 0 2px 2px;
+		margin: 0;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper .swiper-slide img {
+		max-width: 100%;
+	}
+}
+
+/* === CSS variable definitions for orders pages (Workwear theme colours) === */
+/* These variables mirror what Peter's theme1.css defines, using Workwear's brand palette */
+#pjWrapper .pjScOrdersHistory,
+#pjWrapper .pjScOrderDetails {
+  --brandColor: #3086d1;
+  --brandColorDark: #1b6aac;
+  --brandColorLight: #5aa3e0;
+  --brandColorUltraLight: #e8f2fc;
+  --brandAlpha06: rgba(48, 134, 209, 0.06);
+  --accentColor: #56af31;
+  --successColor: #0f9d58;
+  --errorColor: #d73e31;
+  --textPrimary: #1a1a2e;
+  --textSecondary: #4a4a68;
+  --textMuted: #5a5a78;
+  --borderColor: #ddd;
+  --radiusSm: 4px;
+  --radiusMd: 8px;
+  --radiusPill: 50px;
+  --transitionFast: 0.15s ease;
+  --surfaceBase: #ffffff;
+  --surfaceSubtle: #f8f8f8;
+  --shadowSm: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* === Front: orders history & order details (ported from Peter theme1) === */
+#pjWrapper .pjScOrdersHistory a {
+  color: var(--brandColor);
+}
+#pjWrapper .pjScOrdersHistory a:hover {
+  color: var(--brandColorDark);
+}
+
+/* Heading */
+#pjWrapper .pjScOrdersHistory h2 {
+  color: var(--textPrimary);
+  font-weight: 700;
+}
+
+/* Orders table: keep all columns visible with horizontal scroll on small screens */
+#pjWrapper .pjScOrdersHistory .table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#pjWrapper .pjScOrdersHistory .table {
+  min-width: 960px;
+  margin-bottom: 0;
+}
+#pjWrapper .pjScOrdersHistory .table > thead > tr > th {
+  color: var(--textPrimary);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid var(--borderColor);
+  padding: 10px 8px;
+}
+#pjWrapper .pjScOrdersHistory .table > tbody > tr > td {
+  color: var(--textPrimary);
+  vertical-align: middle;
+  border-top-color: var(--borderColor);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 10px 8px;
+}
+#pjWrapper .pjScOrdersHistory .table > tbody > tr > td strong {
+  font-size: 12.5px;
+}
+#pjWrapper .pjScOrdersHistory .table > tbody > tr > td small {
+  font-size: 11px;
+}
+#pjWrapper .pjScOrdersHistory .table > tbody > tr:hover > td {
+  background: var(--brandAlpha06);
+}
+
+/* Actie-knoppen: icoon-only, ronde paarse pillen — consistente stijl */
+#pjWrapper .pjScOrdersHistory .sc-oh-actions {
+  white-space: nowrap;
+}
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--brandColorUltraLight);
+  color: var(--brandColor);
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background var(--transitionFast), color var(--transitionFast), border-color var(--transitionFast);
+}
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn:hover,
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn:focus {
+  background: var(--brandColor);
+  color: #fff;
+  text-decoration: none;
+}
+/* Primary actie (Detail bekijken) — gevuld paars als visuele highlight */
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn--primary {
+  background: var(--brandColor);
+  color: #fff;
+}
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn--primary:hover,
+#pjWrapper .pjScOrdersHistory .sc-oh-action-btn--primary:focus {
+  background: var(--brandColorDark);
+  color: #fff;
+}
+
+/* ==========================================================================
+   Frontend Status Labels — gebruikt Template styling kleuren
+========================================================================== */
+#pjWrapper .pjScOrdersHistory .sc-status-label {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: var(--radiusSm);
+  color: #fff;
+  background: var(--brandColor);
+}
+/* Iconen binnen labels */
+#pjWrapper .pjScOrdersHistory .sc-status-label .glyphicon {
+  margin-right: 4px;
+  font-size: 11px;
+}
+
+/* Status varianten — fulfilment + status share dezelfde kleurpalet */
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-brand,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-processing {
+  background: var(--brandColor);
+}
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-brand-dark,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-pending,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-out_for_delivery,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-ready_for_pickup,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-shipped {
+  background: var(--brandColorDark);
+}
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-accent,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-new {
+  background: var(--accentColor);
+}
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-success,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-completed,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-delivered,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-picked_up {
+  background: var(--successColor);
+}
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-error,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-cancelled,
+#pjWrapper .pjScOrdersHistory .sc-status-label.sc-status-refunded {
+  background: var(--errorColor);
+}
+
+/* Paginatie paurs */
+#pjWrapper .pjScOrdersHistory .pagination > li > a,
+#pjWrapper .pjScOrdersHistory .pagination > li > span {
+  color: var(--brandColor);
+  border-color: var(--borderColor);
+  border-radius: var(--radiusSm);
+  margin: 0 2px;
+}
+#pjWrapper .pjScOrdersHistory .pagination > .active > a,
+#pjWrapper .pjScOrdersHistory .pagination > .active > span {
+  background: var(--brandColor);
+  border-color: var(--brandColor);
+  color: #fff;
+}
+#pjWrapper .pjScOrdersHistory .pagination > li > a:hover {
+  background: var(--brandColorUltraLight);
+  border-color: var(--brandColor);
+  color: var(--brandColorDark);
+}
+
+/* ==========================================================================
+   Order Details
+========================================================================== */
+#pjWrapper .pjScOrderDetails {
+  padding: 0 15px;
+  max-width: 860px;
+}
+
+/* Product images */
+#pjWrapper .pjScOrderDetails .sc-od-img-cell {
+  width: 72px;
+  min-width: 72px;
+  vertical-align: middle;
+  padding-right: 0 !important;
+}
+#pjWrapper .pjScOrderDetails .product-img-larg {
+  width: 64px !important;
+  height: 64px !important;
+  object-fit: cover;
+  border-radius: 8px;
+  aspect-ratio: 1;
+}
+
+/* Product table overrides */
+#pjWrapper .pjScOrderDetails thead th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--textPrimary);
+  text-transform: uppercase;
+}
+#pjWrapper .pjScOrderDetails .product-name {
+  color: var(--textPrimary);
+  font-weight: 700;
+  font-size: 15px;
+}
+#pjWrapper .pjScOrderDetails .sc-od-attr {
+  font-size: 13px;
+  color: var(--brandColor);
+  margin-top: 2px;
+}
+#pjWrapper .pjScOrderDetails .sc-od-unit-price {
+  color: var(--textPrimary);
+  font-weight: 600;
+}
+#pjWrapper .pjScOrderDetails .sc-current-price {
+  color: var(--brandColor);
+  font-weight: 700;
+}
+#pjWrapper .pjScOrderDetails .sc-od-extra-name {
+  color: var(--textSecondary);
+  font-size: 13px;
+}
+#pjWrapper .pjScOrderDetails .sc-od-extra-price {
+  color: var(--textSecondary);
+  font-size: 13px;
+}
+
+/* Back link */
+#pjWrapper .sc-od-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--textSecondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 20px;
+  transition: color var(--transitionFast);
+}
+#pjWrapper .sc-od-back:hover {
+  color: var(--brandColor);
+}
+
+/* Header card */
+#pjWrapper .sc-od-header {
+  background: var(--surfaceBase);
+  border: 1px solid var(--borderColor);
+  border-radius: var(--radiusMd);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadowSm);
+}
+#pjWrapper .sc-od-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+#pjWrapper .sc-od-order-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--textPrimary);
+  letter-spacing: -0.02em;
+}
+#pjWrapper .sc-od-order-date {
+  font-size: 14px;
+  color: var(--textPrimary);
+  margin-top: 4px;
+}
+#pjWrapper .sc-od-date-label {
+  color: var(--textSecondary);
+  font-weight: 500;
+}
+
+/* Status badge */
+#pjWrapper .sc-od-status {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: var(--radiusPill);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#pjWrapper .sc-od-status--success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+#pjWrapper .sc-od-status--warning {
+  background: #fff3e0;
+  color: #e65100;
+}
+#pjWrapper .sc-od-status--danger {
+  background: #fce4ec;
+  color: #c62828;
+}
+#pjWrapper .sc-od-status--info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+#pjWrapper .sc-od-status--default {
+  background: var(--surfaceSubtle);
+  color: var(--textSecondary);
+}
+
+/* Meta row */
+#pjWrapper .sc-od-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borderColor);
+}
+#pjWrapper .sc-od-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--textPrimary);
+}
+#pjWrapper .sc-od-meta-item svg {
+  flex-shrink: 0;
+  color: var(--brandColor);
+  opacity: 0.7;
+}
+#pjWrapper .sc-od-pay-link {
+  color: var(--brandColor);
+  font-weight: 600;
+  text-decoration: none;
+}
+#pjWrapper .sc-od-pay-link:hover {
+  color: var(--brandColorDark);
+  text-decoration: underline;
+}
+#pjWrapper .sc-od-invoice-link {
+  color: var(--brandColor);
+  font-weight: 600;
+  text-decoration: none;
+}
+#pjWrapper .sc-od-invoice-link:hover {
+  color: var(--brandColorDark);
+  text-decoration: underline;
+}
+#pjWrapper .sc-od-actions--top {
+  margin-bottom: 16px;
+  justify-content: flex-start;
+}
+
+/* Card */
+#pjWrapper .sc-od-card {
+  background: var(--surfaceBase);
+  border: 1px solid var(--borderColor);
+  border-radius: var(--radiusMd);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadowSm);
+}
+#pjWrapper .sc-od-card--compact {
+  padding: 20px 24px;
+}
+#pjWrapper .sc-od-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--textPrimary);
+  margin-bottom: 12px;
+}
+
+/* Totals */
+#pjWrapper .sc-od-totals {
+  border-top: 2px solid var(--borderColor);
+  padding-top: 16px;
+  /* Totaalblok rechts uitgelijnd met max-width zodat label/bedrag dichter bij elkaar staan */
+  max-width: 380px;
+  margin-left: auto;
+}
+#pjWrapper .sc-od-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--textPrimary);
+}
+#pjWrapper .sc-od-total-row span:last-child {
+  font-weight: 600;
+  white-space: nowrap;
+}
+#pjWrapper .sc-od-total-row--grand {
+  border-top: 2px solid var(--borderColor);
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--textPrimary);
+}
+#pjWrapper .sc-od-total-row--grand span:last-child {
+  color: var(--brandColor);
+}
+
+/* Korting in groen — zelfde patroon als price.php */
+#pjWrapper .sc-od-total-row .sc-summary-discount {
+  color: var(--successColor);
+}
+
+/* "Waarvan BTW" footer onder totaal — alleen bij incl. BTW mode */
+#pjWrapper .sc-od-vat-footer {
+  margin-top: 6px;
+  padding-top: 4px;
+}
+#pjWrapper .sc-od-vat-footer-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--textMuted);
+}
+#pjWrapper .sc-od-vat-footer-line span:last-child {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Voucher */
+#pjWrapper .sc-od-voucher-code {
+  display: inline-block;
+  padding: 6px 14px;
+  background: var(--brandColorUltraLight);
+  color: var(--brandColor);
+  border-radius: var(--radiusSm);
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Notes */
+#pjWrapper .sc-od-notes {
+  font-size: 14px;
+  color: var(--textPrimary);
+  line-height: 1.6;
+}
+
+/* Field grid (custom fields) */
+#pjWrapper .sc-od-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+#pjWrapper .sc-od-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--textSecondary);
+  margin-bottom: 2px;
+}
+#pjWrapper .sc-od-field-value {
+  font-size: 14px;
+  color: var(--textPrimary);
+  font-weight: 500;
+}
+
+/* Address grid */
+#pjWrapper .sc-od-address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+#pjWrapper .sc-od-address-grid--single {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+}
+#pjWrapper .sc-od-address {
+  font-size: 14px;
+  color: var(--textPrimary);
+  line-height: 1.7;
+}
+#pjWrapper .sc-od-address-name {
+  font-weight: 600;
+}
+#pjWrapper .sc-od-address-country {
+  color: var(--textPrimary);
+}
+
+/* Actions */
+#pjWrapper .sc-od-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+#pjWrapper .sc-od-actions .pjScBtnSecondary,
+#pjWrapper .sc-od-actions .pjScBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+#pjWrapper .sc-od-actions .pjScBtnPrimary svg,
+#pjWrapper .sc-od-actions .pjScBtnSecondary svg {
+  flex-shrink: 0;
+}
+
+/* Empty state */
+#pjWrapper .sc-od-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--textSecondary);
+}
+#pjWrapper .sc-od-empty svg {
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+#pjWrapper .sc-od-empty p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  #pjWrapper .pjScOrderDetails {
+    padding: 0 10px;
+  }
+  #pjWrapper .sc-od-header {
+    padding: 16px;
+  }
+  #pjWrapper .sc-od-header-main {
+    flex-direction: column;
+    gap: 12px;
+  }
+  #pjWrapper .sc-od-header-meta {
+    gap: 10px;
+    flex-direction: column;
+  }
+  #pjWrapper .sc-od-card {
+    padding: 16px;
+  }
+  /* Product table uses pjScCart-page responsive from ShoppingCart3.css */
+  #pjWrapper .sc-od-address-grid {
+    grid-template-columns: 1fr;
+  }
+  #pjWrapper .sc-od-field-grid {
+    grid-template-columns: 1fr;
+  }
+  #pjWrapper .sc-od-total-row--grand {
+    font-size: 16px;
+  }
+}

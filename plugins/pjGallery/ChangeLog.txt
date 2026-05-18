@@ -1,0 +1,87 @@
+Version 1.6.3
+---------------------------------------
+	- Fix for crop for thumb and preview images
+	
+Version 1.6.0
+---------------------------------------
+	- Multi gallery
+	- Watermark fix
+	
+Version 1.5.0
+---------------------------------------
+	- Fix to support the Dependency manager
+
+Version 1.0.8
+---------------------------------------
+	- Fix for removed setFillColor (Bug ID: 2867)
+	- Multiple file upload
+	- Drag & Drop support
+
+Version 1.0.7
+---------------------------------------
+
+Version 1.0.6
+---------------------------------------
+	- Require framework 1.0.18 or above (added new autoloader)
+	
+Version 1.0.5
+--------------------------------------
+	- Replace default IMAGETYPE_JPEG with NULL to avoid forcing image convertion to JPG, upon save.
+	
+Version 1.0.4
+--------------------------------------
+	- Database queries at 'pjActionSetup' now are moved into the 'database.sql'
+	- Folders permission checks now are moved from 'pjActionBeforeInstall' to 'pjActionCheckInstall' (require framework 1.0.13)
+	
+Version 1.0.3
+---------------------------------------
+	- changed:
+		+ database.sql (table schema of `plugin_gallery`)
+		
+		pjGallery.model.php
+		+ property $schema
+		+ method pjActionSetup
+		
+		pjGallery.controller.php
+		+ method pjActionCompressGallery
+		+ method pjActionEmptyGallery
+		+ method pjActionGetGallery
+		+ method pjActionRebuild
+		+ method pjActionRotateGallery
+		+ method pjActionUploadGallery
+		+ method pjActionWatermarkGallery
+		
+		* table records are selected by given 'foreign_id' XOR 'hash', instead of only by 'foreign_id'. 
+		Useful when upload images before you know 'foreign_id' of associated table. 
+
+		pjActionResizeGallery.php
+		+ labels
+		
+		pjGallery.js
+		+ noConflict use
+		
+		jquery.gallery.js
+		+ resizeUrl pattern
+
+Version 1.0.2
+---------------------------------------
+	- added pjGallery controller
+		+ property $imageCrop
+		+ property $imageFillColor
+		+ method __construct
+		+ method resizeSmart
+	- changed
+		+ method pjActionBuildFromSource
+		+ method pjActionUpdateGallery
+		+ method pjActionUploadGallery
+
+
+Version 1.0.1
+---------------------------------------
+	- 'pjGalleryAppController' extends 'pjPlugin' instead of 'pjAppController'
+	- start using pjLocale plugin
+
+
+Version 1.0.0
+---------------------------------------
+	- initial

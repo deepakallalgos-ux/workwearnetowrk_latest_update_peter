@@ -1,0 +1,1170 @@
+/**
+ * Admin UI global rounding + form normalization (aligned with Peter admin.css).
+ * Overrides Inspinia/Bootstrap sharp corners (e.g. form-control border-radius: 1px).
+ * Depends on :root variables in admin-datagrid-listings.css.
+ */
+
+/* --- Form controls -------------------------------------------------------- */
+.wrapper-content .form-control,
+.adm-card .form-control,
+.ibox-content .form-control,
+.wj-installer .form-control,
+.wrapper-content input.form-control,
+.wrapper-content select.form-control,
+.wrapper-content textarea.form-control {
+    height: 36px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wj-text, #2d3436);
+    background: #fff;
+    border: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-radius: var(--wj-radius, 8px) !important;
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wrapper-content select.form-control,
+.adm-card select.form-control,
+.ibox-content select.form-control,
+.wj-installer select.form-control {
+    height: 36px !important;
+    padding: 6px 36px 6px 12px !important;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wj-text, #2d3436) !important;
+    background-color: #fff !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%230a5114' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 12px 8px !important;
+    border: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-radius: var(--wj-radius, 8px) !important;
+    cursor: pointer;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+.wrapper-content select.form-control[multiple],
+.adm-card select.form-control[multiple] {
+    height: auto !important;
+    min-height: 90px;
+    background-image: none !important;
+    padding-right: 12px !important;
+}
+
+.wrapper-content select.form-control::-ms-expand,
+.adm-card select.form-control::-ms-expand {
+    display: none;
+}
+
+.wrapper-content select.form-control:hover,
+.adm-card select.form-control:hover {
+    border-color: var(--admin-primary, #0a5114) !important;
+}
+
+.wrapper-content textarea.form-control,
+.adm-card textarea.form-control,
+.ibox-content textarea.form-control {
+    height: auto !important;
+    min-height: 90px;
+    resize: vertical;
+    padding: 8px 12px !important;
+    line-height: 1.5;
+}
+
+.wrapper-content .form-control:focus,
+.adm-card .form-control:focus,
+.ibox-content .form-control:focus,
+.wj-installer .form-control:focus {
+    border-color: var(--admin-primary, #0a5114);
+    box-shadow: 0 0 0 3px rgba(10, 81, 20, 0.12);
+    outline: none;
+}
+
+.wrapper-content .form-control:disabled,
+.wrapper-content .form-control[readonly],
+.adm-card .form-control:disabled,
+.adm-card .form-control[readonly] {
+    background: #f4faf5;
+    color: var(--wj-text-muted, #636e72);
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.wrapper-content .form-control::placeholder,
+.adm-card .form-control::placeholder {
+    color: var(--wj-text-muted, #888);
+    opacity: 1;
+}
+
+.wrapper-content .control-label,
+.adm-card .control-label,
+.ibox-content .control-label {
+    color: var(--wj-text, #2d3436);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* --- Input groups: outer radius only; inner segments flush -------------- */
+.ibox-content .input-group > .form-control:not(:last-child):not([type='hidden']),
+.wrapper-content .input-group > .form-control:not(:last-child):not([type='hidden']) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-right: 0 !important;
+}
+
+.ibox-content .input-group > .input-group-addon:first-child + .form-control,
+.wrapper-content .input-group > .input-group-addon:first-child + .form-control,
+.ibox-content .input-group > .input-group-btn:first-child + .form-control,
+.wrapper-content .input-group > .input-group-btn:first-child + .form-control {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-left: 0 !important;
+}
+
+.ibox-content .input-group > .form-control:last-child,
+.wrapper-content .input-group > .form-control:last-child {
+    border-top-right-radius: var(--wj-radius, 8px) !important;
+    border-bottom-right-radius: var(--wj-radius, 8px) !important;
+}
+
+.ibox-content .input-group > .form-control:focus,
+.wrapper-content .input-group > .form-control:focus {
+    border-color: var(--admin-primary, #0a5114) !important;
+    box-shadow: 0 0 0 2px rgba(10, 81, 20, 0.12);
+}
+
+.ibox-content .input-group-btn > .btn,
+.wrapper-content .input-group-btn > .btn {
+    height: 36px;
+    line-height: 1;
+    padding: 0 14px;
+    border-radius: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.ibox-content .input-group > .input-group-btn:first-child > .btn:first-child,
+.wrapper-content .input-group > .input-group-btn:first-child > .btn:first-child {
+    border-top-left-radius: var(--wj-radius, 8px) !important;
+    border-bottom-left-radius: var(--wj-radius, 8px) !important;
+}
+
+.ibox-content .input-group > .input-group-btn:last-child > .btn:last-child,
+.wrapper-content .input-group > .input-group-btn:last-child > .btn:last-child {
+    border-top-right-radius: var(--wj-radius, 8px) !important;
+    border-bottom-right-radius: var(--wj-radius, 8px) !important;
+}
+
+.ibox-content .input-group-btn > .btn-default,
+.wrapper-content .input-group-btn > .btn-default {
+    background-color: #fff;
+    border: 1px solid var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ibox-content .input-group-btn > .btn-default:hover,
+.ibox-content .input-group-btn > .btn-default:focus,
+.wrapper-content .input-group-btn > .btn-default:hover,
+.wrapper-content .input-group-btn > .btn-default:focus {
+    background-color: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1));
+    color: var(--admin-primary-dark, #06370d);
+    border-color: var(--admin-primary-dark, #06370d);
+}
+
+.ibox-content .input-group-btn > .btn-primary,
+.wrapper-content .input-group-btn > .btn-primary {
+    background-color: var(--admin-primary, #0a5114);
+    border-color: var(--admin-primary, #0a5114);
+    color: #fff;
+}
+
+.ibox-content .input-group-btn > .btn-primary:hover,
+.wrapper-content .input-group-btn > .btn-primary:hover {
+    background-color: var(--admin-primary-dark, #06370d);
+    color: #fff;
+}
+
+.ibox-content .input-group > .input-group-addon,
+.wrapper-content .input-group > .input-group-addon {
+    background: rgba(10, 81, 20, 0.05);
+    border: 1px solid var(--wj-border, #e8e4ef);
+    color: var(--admin-primary-dark, #06370d);
+    border-radius: 0 !important;
+    padding: 0 12px;
+    font-weight: 500;
+    height: 36px;
+    line-height: 34px;
+    font-size: 14px;
+    vertical-align: middle;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ibox-content .input-group > .input-group-addon:first-child,
+.wrapper-content .input-group > .input-group-addon:first-child {
+    border-top-left-radius: var(--wj-radius, 8px) !important;
+    border-bottom-left-radius: var(--wj-radius, 8px) !important;
+}
+
+.ibox-content .input-group > .input-group-addon:last-child,
+.wrapper-content .input-group > .input-group-addon:last-child {
+    border-top-right-radius: var(--wj-radius, 8px) !important;
+    border-bottom-right-radius: var(--wj-radius, 8px) !important;
+}
+
+.ibox-content .input-group > .input-group-addon:first-child + .form-control,
+.wrapper-content .input-group > .input-group-addon:first-child + .form-control {
+    border-left: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.wrapper-content .input-group.date > .form-control:first-child,
+.adm-card .input-group.date > .form-control:first-child,
+.ibox-content .input-group.date > .form-control:first-child {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.wrapper-content .input-group.date > .input-group-addon:last-child,
+.adm-card .input-group.date > .input-group-addon:last-child,
+.ibox-content .input-group.date > .input-group-addon:last-child {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-left: none !important;
+}
+
+/* --- Inline form tabs (Peter-style) -------------------------------------- */
+.tabs-container {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+.tabs-container > .nav-tabs {
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
+    padding: 0 8px !important;
+}
+
+.tabs-container > .nav-tabs > li {
+    margin-bottom: -1px !important;
+}
+
+.pj-page-tabs {
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+
+.pj-page-tabs > li {
+    margin-bottom: -1px !important;
+}
+
+.pj-page-tabs > li > a,
+.tabs-container > .nav-tabs > li > a {
+    color: var(--wj-text, #2d3436) !important;
+    background-color: transparent !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 12px 20px 14px !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px 8px 0 0 !important;
+    margin-right: 2px !important;
+    transition: color 0.15s ease, border-color 0.15s ease !important;
+}
+
+.pj-page-tabs > li > a:hover,
+.pj-page-tabs > li > a:focus,
+.tabs-container > .nav-tabs > li > a:hover,
+.tabs-container > .nav-tabs > li > a:focus {
+    color: var(--admin-primary, #0a5114) !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+.pj-page-tabs > li.active > a,
+.pj-page-tabs > li.active > a:hover,
+.pj-page-tabs > li.active > a:focus,
+.tabs-container > .nav-tabs > li.active > a,
+.tabs-container > .nav-tabs > li.active > a:hover,
+.tabs-container > .nav-tabs > li.active > a:focus {
+    color: var(--admin-primary, #0a5114) !important;
+    background-color: #fff !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-bottom-color: #fff !important;
+    cursor: default !important;
+}
+
+.pj-page-tabs > li.disabled > a,
+.pj-page-tabs > li.disabled > a:hover,
+.tabs-container > .nav-tabs > li.disabled > a,
+.tabs-container > .nav-tabs > li.disabled > a:hover {
+    color: #aaa !important;
+    cursor: not-allowed !important;
+    opacity: 0.55 !important;
+}
+
+.pj-page-tabs > li > a .badge,
+.tabs-container > .nav-tabs > li > a .badge {
+    background-color: var(--admin-primary-lighter, rgba(10, 81, 20, 0.12)) !important;
+    color: var(--admin-primary-dark, #06370d) !important;
+    border-radius: 10px !important;
+    padding: 2px 9px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-left: 6px !important;
+    min-width: 22px !important;
+    display: inline-block;
+    text-shadow: none !important;
+}
+
+.pj-page-tabs > li.active > a .badge,
+.tabs-container > .nav-tabs > li.active > a .badge {
+    background-color: var(--admin-primary, #0a5114) !important;
+    color: #fff !important;
+}
+
+.tabs-container .panel-body {
+    background: #fff !important;
+    border: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-radius: var(--wj-radius-lg, 8px) !important;
+    padding: 24px !important;
+}
+
+/* --- Buttons (scoped — avoid beating input-group / btn-group corner rules) */
+.wrapper-content .btn,
+.ibox-content .btn {
+    border-radius: var(--wj-radius, 8px);
+}
+
+.wrapper-content .btn-xs,
+.ibox-content .btn-xs {
+    border-radius: 6px;
+}
+
+.wrapper-content .btn-group > .btn,
+.ibox-content .btn-group > .btn,
+.wrapper-content .btn-group > .btn.dropdown-toggle,
+.ibox-content .btn-group > .btn.dropdown-toggle {
+    border-radius: 0 !important;
+}
+
+.wrapper-content .btn-group > .btn:first-child,
+.ibox-content .btn-group > .btn:first-child {
+    border-top-left-radius: var(--wj-radius, 8px) !important;
+    border-bottom-left-radius: var(--wj-radius, 8px) !important;
+}
+
+.wrapper-content .btn-group > .btn:last-child,
+.ibox-content .btn-group > .btn:last-child {
+    border-top-right-radius: var(--wj-radius, 8px) !important;
+    border-bottom-right-radius: var(--wj-radius, 8px) !important;
+}
+
+.wrapper-content .btn-group > .btn:first-child:last-child,
+.ibox-content .btn-group > .btn:first-child:last-child {
+    border-radius: var(--wj-radius, 8px) !important;
+}
+
+/* --- Buttons in overlays (modals / SweetAlert / jQuery UI) ---------------
+   Markup often places `.modal` after `.wrapper-content`, so those `.btn`
+   elements never matched `.wrapper-content .btn`. Align with admin chrome. */
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn {
+    border-radius: var(--wj-radius, 8px);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 8px 16px;
+    line-height: 1.35;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-xs {
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-lg {
+    padding: 10px 20px;
+    font-size: 15px;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-group > .btn,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-group > .btn.dropdown-toggle {
+    border-radius: 0 !important;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-group > .btn:first-child {
+    border-top-left-radius: var(--wj-radius, 8px) !important;
+    border-bottom-left-radius: var(--wj-radius, 8px) !important;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-group > .btn:last-child {
+    border-top-right-radius: var(--wj-radius, 8px) !important;
+    border-bottom-right-radius: var(--wj-radius, 8px) !important;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-group > .btn:first-child:last-child {
+    border-radius: var(--wj-radius, 8px) !important;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-primary {
+    background-color: var(--admin-primary, #0a5114);
+    border-color: var(--admin-primary, #0a5114);
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-primary:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-primary:focus {
+    background-color: var(--admin-primary-dark, #06370d);
+    border-color: var(--admin-primary-dark, #06370d);
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-default {
+    background-color: #fff;
+    border: 1px solid var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-default:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-default:focus {
+    background-color: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1));
+    border-color: var(--admin-primary-dark, #06370d);
+    color: var(--admin-primary-dark, #06370d);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-white {
+    background: #fff;
+    border: 1px solid var(--wj-border, #e8e4ef);
+    color: var(--wj-text, #2d3436);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-white:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-white:focus {
+    background: var(--wj-hover-bg, #f4faf5);
+    border-color: var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-danger {
+    background-color: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-danger:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-danger:focus {
+    background-color: #a93226;
+    border-color: #a93226;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-success {
+    background-color: var(--admin-success, #22c55e);
+    border-color: var(--admin-success-border-strong, #16a34a);
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-success:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-success:focus {
+    background-color: var(--admin-success-border-strong, #16a34a);
+    border-color: #15803d;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-warning {
+    background-color: #f8ac59;
+    border-color: #f8ac59;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-outline.btn-primary {
+    background: #fff;
+    border: 1px solid var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-outline.btn-primary:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-outline.btn-primary:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1));
+    border-color: var(--admin-primary-dark, #06370d);
+    color: var(--admin-primary-dark, #06370d);
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-info {
+    background-color: #23c6c8;
+    border-color: #23c6c8;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-info:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-info:focus {
+    background-color: #1ea0a2;
+    border-color: #1ea0a2;
+    color: #fff;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-link {
+    border-radius: var(--wj-radius, 8px);
+    color: var(--admin-primary, #0a5114);
+    text-decoration: none;
+    box-shadow: none;
+}
+
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-link:hover,
+:is(#page-wrapper .modal, #wrapper .modal, .ui-dialog, .popover, .adm-floating-sidebar) .btn-link:focus {
+    color: var(--admin-primary-dark, #06370d);
+    text-decoration: underline;
+}
+
+/* SweetAlert (buttons are not `.btn` — class `confirm` / `cancel`) */
+.sweet-alert .sa-button-container button {
+    border-radius: var(--wj-radius, 8px) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 18px !important;
+    line-height: 1.35 !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    min-width: 88px;
+    margin: 0 4px !important;
+}
+
+.sweet-alert .sa-button-container .confirm {
+    background-color: var(--admin-primary, #0a5114) !important;
+    border-color: var(--admin-primary, #0a5114) !important;
+    color: #fff !important;
+}
+
+.sweet-alert .sa-button-container .confirm:hover,
+.sweet-alert .sa-button-container .confirm:focus {
+    background-color: var(--admin-primary-dark, #06370d) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    color: #fff !important;
+}
+
+.sweet-alert .sa-button-container .cancel {
+    background: #fff !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    color: var(--admin-primary, #0a5114) !important;
+}
+
+.sweet-alert .sa-button-container .cancel:hover,
+.sweet-alert .sa-button-container .cancel:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1)) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    color: var(--admin-primary-dark, #06370d) !important;
+}
+
+/* jQuery UI dialog footer buttons */
+.ui-dialog .ui-dialog-buttonpane {
+    padding: 12px 16px 14px !important;
+    border-top: 1px solid var(--wj-border, #e8e4ef) !important;
+    margin-top: 0 !important;
+}
+
+.ui-dialog .ui-dialog-buttonpane button,
+.ui-dialog .ui-dialog-buttonpane .ui-button {
+    border-radius: var(--wj-radius, 8px) !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    line-height: 1.35 !important;
+    text-shadow: none !important;
+    margin: 0 4px 0 0 !important;
+}
+
+.ui-dialog .ui-dialog-buttonpane .ui-button {
+    background: #fff !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    color: var(--admin-primary, #0a5114) !important;
+}
+
+.ui-dialog .ui-dialog-buttonpane .ui-button:hover,
+.ui-dialog .ui-dialog-buttonpane .ui-button:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1)) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    color: var(--admin-primary-dark, #06370d) !important;
+}
+
+/* Primary action when the widget marks it (jQuery UI optional class) */
+.ui-dialog .ui-dialog-buttonpane .ui-button.ui-priority-primary {
+    background-color: var(--admin-primary, #0a5114) !important;
+    border-color: var(--admin-primary, #0a5114) !important;
+    color: #fff !important;
+}
+
+.ui-dialog .ui-dialog-buttonpane .ui-button.ui-priority-primary:hover,
+.ui-dialog .ui-dialog-buttonpane .ui-button.ui-priority-primary:focus {
+    background-color: var(--admin-primary-dark, #06370d) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    color: #fff !important;
+}
+
+#page-wrapper .panel {
+    border-radius: var(--wj-radius-lg, 8px);
+    overflow: hidden;
+}
+
+#page-wrapper .modal-content {
+    border-radius: var(--wj-radius-lg, 8px);
+    overflow: hidden;
+}
+
+#page-wrapper .well {
+    border-radius: var(--wj-radius, 8px);
+}
+
+#page-wrapper .dropdown-menu {
+    border-radius: var(--wj-radius, 8px);
+}
+
+#page-wrapper .select2-container--default .select2-selection--single,
+#page-wrapper .select2-container--default .select2-selection--multiple {
+    border-radius: var(--wj-radius, 8px) !important;
+}
+
+/*
+ * Admin shells: main chrome, login (no #page-wrapper), modals, SweetAlert,
+ * floating side panel, bare .wrapper-content (e.g. iframe), ibox/adm-card.
+ * Exclude iCheck hidden inputs and Inspinia onoffswitch (display:none driver).
+ */
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox),
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: var(--wj-checkbox-size, 22px);
+    height: var(--wj-checkbox-size, 22px);
+    margin: 0 6px 0 0;
+    padding: 0;
+    border: 2px solid var(--admin-primary-light, rgba(10, 81, 20, 0.35));
+    background: #fff;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    border-radius: 50%;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    border-radius: var(--wj-checkbox-radius, 6px);
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):hover,
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):hover {
+    border-color: var(--admin-success, #22c55e);
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):focus,
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--admin-success-focus-ring, rgba(34, 197, 94, 0.28));
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):checked,
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked {
+    background: var(--admin-success, #22c55e);
+    border-color: var(--admin-success-border-strong, #16a34a);
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 8px;
+    box-sizing: border-box;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 1px 0 0;
+    transform: translate(-45%, -58%) rotate(45deg);
+    transform-origin: center center;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):disabled,
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):disabled {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    label
+    > input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox),
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    label
+    > input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    margin-right: 8px;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    .form-group
+    label:has(input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox)),
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    .form-group
+    label:has(input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox)) {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 400;
+    margin: 0 18px 0 0;
+    padding: 8px 0;
+    color: var(--wj-text, #2d3436);
+    transition: color 0.15s ease;
+    user-select: none;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    .form-group
+    label:has(input[type="radio"]:not(.icheck-input):not(.onoffswitch-checkbox):checked),
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content,
+        .adm-card
+    )
+    .form-group
+    label:has(input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked) {
+    color: var(--admin-success-border-strong, #16a34a);
+    font-weight: 500;
+}
+
+/* iCheck: corner radius (sprite-free colors in plugin custom.css) */
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .pj-grid,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content
+    )
+    .icheckbox_square-green {
+    border-radius: var(--wj-checkbox-radius, 6px) !important;
+    overflow: hidden !important;
+}
+
+:is(
+        #page-wrapper,
+        body.light-grey-bg #wrapper,
+        .pj-grid,
+        .adm-floating-sidebar,
+        .sweet-alert,
+        .modal,
+        .wrapper-content,
+        .ibox-content
+    )
+    .iradio_square-green {
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+/* Inspinia toggle: match card radius + brand border (checkbox input stays hidden) */
+:is(#page-wrapper, body.light-grey-bg #wrapper, .adm-floating-sidebar, .sweet-alert, .modal) .onoffswitch-label {
+    border-radius: var(--wj-radius, 8px);
+    border-color: var(--admin-primary, #0a5114);
+}
+
+:is(#page-wrapper, body.light-grey-bg #wrapper, .adm-floating-sidebar, .sweet-alert, .modal) .onoffswitch-switch {
+    border-radius: var(--wj-radius, 8px);
+    border-color: var(--admin-primary, #0a5114);
+}
+
+:is(#page-wrapper, body.light-grey-bg #wrapper, .adm-floating-sidebar, .sweet-alert, .modal)
+    .onoffswitch-inner:before {
+    background-color: var(--admin-primary, #0a5114);
+    color: #fff !important;
+}
+
+/* Datagrid: native “select all” / row check — match iCheck on green header */
+#page-wrapper .pj-grid .table > thead > tr > th:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    background-color: rgba(255, 255, 255, 0.16);
+    border: 2px solid rgba(255, 255, 255, 0.58);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.28), 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+#page-wrapper .pj-grid .table > thead > tr > th:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):hover,
+#page-wrapper .pj-grid .table > thead > tr > th:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):focus {
+    background-color: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.92);
+}
+
+#page-wrapper .pj-grid .table > thead > tr > th:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked {
+    background: var(--admin-success, #22c55e);
+    border-color: rgba(255, 255, 255, 0.38);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.42), 0 1px 4px rgba(0, 0, 0, 0.28);
+}
+
+#page-wrapper .pj-grid .table > thead > tr > th:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked::after,
+#page-wrapper .pj-grid .table > tbody > tr > td:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox):checked::after {
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 8px;
+    transform: translate(-45%, -58%) rotate(45deg);
+    transform-origin: center center;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 1px 0 0;
+}
+
+#page-wrapper .pj-grid .table > tbody > tr > td:first-child input[type="checkbox"]:not(.icheck-input):not(.onoffswitch-checkbox) {
+    border-color: rgba(75, 85, 95, 0.32);
+    background: #fff;
+}
+
+#page-wrapper .ibox-content .frm-filter .input-group .form-control {
+    border-radius: var(--wj-radius, 8px) 0 0 var(--wj-radius, 8px) !important;
+}
+
+#page-wrapper .ibox-content .frm-filter .input-group-btn:last-child > .btn {
+    border-radius: 0 var(--wj-radius, 8px) var(--wj-radius, 8px) 0 !important;
+}
+
+/* Setup wizard (admin layout view) */
+.wj-setup-check-icon {
+    color: var(--admin-primary, #0a5114);
+    margin-right: 8px;
+}
+.wj-setup-admin-spinner {
+    font-size: 24px;
+    color: var(--admin-primary, #0a5114);
+    margin-bottom: 15px;
+}
+
+/* Remove demo data — top of sidebar (below brand header) */
+.wj-demo-sidebar-remove > a {
+    color: #d9534f !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 20px 12px 25px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(217, 83, 79, 0.08);
+    border-bottom: 1px solid rgba(217, 83, 79, 0.15);
+}
+
+.wj-demo-sidebar-remove > a:hover,
+.wj-demo-sidebar-remove > a:focus {
+    color: #c9302c !important;
+    background: rgba(217, 83, 79, 0.14);
+}
+
+.wj-demo-sidebar-remove .fa {
+    font-size: 14px;
+}
+
+/* Demo data notice (setup page fallback) */
+.wj-demo-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    border: 1px solid #f0ad4e;
+    background: #fff8e6;
+    color: #5c4a1a;
+    padding: 16px 20px;
+}
+
+.wj-demo-banner__body {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+
+.wj-demo-banner__body strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 15px;
+}
+
+.wj-demo-banner__text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #6b5a2e;
+}
+
+.wj-demo-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Admin sidebar custom logo (Visual branding upload) */
+.navbar-default .nav > li > .admin-sidebar-logo-link {
+    background: none !important;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    text-indent: 0;
+    line-height: normal;
+    padding: 0;
+    float: none;
+    margin: 0 auto 15px;
+    display: block;
+}
+
+.navbar-default .nav > li > .admin-sidebar-logo-link:hover,
+.navbar-default .nav > li > .admin-sidebar-logo-link:focus {
+    background-color: transparent !important;
+}
+
+.admin-sidebar-logo-img,
+.admin-sidebar-logo-preview .admin-sidebar-logo-img {
+    display: block;
+    max-width: 200px;
+    max-height: 72px;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+}
+
+body.mini-navbar .admin-sidebar-logo-img {
+    max-width: 48px;
+    max-height: 40px;
+}
+
+body.mini-navbar .navbar-default .nav > li > .admin-sidebar-logo-link {
+    margin: 0 auto 10px;
+}

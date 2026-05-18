@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# No RewriteBase — Apache uses the folder that contains this file.
+# Works on localhost (/workwearnetowrk_latest_update_peter/) and live domain root (e.g. login.workwearnetwork.com).
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Storefront clean URLs (/products, /product/123, /cart, …) → shop bootstrap
+RewriteRule ^ preview.php [L,QSA]
+</IfModule>

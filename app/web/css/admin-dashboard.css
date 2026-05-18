@@ -1,0 +1,346 @@
+/* ============================================================================
+   ADMIN DASHBOARD STYLING
+   ----------------------------------------------------------------------------
+   Extracted from `app/views/pjAdmin/pjActionIndex.php` inline <style> block
+   (Sprint 2 — 2026-05-04, v5.10.88). Covers:
+     • Period filter button row (.db-filter-bar)
+     • KPI cards grid (.db-kpi*)
+     • Chart cards (.db-chart-card, #chart-revenue/orders/status)
+     • Top products list (.db-top-*)
+     • Recent orders table (.db-orders-table)
+     • Quick statistics grid (.db-quick-stats)
+     • C3 chart library tweaks
+     • Widget toggle dropdown (.db-widget-*)
+
+   Branding: colours come from CSS variables set in `pjBaseAppController::
+   getAdminThemeColors()` so the dashboard follows **Webshop > Branding**.
+   ============================================================================ */
+
+/* --- Period filter button row ----------------------------------------- */
+.db-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+.db-filter-bar .db-filter-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--admin-primary-light, rgba(10, 81, 20, 0.22));
+    background: #fff;
+    color: var(--textSecondary, #555);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+}
+.db-filter-bar .db-filter-btn:hover {
+    border-color: var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+}
+.db-filter-bar .db-filter-btn.active {
+    background: var(--admin-primary, #0a5114);
+    border-color: var(--admin-primary, #0a5114);
+    color: var(--admin-on-primary, #fff);
+}
+
+/* --- KPI cards grid -------------------------------------------------- */
+.db-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+@media (max-width: 991px) { .db-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 575px) { .db-kpi-grid { grid-template-columns: 1fr; } }
+
+.db-kpi {
+    background: #fff;
+    border-radius: var(--wj-radius-lg, 12px);
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    position: relative;
+    overflow: hidden;
+}
+.db-kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: #fff;
+}
+.db-kpi-icon.purple { background: var(--admin-primary, #0a5114); }
+.db-kpi-icon.green  { background: var(--admin-success, #22c55e); }
+.db-kpi-icon.blue   { background: var(--admin-info, #3b82f6); }
+.db-kpi-icon.orange { background: var(--admin-warning, #f59e0b); }
+
+.db-kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--textPrimary, #1a1a2e);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.db-kpi-label {
+    font-size: 13px;
+    color: var(--textSecondary, #444);
+    margin-bottom: 8px;
+}
+.db-kpi-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+.db-kpi-change.up      { background: var(--admin-success-light, #dcfce7); color: var(--admin-success, #22c55e); }
+.db-kpi-change.down    { background: var(--admin-danger-light, #fef2f2); color: var(--admin-danger, #dc2626); }
+.db-kpi-change.neutral { background: #f3f4f6; color: var(--textSecondary, #6b7280); }
+.db-kpi-change-vs {
+    font-size: 11px;
+    color: var(--textSecondary, #555);
+    margin-left: 4px;
+}
+
+/* --- Chart card container ------------------------------------------------- */
+.db-chart-card {
+    background: #fff;
+    border-radius: var(--wj-radius-lg, 12px);
+    padding: 20px 20px 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    margin-bottom: 20px;
+}
+.db-chart-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--textPrimary, #1a1a2e);
+    margin: 0 0 16px;
+}
+#chart-revenue { height: 280px; }
+#chart-orders  { height: 220px; }
+#chart-status  { height: 240px; }
+
+/* --- Top products list ----------------------------------------------- */
+.db-top-products { list-style: none; padding: 0; margin: 0; }
+.db-top-products li {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borderColor, #f0edf5);
+}
+.db-top-products li:last-child { border-bottom: none; }
+.db-top-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.1));
+    color: var(--admin-primary, #0a5114);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+.db-top-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--textPrimary, #333);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.db-top-qty {
+    font-size: 12px;
+    color: var(--textSecondary, #555);
+    margin-left: 8px;
+    white-space: nowrap;
+}
+.db-top-revenue {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--admin-primary, #0a5114);
+    margin-left: 12px;
+    white-space: nowrap;
+}
+.db-top-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.12));
+    margin-top: 4px;
+    overflow: hidden;
+}
+.db-top-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--admin-primary, #0a5114);
+    transition: width .6s ease;
+}
+
+/* --- Recent orders table (Bootstrap .table + dashboard look) ---------------- */
+.wrapper.wrapper-content .db-chart-card .db-orders-table-wrap {
+    margin-top: 4px;
+    border: 1px solid #e7eaec;
+    border-radius: 6px;
+    background: #fff;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table > thead > tr > th {
+    border-bottom: 2px solid var(--admin-primary-light, rgba(10, 81, 20, 0.22)) !important;
+    background: #f8f9fb;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #374151 !important;
+    padding: 12px 10px !important;
+    vertical-align: middle;
+    text-align: left;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table > tbody > tr > td {
+    border-top: none !important;
+    border-bottom: 1px solid #edf2f7 !important;
+    padding: 11px 10px !important;
+    font-size: 13px;
+    color: #1f2937 !important;
+    vertical-align: middle !important;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table > tbody > tr:hover > td {
+    background: #f8fafc !important;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table > tbody > tr:last-child > td {
+    border-bottom: none !important;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table a {
+    color: var(--admin-primary, #0a5114);
+    font-weight: 500;
+}
+.wrapper.wrapper-content .db-chart-card .db-orders-table.table a:hover {
+    text-decoration: underline;
+}
+
+/* --- Quick statistics grid ------------------------------------------ */
+.db-quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+@media (max-width: 575px) { .db-quick-stats { grid-template-columns: 1fr; } }
+.db-quick-stat {
+    background: #fff;
+    border-radius: var(--wj-radius, 10px);
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.db-quick-stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.db-quick-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--textPrimary, #1a1a2e);
+}
+.db-quick-stat-label {
+    font-size: 11px;
+    color: var(--textSecondary, #444);
+}
+
+/* --- C3 chart library customization ----------------------------------- */
+.c3-line { stroke-width: 2.5px; }
+.c3-area { opacity: 0.08 !important; }
+.c3-circles circle { r: 3.5; }
+
+/* --- Widget-toggle dropdown -------------------------------------------- */
+.db-widget-toggle {
+    position: relative;
+    margin-left: auto;
+}
+.db-widget-toggle-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-primary-light, rgba(10, 81, 20, 0.22));
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textSecondary, #555);
+    font-size: 14px;
+    transition: all .15s;
+}
+.db-widget-toggle-btn:hover {
+    border-color: var(--admin-primary, #0a5114);
+    color: var(--admin-primary, #0a5114);
+}
+.db-widget-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 38px;
+    background: #fff;
+    border-radius: var(--wj-radius, 10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
+    padding: 12px 16px;
+    z-index: 100;
+    min-width: 200px;
+}
+.db-widget-dropdown.open { display: block; }
+.db-widget-dropdown-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--textSecondary, #444);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.db-widget-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--textPrimary, #333);
+    cursor: pointer;
+    user-select: none;
+}
+.db-widget-opt input { accent-color: var(--admin-primary, #0a5114); }
+.db-widget-opt .db-widget-grip {
+    cursor: grab;
+    color: #ccc;
+    font-size: 14px;
+    letter-spacing: -2px;
+    user-select: none;
+    flex-shrink: 0;
+    transition: color .15s;
+    line-height: 1;
+}
+.db-widget-opt:hover .db-widget-grip { color: var(--admin-primary, #0a5114); }
+.db-widget-opt.db-dragging   { opacity: .4; }
+.db-widget-opt.db-drag-over  { box-shadow: 0 -2px 0 var(--admin-primary, #0a5114); }
+
+[data-db-widget].db-hidden { display: none !important; }

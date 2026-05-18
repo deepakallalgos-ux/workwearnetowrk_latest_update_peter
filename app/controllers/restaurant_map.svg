@@ -1,0 +1,37 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="500" fill="#f5f5f5"/>
+
+<!-- Entrance -->
+<text x="20" y="40" font-size="18" font-family="Arial">Entrance</text>
+
+<!-- Tables -->
+<circle cx="150" cy="120" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="140" y="125" font-size="14">T1</text>
+
+<circle cx="300" cy="120" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="290" y="125" font-size="14">T2</text>
+
+<circle cx="450" cy="120" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="440" y="125" font-size="14">T3</text>
+
+<circle cx="150" cy="250" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="140" y="255" font-size="14">T4</text>
+
+<circle cx="300" cy="250" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="290" y="255" font-size="14">T5</text>
+
+<circle cx="450" cy="250" r="35" fill="#d9edf7" stroke="#333"/>
+<text x="440" y="255" font-size="14">T6</text>
+
+<!-- Counter -->
+<rect x="620" y="80" width="140" height="60" fill="#ffe0b2" stroke="#333"/>
+<text x="650" y="115" font-size="14">Counter</text>
+
+<!-- Kitchen -->
+<rect x="620" y="200" width="140" height="120" fill="#c8e6c9" stroke="#333"/>
+<text x="660" y="270" font-size="16">Kitchen</text>
+
+<!-- Restroom -->
+<rect x="620" y="360" width="140" height="80" fill="#e1bee7" stroke="#333"/>
+<text x="660" y="405" font-size="14">Restroom</text>
+</svg>

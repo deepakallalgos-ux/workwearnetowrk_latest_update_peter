@@ -1,0 +1,1116 @@
+/**
+ * Admin datagrid listings + page chrome (from Peter admin.css).
+ * Loaded for all admin pages — keep in sync when updating list UIs.
+ */
+
+/* ---------- CSS variables ---------- */
+:root {
+    --admin-primary: #0a5114;
+    --admin-primary-dark: #06370d;
+    --admin-primary-light: rgba(10, 81, 20, 0.22);
+    --admin-primary-lighter: rgba(10, 81, 20, 0.1);
+    /* Success / “on” controls (checkboxes, toggles) — distinct from deep brand green */
+    --admin-success: #22c55e;
+    --admin-success-hover: #4ade80;
+    --admin-success-soft: rgba(34, 197, 94, 0.16);
+    --admin-success-border-strong: #16a34a;
+    --admin-success-focus-ring: rgba(34, 197, 94, 0.28);
+    --wj-primary: var(--admin-primary);
+    --wj-primary-dark: var(--admin-primary-dark);
+    --wj-primary-light: #eaf4ec;
+    --wj-accent: var(--admin-secondary, #F7148B);
+    --wj-text: #2d3436;
+    --wj-text-muted: #636e72;
+    --wj-border: #e8e4ef;
+    --wj-hover-bg: #f4faf5;
+    --wj-radius: 8px;
+    --wj-radius-lg: 8px;
+    /* Native + iCheck: same footprint and corner radius as Peter-style controls */
+    --wj-checkbox-size: 22px;
+    /* Squircle on small controls — closer to Peter / modern admin ref */
+    --wj-checkbox-radius: 6px;
+    --wj-shadow: 0 2px 8px rgba(10, 81, 20, 0.08);
+    --wj-shadow-hover: 0 4px 16px rgba(10, 81, 20, 0.12);
+    --wj-transition: 0.2s ease;
+}
+
+/* ---------- ibox containers ---------- */
+.wrapper-content .ibox {
+    border-radius: var(--wj-radius-lg);
+    border: 1px solid var(--wj-border);
+    box-shadow: var(--wj-shadow);
+    overflow: hidden;
+}
+.wrapper-content .ibox-content {
+    border-top: none;
+    border-radius: 0 0 var(--wj-radius-lg) var(--wj-radius-lg);
+}
+.wrapper-content .ibox-title {
+    border-radius: var(--wj-radius-lg) var(--wj-radius-lg) 0 0;
+}
+/* When there is no ibox-title (e.g. Orders, Products), the first ibox-content
+   must have all four corners rounded — otherwise the top looks sharp while
+   other widgets (e.g. calendar) stay rounded. */
+.wrapper-content .ibox > .ibox-content:first-child {
+    border-radius: var(--wj-radius-lg);
+}
+
+/* ---------- Table container ---------- */
+/* overflow-y: visible so row dropdowns (e.g. invoice actions) are not clipped
+   under the next row. x:auto + y:visible works in modern browsers
+   (Chrome 60+, Firefox 67+, Safari 14+). */
+.pj-grid { overflow-x: auto; overflow-y: visible; position: relative; }
+/* Keep open row dropdowns above neighbouring content */
+.pj-grid .btn-group.open > .dropdown-menu { z-index: 1050; }
+
+/* === Loading state during AJAX (row count / page / sort / filter) ===
+   `_loadDatagrid` adds `.pj-grid-loading` on the container for in-flight
+   requests and removes it in the `.always()` callback (success or abort/fail).
+   Shows a semi-transparent white overlay + spinner so users see work in
+   progress and avoid double-clicks. Pagination controls get a `disabled`
+   attribute from JS — this block matches that visually. */
+.pj-grid.pj-grid-loading {
+    /* Container stays visible beneath the overlay */
+    pointer-events: none;
+}
+.pj-grid.pj-grid-loading::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 100;
+}
+.pj-grid.pj-grid-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 3px solid var(--admin-primary-lighter, rgba(10, 81, 20, 0.18));
+    border-top-color: var(--admin-primary, #0a5114);
+    border-radius: 50%;
+    animation: pj-grid-spin 0.7s linear infinite;
+    z-index: 101;
+}
+@keyframes pj-grid-spin {
+    to { transform: rotate(360deg); }
+}
+/* Disabled look for pagination controls while loading */
+.pj-grid.pj-grid-loading .pj-selector-row-count[disabled],
+.pj-grid.pj-grid-loading .pj-paginator-list-prev[disabled],
+.pj-grid.pj-grid-loading .pj-paginator-list-next[disabled],
+.pj-grid.pj-grid-loading .pj-selector-goto[disabled],
+.pj-grid.pj-grid-loading .pj-paginator-action[disabled] {
+    opacity: 0.55;
+    cursor: progress !important;
+}
+.pj-grid .table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--wj-border);
+    border-radius: var(--wj-radius);
+    width: 100%;
+    /* table-layout: auto (default) — columns size from real content.
+       Previously `fixed` clipped long values (UUIDs, amounts) and squeezed the name column. */
+    table-layout: auto;
+}
+
+/* ---------- Table headers ---------- */
+/* Primary brand colour with white text — consistent on all datagrid pages
+   and static tables (e.g. waitlist). `!important` on background counters some
+   Bootstrap overrides. */
+.pj-grid .table > thead > tr > th,
+.pj-grid table.table > thead > tr > th {
+    background: var(--admin-primary, #0a5114) !important;
+    background-color: var(--admin-primary, #0a5114) !important;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 13px;
+    /* No text-transform: uppercase — sentence case reads more naturally */
+    letter-spacing: 0.2px;
+    /* Tighter padding so the table fits the container — e.g. 10px vs 11/15px
+       saves ~10px per cell (~80px on an 8-column grid), keeping action buttons on screen. */
+    padding: 10px 10px;
+    white-space: nowrap;
+    border: none;
+    text-align: center;
+}
+/* Round header corners (instead of overflow:hidden on the table) */
+.pj-grid .table > thead > tr > th:first-child { border-radius: var(--wj-radius) 0 0 0; }
+.pj-grid .table > thead > tr > th:last-child { border-radius: 0 var(--wj-radius) 0 0; }
+/* Checkbox column: narrow and centred. No padding-left override —
+   that caused asymmetry (12px left vs 10px right) so the checkbox looked off-centre.
+   Header and body cells inherit symmetric `padding: 10px 10px`. */
+.pj-grid .table > thead > tr > th:first-child {
+    text-align: center;
+    width: 44px;
+}
+.pj-grid .table > tbody > tr > td:first-child {
+    text-align: center;
+}
+/* Actions column — wide enough for up to three inline icon buttons
+   (e.g. PDF + email + delete on invoices). Same idea for any last column
+   so controls do not fall off-screen on narrow viewports. */
+.pj-grid .table > thead > tr > th:last-child,
+.pj-grid .table > thead > tr > th.text-right {
+    width: 110px;
+    min-width: 110px;
+    padding-right: 12px;
+    text-align: right;
+}
+.pj-grid .table > tbody > tr > td:last-child {
+    padding-right: 12px;
+    text-align: right;
+    white-space: nowrap;
+}
+/* Tighter icon buttons so three fit comfortably side by side */
+.pj-grid a.btn.btn-outline.btn-sm[class*="pj-table-icon-"] {
+    padding: 4px 7px;
+    margin-left: 3px;
+}
+.pj-grid a.btn.btn-outline.btn-sm[class*="pj-table-icon-"]:first-child {
+    margin-left: 0;
+}
+/* Sort links + sort icons: white on the primary header background */
+.pj-grid .table > thead > tr > th a,
+.pj-grid .table > thead > tr > th a:hover,
+.pj-grid .table > thead > tr > th a:focus,
+.pj-grid .table > thead > tr > th .pj-table-sort-up,
+.pj-grid .table > thead > tr > th .pj-table-sort-down,
+.pj-grid .table > thead > tr > th .pj-table-sort-up:hover,
+.pj-grid .table > thead > tr > th .pj-table-sort-down:hover,
+.pj-grid .table > thead > tr > th i.fa {
+    color: #fff !important;
+    text-decoration: none;
+}
+/* Subtle hover on sort controls */
+.pj-grid .table > thead > tr > th .pj-table-sort-up:hover,
+.pj-grid .table > thead > tr > th .pj-table-sort-down:hover {
+    opacity: 0.85;
+}
+
+/* ---------- Table body / rows ---------- */
+.pj-grid .table > tbody > tr > td {
+    padding: 10px 10px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    color: var(--wj-text);
+    background: #fff;
+}
+/* Checkbox column: centred + 44px width, same as header. No padding-left
+   override — symmetric 10px from the general tbody rule keeps the box centred. */
+.pj-grid .table > tbody > tr > td:first-child {
+    text-align: center;
+    width: 44px;
+}
+/* iCheck wrapper: block + auto margins to centre; avoids sub-pixel drift from
+   inline-block whitespace between header (bare content) and body (often extra space). */
+.pj-grid .table > thead > tr > th:first-child .icheckbox_square-green,
+.pj-grid .table > tbody > tr > td:first-child .icheckbox_square-green {
+    display: block;
+    margin: 0 auto;
+    border-radius: var(--wj-checkbox-radius) !important;
+    overflow: hidden !important;
+}
+/* Header “select all” on brand green: glass unchecked + success checked (Peter-style) */
+.pj-grid .table > thead > tr > th:first-child .icheckbox_square-green:not(.checked) {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.58) !important;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.28),
+        0 1px 2px rgba(0, 0, 0, 0.18) !important;
+}
+.pj-grid .table > thead > tr > th:first-child .icheckbox_square-green.hover:not(.checked) {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.92) !important;
+}
+.pj-grid .table > thead > tr > th:first-child .icheckbox_square-green.checked {
+    background-color: var(--admin-success, #22c55e) !important;
+    border: 1px solid rgba(255, 255, 255, 0.38) !important;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.42),
+        0 1px 4px rgba(0, 0, 0, 0.28) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+/* Body rows: light edge + subtle lift; checked keeps success pop */
+.pj-grid .table > tbody > tr > td:first-child .icheckbox_square-green:not(.checked) {
+    box-shadow: inset 0 0 0 1px rgba(55, 65, 72, 0.18), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.pj-grid .table > tbody > tr > td:first-child .icheckbox_square-green.checked {
+    box-shadow: 0 1px 3px rgba(34, 197, 94, 0.35);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+/* Toolbar search row + grid: tighter stack like reference (search sits above rounded table) */
+.wrapper-content .ibox-content > .row.m-b-md:has(form.frm-filter) {
+    margin-bottom: 10px;
+}
+.wrapper-content .ibox-content > #grid.pj-grid {
+    margin-top: 0;
+}
+/* First data row: no top border (sits directly under the header) */
+.pj-grid .table > tbody > tr:first-child > td {
+    border-top: none;
+}
+/* Remove default Bootstrap inner borders — but keep the outer table border
+   on `.pj-grid .table` for the container edge. Clearing borders on the table
+   itself used to remove the bottom outline entirely. */
+.pj-grid .table > thead > tr > th,
+.pj-grid .table > tbody > tr {
+    border-top: none !important;
+    border-bottom: none !important;
+}
+.pj-grid .table > tbody > tr > td {
+    border-bottom: none !important;
+}
+/* Bottom corners on the last row align with the outer border (otherwise
+   corners disappear inside horizontal scroll). */
+.pj-grid .table > tbody > tr:last-child > td:first-child {
+    border-bottom-left-radius: var(--wj-radius);
+}
+.pj-grid .table > tbody > tr:last-child > td:last-child {
+    border-bottom-right-radius: var(--wj-radius);
+}
+
+/* Clients grid — column widths (`table-layout: auto`: preferred widths, browser may adjust) */
+.pj-grid .table > thead > tr > th.col-clients-email,
+.pj-grid .table > tbody > tr > td.col-clients-email   { width: 280px; max-width: 280px; }
+.pj-grid .table > thead > tr > th.col-clients-date,
+.pj-grid .table > tbody > tr > td.col-clients-date    { width: 140px; }
+.pj-grid .table > thead > tr > th.col-clients-orders,
+.pj-grid .table > tbody > tr > td.col-clients-orders  { width: 90px; }
+.pj-grid .table > thead > tr > th.col-clients-status,
+.pj-grid .table > tbody > tr > td.col-clients-status  { width: 130px; }
+/* Name column: no fixed width — takes remaining space */
+.pj-grid .table > thead > tr > th.col-clients-name,
+.pj-grid .table > tbody > tr > td.col-clients-name    { min-width: 220px; }
+/* Date must not break at commas (same fix as orders list) */
+.pj-grid .table > tbody > tr > td.col-clients-date {
+    white-space: nowrap !important;
+    word-break: keep-all;
+}
+
+/* Orders grid — column widths (`table-layout: auto`). Last column ~110px for actions. */
+.pj-grid .table > thead > tr > th.col-orders-uuid,
+.pj-grid .table > tbody > tr > td.col-orders-uuid     { width: 120px; }
+.pj-grid .table > thead > tr > th.col-orders-client,
+.pj-grid .table > tbody > tr > td.col-orders-client   { min-width: 160px; }
+.pj-grid .table > thead > tr > th.col-orders-date,
+.pj-grid .table > tbody > tr > td.col-orders-date     { width: 150px; }
+.pj-grid .table > thead > tr > th.col-orders-total,
+.pj-grid .table > tbody > tr > td.col-orders-total    { width: 100px; }
+.pj-grid .table > thead > tr > th.col-orders-pay,
+.pj-grid .table > tbody > tr > td.col-orders-pay,
+.pj-grid .table > thead > tr > th.col-orders-status,
+.pj-grid .table > tbody > tr > td.col-orders-status {
+    width: 170px;
+    vertical-align: middle !important;
+    text-align: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+.pj-grid .table > thead > tr > th.col-orders-shipping,
+.pj-grid .table > tbody > tr > td.col-orders-shipping { width: 170px; }
+/* UUID, date and amount must stay on one line — otherwise values like
+   "28-04-2026, 16:21" break at the comma due to the global td `word-break`. */
+.pj-grid .table > tbody > tr > td.col-orders-uuid,
+.pj-grid .table > tbody > tr > td.col-orders-date,
+.pj-grid .table > tbody > tr > td.col-orders-total {
+    white-space: nowrap !important;
+    word-break: keep-all;
+}
+
+/* Hover */
+.pj-grid .table > tbody > tr:hover > td {
+    background-color: var(--wj-hover-bg);
+}
+
+/* Striping — subtle */
+.pj-grid .table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: #fff;
+}
+.pj-grid .table-striped > tbody > tr:nth-of-type(even) > td {
+    background-color: #faf9fd;
+}
+
+/* ---------- Table density ---------- */
+/* Compact */
+body[data-table-density="compact"] .pj-grid .table > thead > tr > th { padding: 6px 10px; font-size: 11px; }
+body[data-table-density="compact"] .pj-grid .table > tbody > tr > td { padding: 4px 10px; font-size: 12px; }
+body[data-table-density="compact"] .pj-grid .s-Img,
+body[data-table-density="compact"] .pj-grid img.s-Img { width: 36px; height: 36px; max-height: 36px; max-width: 36px; }
+/* Compact + default: hide address and carrier lines in grid (full detail on order page) */
+.pj-grid [data-shipping-type] small:has(.fa-map-marker),
+.pj-grid [data-shipping-type] small:has(.fa-truck) { display: none; }
+/* Spacious: show address and carrier lines */
+body[data-table-density="spacious"] .pj-grid [data-shipping-type] small:has(.fa-map-marker),
+body[data-table-density="spacious"] .pj-grid [data-shipping-type] small:has(.fa-truck) { display: inline; }
+/* Spacious */
+body[data-table-density="spacious"] .pj-grid .table > thead > tr > th { padding: 14px 18px; }
+body[data-table-density="spacious"] .pj-grid .table > tbody > tr > td { padding: 14px 18px; }
+
+/* ---------- Cell overflow ---------- */
+.pj-grid .table > tbody > tr > td {
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* ---------- Images in grid ---------- */
+.pj-grid .s-Img,
+.pj-grid img.s-Img {
+    border-radius: 8px;
+    border: 1px solid var(--wj-border);
+    width: 50px;
+    height: 50px;
+    max-height: 50px;
+    max-width: 50px;
+    object-fit: cover;
+    background-color: #fff;
+    padding: 1px;
+    vertical-align: middle;
+    transition: transform var(--wj-transition), box-shadow var(--wj-transition);
+}
+.pj-grid .s-Img:hover,
+.pj-grid img.s-Img:hover {
+    transform: scale(1.08);
+    box-shadow: var(--wj-shadow-hover);
+}
+/* Products list (#grid): fixed widths for image and name columns.
+   `.col-product-image` / `.col-product-name` come from `cellClass` in jquery.datagrid.js.
+   `!important` overrides table-layout redistribution.
+   14px gap between image and name (same as `.s-Stock-cell` on stock screen). */
+.pj-grid .table > thead > tr > th.col-product-image,
+.pj-grid .table > tbody > tr > td.col-product-image {
+    width: 100px !important;
+    max-width: 100px !important;
+    padding-left: 10px;
+    padding-right: 14px;
+}
+.pj-grid .table > thead > tr > th.col-product-name,
+.pj-grid .table > tbody > tr > td.col-product-name {
+    width: 320px !important;
+    max-width: 320px !important;
+    text-align: left !important;
+    padding-left: 0;
+}
+
+/* Stock grid (#grid_stock): fixed widths for three status columns so rows align.
+   Same vertical-align treatment as payment/status on orders (`wl-stock-badge`, `wl-info-*`). */
+.pj-grid .table > thead > tr > th.col-stock-restock,
+.pj-grid .table > tbody > tr > td.col-stock-restock {
+    width: 160px !important;
+    max-width: 160px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+.pj-grid .table > thead > tr > th.col-stock-available,
+.pj-grid .table > tbody > tr > td.col-stock-available {
+    width: 160px !important;
+    max-width: 160px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+.pj-grid .table > thead > tr > th.col-stock-waitlist,
+.pj-grid .table > tbody > tr > td.col-stock-waitlist {
+    width: 110px !important;
+    max-width: 110px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+/* `.wl-stock-badge` on stock screen — fixed width so rows match `pj-status-*` / `pj-pay-*` pills */
+.col-stock-restock .wl-stock-badge {
+    display: inline-block;
+    min-width: 130px;
+    padding: 5px 10px;
+    text-align: center;
+}
+
+/* ===========================================================================
+ * Datagrid toggle buttons (pj-toggle-on / pj-toggle-off)
+ * Used by datagrid columns with type:"toggle" — e.g. the Status column on
+ * pjAdminProducts (Available / Unavailable). Replaces solid Bootstrap
+ * `btn-primary` with soft pastels that follow branding variables.
+ * =========================================================================== */
+.pj-grid .table [role="button"].pj-toggle-on,
+.pj-grid .table [role="button"].pj-toggle-off {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 160px;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+.pj-grid .table [role="button"].pj-toggle-on {
+    background: var(--admin-success-light, rgba(34, 197, 94, 0.20));
+    border-color: var(--admin-success-light, rgba(34, 197, 94, 0.20));
+    color: var(--admin-success, #22C55E);
+}
+.pj-grid .table [role="button"].pj-toggle-off {
+    background: rgba(107, 114, 128, 0.10);
+    border-color: rgba(107, 114, 128, 0.10);
+    color: #6b7280;
+}
+.pj-grid .table [role="button"].pj-toggle-on:hover,
+.pj-grid .table [role="button"].pj-toggle-off:hover {
+    filter: brightness(0.96);
+}
+.pj-grid .table [role="button"].pj-toggle-on > i.fa,
+.pj-grid .table [role="button"].pj-toggle-off > i.fa {
+    font-size: 11px;
+}
+
+/* ---------- Stock name & attributes (moved from pjActionStock.php) ---------- */
+/* 14px gap between image and name — same as the products grid and other admin lists with thumbnails. */
+.s-Stock-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.s-Stock-info {
+    flex: 1;
+    min-width: 0;
+}
+.s-Pic {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0;
+}
+.s-Name {
+    color: var(--wj-primary);
+    display: inline;
+    font-weight: 600;
+    font-size: 13px;
+}
+.s-Name a {
+    color: var(--wj-primary);
+    transition: color var(--wj-transition);
+}
+.s-Name a:hover {
+    color: var(--wj-primary-dark);
+    text-decoration: none;
+}
+.s-Attr {
+    color: var(--wj-text, var(--textPrimary, #1a1a2e));
+    display: inline;
+    margin-left: 6px;
+    font-size: 12px;
+}
+
+/* ---------- Inline editable fields ---------- */
+.pj-grid .pj-selector-editable {
+    border-radius: 8px;
+    border: 1px solid var(--wj-border);
+    padding: 4px 8px;
+    font-size: 13px;
+    display: inline-block;
+    width: auto;
+    max-width: 140px;
+    transition: border-color var(--wj-transition), box-shadow var(--wj-transition);
+}
+/* Editable cells inherit td text-align (inline style from datagrid); inputs inherit that alignment. */
+.pj-grid .pj-table-cell-editable .pj-selector-editable {
+    text-align: inherit;
+}
+.pj-grid .pj-selector-editable:focus {
+    border-color: var(--wj-primary);
+    box-shadow: 0 0 0 3px rgba(10, 81, 20, 0.15);
+    outline: none;
+}
+
+/* ---------- Grid Active / Inactive buttons (legacy btn-xs) ---------- */
+.pj-grid .btn-primary.btn-xs.no-margins {
+    background-color: var(--wj-primary);
+    border-color: var(--wj-primary);
+    border-radius: 8px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all var(--wj-transition);
+}
+.pj-grid .btn-primary.btn-xs.no-margins:hover {
+    background-color: var(--wj-primary-dark);
+    box-shadow: 0 2px 6px rgba(10, 81, 20, 0.3);
+}
+.pj-grid .btn-default.btn-xs.no-margins {
+    border-radius: 8px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    border-color: var(--wj-border);
+    transition: all var(--wj-transition);
+}
+.pj-grid .btn-default.btn-xs.no-margins:hover {
+    border-color: var(--wj-primary);
+    color: var(--wj-primary);
+}
+
+/* ---------- Sort icons ---------- */
+.pj-grid .fa-sort-amount-asc,
+.pj-grid .fa-sort-amount-desc {
+    color: #fff;
+}
+.pj-grid thead .fa-sort,
+.pj-grid thead .fa-sort-up,
+.pj-grid thead .fa-sort-down {
+    color: rgba(255,255,255,0.6);
+}
+
+/* ---------- Pagination — uniform 36px height ---------- */
+.pj-grid .pagination {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin: 0;
+}
+.pj-grid .pagination > li > a,
+.pj-grid .pagination > li > span {
+    border-radius: 8px !important;
+    margin: 0;
+    border-color: var(--wj-border);
+    color: var(--wj-text);
+    transition: all var(--wj-transition);
+    padding: 6px 12px;
+    line-height: 1.4;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+.pj-grid .pagination > .active > a,
+.pj-grid .pagination > .active > span {
+    background-color: var(--wj-primary);
+    border-color: var(--wj-primary);
+}
+.pj-grid .pagination > li > a:hover {
+    background-color: var(--wj-primary-light);
+    color: var(--wj-primary);
+    border-color: var(--wj-primary);
+}
+.pj-grid .pagination > .disabled > a,
+.pj-grid .pagination > .disabled > span {
+    color: #ccc;
+    border-color: var(--wj-border);
+}
+
+/* === Paginator: 36px height, primary brand outline ===
+   Pagination `.input-group` uses inline-flex (instead of Bootstrap `display: table`)
+   so inputs and buttons align to 36px height.
+
+   Border strategy between Prev | page input | Next:
+     • Prev & Next keep full borders (including left/right)
+     • Page input only top + bottom border, no left/right
+     • No negative margins → no paint-order glitches
+   Keeps a visible divider between controls without the “Next” button covering the input border. */
+.pj-grid .input-group:has(.pj-paginator-list-prev),
+.pj-grid .input-group:has(.pj-paginator-list-next),
+.pj-grid .input-group:has(.pj-selector-goto) {
+    display: inline-flex !important;
+    align-items: stretch;
+    width: auto;
+    border-collapse: unset;
+    margin: 0 !important;
+    gap: 0 !important;
+}
+.pj-grid .input-group:has(.pj-paginator-list-prev) > .input-group-btn,
+.pj-grid .input-group:has(.pj-paginator-list-next) > .input-group-btn,
+.pj-grid .input-group:has(.pj-selector-goto) > .input-group-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: auto;
+    font-size: 0;
+}
+
+.pj-grid .pj-paginator-list-prev,
+.pj-grid .pj-paginator-list-next {
+    height: 36px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    background: #fff !important;
+    color: var(--admin-primary, #0a5114) !important;
+    font-size: 13px !important;
+    font-weight: 500;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.pj-grid .pj-paginator-list-prev { border-radius: 8px 0 0 8px !important; }
+.pj-grid .pj-paginator-list-next { border-radius: 0 8px 8px 0 !important; }
+.pj-grid .pj-paginator-list-prev:not(:disabled):hover,
+.pj-grid .pj-paginator-list-next:not(:disabled):hover {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.08)) !important;
+    color: var(--admin-primary-dark, #06370d) !important;
+}
+.pj-grid .pj-paginator-list-prev:disabled,
+.pj-grid .pj-paginator-list-next:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Page number input — sits flush between Prev and Next.
+   `flex: 0 0 56px` fixed width. No left/right border; buttons provide the vertical separators. */
+.pj-grid .pj-selector-goto {
+    height: 36px !important;
+    width: 56px !important;
+    flex: 0 0 56px;
+    padding: 6px 10px !important;
+    border-top: 1px solid var(--admin-primary, #0a5114) !important;
+    border-bottom: 1px solid var(--admin-primary, #0a5114) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: var(--admin-primary, #0a5114) !important;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    box-shadow: none !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: middle;
+}
+.pj-grid .pj-selector-goto:focus {
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    z-index: 2;
+    outline: none !important;
+}
+
+/* “Choose action” dropdown — outline button, 36px tall.
+   NOTE: `.pj-paginator-action` is on the `<a>` items inside the menu, not the toggle.
+   The toggle is `<button class="btn btn-primary btn-outline dropdown-toggle …">`.
+   We therefore target `.btn-group > .dropdown-toggle` inside `.table-responsive-actions`. */
+.pj-grid > .table-responsive-actions .btn-group > .dropdown-toggle,
+.pj-grid > .table-responsive-actions .btn-group > .btn-primary.btn-outline,
+.pj-grid > .table-responsive-actions .btn-group > .btn-primary.dropdown-toggle {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: var(--admin-primary, #0a5114) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center;
+    gap: 8px;
+    width: auto !important;
+    margin: 0 !important;
+    text-decoration: none !important;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.pj-grid > .table-responsive-actions .btn-group > .dropdown-toggle:hover,
+.pj-grid > .table-responsive-actions .btn-group > .dropdown-toggle:focus,
+.pj-grid > .table-responsive-actions .btn-group > .btn-primary.btn-outline:hover,
+.pj-grid > .table-responsive-actions .btn-group > .btn-primary.btn-outline:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.08)) !important;
+    color: var(--admin-primary-dark, #06370d) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+}
+
+/* Dropdown menu links for “Choose action” (anchors with `.pj-paginator-action`).
+   Styled separately — only in the open menu: tighter padding, no border. */
+.pj-grid li > a.pj-paginator-action {
+    padding: 8px 14px;
+    color: var(--wj-text, #1a1a2e);
+    text-decoration: none;
+    display: block;
+    line-height: 1.4;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.pj-grid li > a.pj-paginator-action:hover,
+.pj-grid li > a.pj-paginator-action:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.08));
+    color: var(--admin-primary-dark, #06370d);
+}
+
+/* “Show X / of Y total” — align block to 36px row height */
+.pj-grid .show-total {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.pj-grid .show-total > .form-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    height: 36px;
+}
+.pj-grid .show-total label {
+    margin: 0;
+    color: var(--wj-text, #1a1a2e);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+}
+/* “Show X” per-page select — 36px tall, primary outline, custom chevron */
+.pj-grid .pj-selector-row-count {
+    height: 36px !important;
+    padding: 6px 28px 6px 12px !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    border-radius: 8px !important;
+    background-color: #fff !important;
+    color: var(--wj-text, #1a1a2e) !important;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    box-shadow: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%230a5114' d='M6 8L0 0h12z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 10px 7px !important;
+}
+.pj-grid .pj-selector-row-count:focus {
+    border-color: var(--admin-primary-dark, #06370d) !important;
+}
+
+/* Count `<strong>` next to the per-page select */
+.pj-grid .show-total .form-group > label > strong {
+    color: var(--admin-primary, #0a5114);
+    font-weight: 700;
+    margin: 0 4px;
+}
+
+/* === Paginator bar (Choose action + Prev/Next/page + Show X of Y) ===
+
+   DOM from the framework:
+     .row.table-responsive-actions
+     ├── .col-lg-5.col-md-7.col-sm-7         (left wrapper)
+     │   └── .row
+     │       ├── .col-md-6.col-sm-7          (choose-action wrapper)
+     │       └── .col-md-6.col-sm-5          (pagination wrapper)
+     └── .col-lg-7.col-md-5.col-sm-5         (show/total wrapper)
+
+   Layout: two-column 50/50 grid:
+     - Left column uses inner flex `justify-content: space-between`:
+       “Choose action” on the left, pagination cluster toward the middle.
+     - Right column aligns its content to the end.
+
+   Result:
+     [Choose action]     [« Prev | 1 | Next »]     [Show X of Y total]
+
+   Uses CSS grid + flex (no `display: contents` for broader browser support).
+*/
+.pj-grid > .table-responsive-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    align-items: center;
+    margin: 16px 0 0;
+    width: 100%;
+    white-space: normal;
+}
+
+/* Reset Bootstrap floats/padding on all paginator column wrappers */
+.pj-grid > .table-responsive-actions > [class*="col-"],
+.pj-grid > .table-responsive-actions > [class*="col-"] > .row > [class*="col-"] {
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    float: none !important;
+    min-height: 0;
+}
+
+/* Left column (grid col 1): inner row is flex with `space-between`
+   so “Choose action” stays left and pagination sits toward the centre. */
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child {
+    grid-column: 1;
+    width: auto !important;
+}
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 !important;
+    width: 100%;
+}
+/* Disable Bootstrap clearfix pseudo-elements — not needed in flex layout */
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row::before,
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row::after {
+    display: none !important;
+}
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row > [class*="col-"] {
+    flex: 0 0 auto;
+}
+/* “Choose action” button group: shrink-to-fit, not full width */
+.pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row > [class*="col-"]:first-child > .btn-group {
+    display: inline-flex;
+    width: auto;
+}
+
+/* Right column (grid col 2): align content to the end */
+.pj-grid > .table-responsive-actions > [class*="col-"]:last-child {
+    grid-column: 2;
+    justify-self: end;
+    width: auto !important;
+}
+
+/* Override legacy min-width from pjBase/custom.css — page input is exactly 56px */
+.pj-grid .input-group:has(.pj-selector-goto) .pj-selector-goto {
+    min-width: 0;
+}
+.pj-grid td:last-child {
+    white-space: nowrap;
+    word-break: normal;
+    overflow: visible;
+}
+.pj-grid .table-responsive-actions .btn {
+    border-radius: 8px;
+    transition: all var(--wj-transition);
+    padding: 4px 8px;
+    font-size: 12px;
+}
+body[data-table-density="compact"] .pj-grid .table-responsive-actions .btn {
+    padding: 2px 6px;
+    font-size: 11px;
+}
+.pj-grid .btn-primary.btn-outline.btn-sm {
+    color: var(--wj-primary);
+    border-color: var(--wj-primary);
+    border-radius: 8px;
+}
+.pj-grid .btn-primary.btn-outline.btn-sm:hover {
+    background-color: var(--wj-primary);
+    color: #fff;
+}
+.pj-grid .btn-danger.btn-outline.btn-sm {
+    border-radius: 8px;
+}
+
+/* Status / payment pills in grids (orders, etc.) */
+span.pj-table-cell-label[class*="pj-status-"] {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	padding: 5px 10px;
+	white-space: nowrap;
+	border-radius: 8px;
+	text-align: center;
+	font-weight: 600;
+	box-sizing: border-box;
+}
+span.pj-table-cell-label[class*="pj-status-"] > select,
+span.pj-table-cell-label[class*="pj-status-"] > input,
+span.pj-table-cell-label[class*="pj-status-"] > i,
+span.pj-table-cell-label[class*="pj-status-"] > ins {
+	display: none !important;
+}
+.pj-selector-editable[data-name="status"],
+span.pj-table-cell-label[class*="pj-status-"] {
+	width: 160px;
+	min-width: 160px;
+	box-sizing: border-box;
+}
+.table span.pj-table-cell-label[class*="pj-status-"] {
+	display: inline-block;
+	min-width: 160px;
+	text-align: center;
+}
+span.pj-table-cell-label.pj-status-new,
+span.pj-table-cell-label.pj-status-enquiry {
+	background-color: var(--admin-secondary-light, rgba(247, 20, 139, 0.20));
+	color: var(--admin-secondary, #F7148B);
+	border: 1px solid var(--admin-secondary-light, rgba(247, 20, 139, 0.20));
+}
+span.pj-table-cell-label.pj-status-processing {
+	background-color: var(--admin-primary-light, rgba(10, 81, 20, 0.20));
+	color: var(--admin-primary, #0a5114);
+	border: 1px solid var(--admin-primary-light, rgba(10, 81, 20, 0.20));
+}
+span.pj-table-cell-label.pj-status-out_for_delivery,
+span.pj-table-cell-label.pj-status-ready_for_pickup,
+span.pj-table-cell-label.pj-status-ready_to_pickup,
+span.pj-table-cell-label.pj-status-prepared,
+span.pj-table-cell-label.pj-status-collected,
+span.pj-table-cell-label.pj-status-pending {
+	background-color: var(--admin-primary-light, rgba(10, 81, 20, 0.20));
+	color: var(--admin-primary-dark, #06370d);
+	border: 1px solid var(--admin-primary-light, rgba(10, 81, 20, 0.20));
+}
+span.pj-table-cell-label.pj-status-shipped,
+span.pj-table-cell-label.pj-status-delivered,
+span.pj-table-cell-label.pj-status-picked_up,
+span.pj-table-cell-label.pj-status-completed,
+span.pj-table-cell-label.pj-status-confirmed,
+span.pj-table-cell-label.pj-status-finished {
+	background-color: var(--admin-success-light, rgba(34, 197, 94, 0.20));
+	color: var(--admin-success, #22C55E);
+	border: 1px solid var(--admin-success-light, rgba(34, 197, 94, 0.20));
+}
+span.pj-table-cell-label.pj-status-cancelled,
+span.pj-table-cell-label.pj-status-error,
+span.pj-table-cell-label.pj-status-failed {
+	background-color: var(--admin-danger-light, rgba(220, 38, 38, 0.20));
+	color: var(--admin-danger, #DC2626);
+	border: 1px solid var(--admin-danger-light, rgba(220, 38, 38, 0.20));
+}
+span.pj-table-cell-label.pj-status-uploaded {
+	background-color: rgba(59, 130, 246, 0.18);
+	color: #2563eb;
+	border: 1px solid rgba(59, 130, 246, 0.22);
+}
+/* Active / inactive (grids using select + applyClass: pj-status, values T / F) */
+span.pj-table-cell-label.pj-status-T {
+	background-color: var(--admin-success-light, rgba(34, 197, 94, 0.20));
+	color: var(--admin-success, #22C55E);
+	border: 1px solid var(--admin-success-light, rgba(34, 197, 94, 0.20));
+}
+span.pj-table-cell-label.pj-status-F {
+	background-color: rgba(107, 114, 128, 0.12);
+	color: #6b7280;
+	border: 1px solid rgba(107, 114, 128, 0.22);
+}
+/* ---------- Page Heading ---------- */
+.page-heading {
+    border-bottom-color: var(--wj-border) !important;
+}
+.page-heading h2 {
+    color: var(--admin-primary, #0a5114);
+    font-weight: 700;
+}
+/* Page intro paragraph: dark text for readability + brand-coloured info icon */
+.page-heading p {
+    color: var(--wj-text, #1a1a2e);
+    font-size: 14px;
+}
+.page-heading p > i.fa-info-circle {
+    color: var(--admin-primary, #0a5114);
+}
+/* Inline “read more in the manual” link — brand colour + semibold */
+.page-heading p a {
+    color: var(--admin-primary, #0a5114);
+    font-weight: 600;
+    text-decoration: none;
+}
+.page-heading p a:hover,
+.page-heading p a:focus {
+    color: var(--admin-primary-dark, #06370d);
+    text-decoration: underline;
+}
+
+/* ===========================================================================
+ * Admin main left navigation (Inspinia: nav.navbar-default.navbar-static-side)
+ * Replaces default slate (#2f4050) + orange active bar with Workwear greens.
+ * =========================================================================== */
+#wrapper > nav.navbar-default.navbar-static-side {
+    background: linear-gradient(180deg, #061f0d 0%, #0a2e16 45%, #0d3a1c 100%);
+    border-color: transparent;
+    box-shadow: 2px 0 14px rgba(6, 55, 13, 0.22);
+}
+.navbar-default.navbar-static-side .sidebar-collapse,
+#side-menu.nav.metismenu {
+    background: transparent;
+}
+.navbar-default.navbar-static-side .nav > li > a {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    border-radius: 0 8px 8px 0;
+    margin-right: 6px;
+}
+.navbar-default.navbar-static-side .nav > li > a:hover,
+.navbar-default.navbar-static-side .nav > li > a:focus {
+    background-color: rgba(10, 81, 20, 0.42);
+    color: #fff;
+}
+/* MetisMenu / Bootstrap “open” must not use white panel background on the sidebar */
+.navbar-default.navbar-static-side .nav .open > a,
+.navbar-default.navbar-static-side .nav .open > a:hover,
+.navbar-default.navbar-static-side .nav .open > a:focus {
+    background-color: rgba(10, 81, 20, 0.35);
+    color: #fff;
+}
+.navbar-default.navbar-static-side .nav > li.active {
+    border-left: 4px solid var(--admin-success, #22c55e);
+    background: rgba(0, 0, 0, 0.2);
+}
+.navbar-default.navbar-static-side .nav > li.active > a {
+    color: #fff;
+    background: transparent;
+}
+.navbar-default.navbar-static-side ul.nav-second-level {
+    background: rgba(0, 0, 0, 0.22);
+}
+.navbar-default.navbar-static-side .nav-second-level > li > a {
+    color: rgba(255, 255, 255, 0.85);
+    padding-left: 40px;
+    border-radius: 6px;
+    margin: 2px 8px 2px 0;
+    font-weight: 500;
+}
+.navbar-default.navbar-static-side .nav-second-level > li > a:hover,
+.navbar-default.navbar-static-side .nav-second-level > li > a:focus {
+    background-color: rgba(10, 81, 20, 0.45);
+    color: #fff;
+}
+.navbar-default.navbar-static-side .nav.nav-second-level > li.active > a {
+    background: var(--admin-primary, #0a5114);
+    color: #fff;
+}
+/* Side menu: Font Awesome on links (submenu anchors often have whitespace before <i> — avoid :first-child) */
+.navbar-default.navbar-static-side #side-menu .nav li > a > i.fa {
+    min-width: 1.15em;
+    margin-right: 8px;
+    text-align: center;
+    opacity: 0.92;
+}
+.navbar-default.navbar-static-side .nav-header {
+    background: linear-gradient(135deg, #052a0f 0%, #0a5114 100%);
+    background-image: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.navbar-default.navbar-static-side .nav-header a {
+    color: rgba(255, 255, 255, 0.92);
+}
+.navbar-default.navbar-static-side .nav-header .text-muted {
+    color: rgba(255, 255, 255, 0.55);
+}
+.navbar-default.navbar-static-side .nav-header.company-header {
+    background: #06370d;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.navbar-default.navbar-static-side .fa.arrow {
+    color: rgba(255, 255, 255, 0.45);
+}
+body.mini-navbar .navbar-default.navbar-static-side .nav .nav-second-level {
+    background-color: #0a2e16;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 4px 6px 24px rgba(0, 0, 0, 0.28);
+}
+body.mini-navbar .navbar-default.navbar-static-side .nav > li > .nav-second-level li a {
+    color: rgba(255, 255, 255, 0.88);
+}
+body.mini-navbar .logo-element {
+    background: var(--admin-primary, #0a5114);
+    color: #fff;
+}

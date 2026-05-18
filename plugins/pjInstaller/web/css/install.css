@@ -1,0 +1,505 @@
+@charset "UTF-8";
+
+/* Workwear installer — static UI, loads last after theme CSS */
+
+.pj-install-body {
+    --pj-i-primary: #0a5114;
+    --pj-i-primary-dark: #06370d;
+    --pj-i-primary-light: #eaf4ec;
+    --pj-i-primary-soft: rgba(10, 81, 20, 0.08);
+    --pj-i-success: #22c55e;
+    --pj-i-danger: #dc3545;
+    --pj-i-text: #2d3436;
+    --pj-i-muted: #636e72;
+    --pj-i-border: #e2e6ea;
+    --pj-i-bg: #eef1f4;
+    --pj-i-card: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    background: var(--pj-i-bg) !important;
+    color: var(--pj-i-text);
+    margin: 0;
+    min-height: 100vh;
+}
+
+.pj-install-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px 24px;
+    box-sizing: border-box;
+}
+
+/* ---- Card ---- */
+.pj-install-card {
+    width: 100%;
+    max-width: 1000px;
+    background: var(--pj-i-card);
+    border-radius: 20px;
+    border: 1px solid var(--pj-i-border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.pj-install-card__header {
+    text-align: center;
+    padding: 28px 32px 24px;
+    background: linear-gradient(180deg, var(--pj-i-primary-soft) 0%, var(--pj-i-card) 100%);
+    border-bottom: 1px solid var(--pj-i-border);
+}
+
+.pj-install-card__brand {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--pj-i-muted);
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.pj-install-card__brand:hover {
+    color: var(--pj-i-primary);
+}
+
+.pj-install-card__title {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--pj-i-text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.pj-install-card__body {
+    padding: 0;
+}
+
+.pj-install-site-footer {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--pj-i-muted);
+    text-align: center;
+}
+
+.pj-install-site-footer a {
+    color: var(--pj-i-primary);
+    text-decoration: none;
+}
+
+.pj-install-site-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Legacy wrappers */
+.pj-install-body .page-wrapper,
+.pj-install-body .main,
+.pj-install-body .container,
+.pj-install-body .text-center.m-b-md,
+.pj-install-body .page-wrapper > .header,
+.pj-install-body .page-footer {
+    display: none !important;
+}
+
+/* ---- Simple panels (step 0, messages) ---- */
+.pj-install-panel {
+    padding: 32px 40px 36px;
+}
+
+.pj-install-panel--message {
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.pj-install-panel__heading {
+    margin: 0 0 16px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--pj-i-text);
+}
+
+.pj-install-panel__text {
+    margin: 0 0 14px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--pj-i-muted);
+}
+
+.pj-install-panel__text a,
+.pj-install-panel__help a {
+    color: var(--pj-i-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pj-install-panel__text a:hover,
+.pj-install-panel__help a:hover {
+    text-decoration: underline;
+}
+
+.pj-install-panel__help {
+    margin: 28px 0 0;
+    padding-top: 24px;
+    border-top: 1px dashed var(--pj-i-border);
+    font-size: 14px;
+    color: var(--pj-i-muted);
+}
+
+/* ---- jQuery Steps wizard inside card ---- */
+.pj-install-body .pj-install-card__body .wizard {
+    width: 100%;
+}
+
+/* Stepper track */
+.pj-install-body .wizard > .steps {
+    padding: 20px 24px 16px;
+    background: var(--pj-i-primary-soft);
+    border-bottom: 1px solid var(--pj-i-border);
+    overflow-x: auto;
+}
+
+.pj-install-body .wizard > .steps > ul {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 700px;
+    counter-reset: pj-step;
+}
+
+.pj-install-body .wizard > .steps > ul > li {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    position: relative;
+    counter-increment: pj-step;
+    padding: 0 6px;
+    text-align: center;
+}
+
+.pj-install-body .wizard > .steps > ul > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: calc(50% + 20px);
+    width: calc(100% - 40px);
+    height: 2px;
+    background: var(--pj-i-border);
+    z-index: 0;
+}
+
+.pj-install-body .wizard > .steps > ul > li.done:not(:last-child)::after {
+    background: var(--pj-i-primary);
+}
+
+/* Step anchors — override custom.css green blocks */
+.pj-install-body .wizard > .steps a,
+.pj-install-body .wizard > .steps a:hover,
+.pj-install-body .wizard > .steps a:active,
+.pj-install-body .wizard > .steps .current a,
+.pj-install-body .wizard > .steps .current a:hover,
+.pj-install-body .wizard > .steps .current a:active,
+.pj-install-body .wizard > .steps .done a,
+.pj-install-body .wizard > .steps .done a:hover,
+.pj-install-body .wizard > .steps .done a:active,
+.pj-install-body .wizard > .steps .disabled a,
+.pj-install-body .wizard > .steps .disabled a:hover,
+.pj-install-body .wizard > .steps .disabled a:active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    position: relative;
+    z-index: 1;
+    text-decoration: none !important;
+    color: #636e72 !important;
+}
+
+.pj-install-body .wizard > .steps a::before {
+    content: counter(pj-step);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--pj-i-card);
+    border: 2px solid var(--pj-i-border);
+    color: var(--pj-i-muted);
+    flex-shrink: 0;
+}
+
+.pj-install-body .wizard > .steps a .number {
+    display: none !important;
+}
+
+.pj-install-body .wizard > .steps a .title {
+    display: block !important;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--pj-i-muted) !important;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.pj-install-body .wizard > .steps .current a::before {
+    background: var(--pj-i-primary) !important;
+    border-color: var(--pj-i-primary) !important;
+    color: #fff !important;
+    box-shadow: 0 3px 10px rgba(10, 81, 20, 0.3);
+}
+
+.pj-install-body .wizard > .steps .current a .title {
+    color: var(--pj-i-primary) !important;
+    font-weight: 700 !important;
+}
+
+.pj-install-body .wizard > .steps .done a::before {
+    content: '';
+    background: var(--pj-i-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center no-repeat;
+    border-color: var(--pj-i-primary);
+}
+
+.pj-install-body .wizard > .steps .done a .title {
+    color: var(--pj-i-text) !important;
+}
+
+/* Content */
+.pj-install-body .wizard > .content {
+    background: var(--pj-i-card) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.pj-install-body .wizard > .content > .body {
+    float: none !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 32px 40px 24px !important;
+    box-sizing: border-box;
+}
+
+.pj-install-body .wizard > .content > .body fieldset {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.pj-install-body .wizard > .content > .body > h2 {
+    display: none !important;
+}
+
+.pj-install-body .wizard > .content > .title {
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+.pj-install-body .wizard .m-b-md p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--pj-i-muted);
+}
+
+.pj-install-body .wizard > .content > .body > p {
+    margin: 20px 0 0;
+    font-size: 14px;
+    color: var(--pj-i-muted);
+}
+
+.pj-install-body .wizard > .content > .body > p a {
+    color: var(--pj-i-primary);
+    font-weight: 600;
+}
+
+.pj-install-body .wizard .hr-line-dashed {
+    display: none !important;
+}
+
+/* Table */
+.pj-install-body .pj-install-table-wrap {
+    border: 1px solid var(--pj-i-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.pj-install-body .wizard .table {
+    margin: 0;
+    font-size: 14px;
+}
+
+.pj-install-body .wizard .table thead th {
+    background: var(--pj-i-primary-soft);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--pj-i-text);
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--pj-i-border);
+}
+
+.pj-install-body .wizard .table tbody td {
+    padding: 11px 18px;
+    vertical-align: middle;
+    border-color: var(--pj-i-border);
+}
+
+.pj-install-body .wizard .table-striped > tbody > tr:nth-of-type(odd) {
+    background: #fafbfc;
+}
+
+.pj-install-body .wizard .table .text-info {
+    color: var(--pj-i-primary) !important;
+    font-weight: 600;
+}
+
+.pj-install-body .wizard .table .text-info .fa-check {
+    color: var(--pj-i-success);
+    margin-right: 4px;
+}
+
+.pj-install-body .wizard .alert-danger {
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* Actions footer inside card */
+.pj-install-body .wizard > .actions {
+    padding: 18px 40px 28px !important;
+    margin: 0 !important;
+    background: #f8f9fa !important;
+    border-top: 1px solid var(--pj-i-border);
+    clear: both;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.pj-install-body .wizard > .actions > ul {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center;
+    gap: 12px;
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none;
+}
+
+.pj-install-body .wizard > .actions > ul > li {
+    float: none !important;
+    margin: 0 !important;
+}
+
+.pj-install-body .wizard > .actions > ul > li:first-child.disabled {
+    display: none !important;
+}
+
+.pj-install-body .wizard > .actions a {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    padding: 12px 32px !important;
+    border-radius: 50px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    font-family: inherit !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    border: 2px solid var(--pj-i-border) !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: var(--pj-i-muted) !important;
+}
+
+.pj-install-body .wizard > .actions a[href="#next"],
+.pj-install-body .wizard > .actions a[href="#finish"] {
+    background: var(--pj-i-primary) !important;
+    background-color: var(--pj-i-primary) !important;
+    border-color: var(--pj-i-primary) !important;
+    color: #fff !important;
+}
+
+.pj-install-body .wizard > .actions a[href="#next"]:hover,
+.pj-install-body .wizard > .actions a[href="#finish"]:hover {
+    background: var(--pj-i-primary-dark) !important;
+    background-color: var(--pj-i-primary-dark) !important;
+    border-color: var(--pj-i-primary-dark) !important;
+}
+
+.pj-install-body .wizard > .actions a[href="#previous"]:hover {
+    border-color: var(--pj-i-primary) !important;
+    color: var(--pj-i-primary) !important;
+}
+
+/* Finish step */
+.pj-install-body #frmStep7 .wizard > .content > .body h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--pj-i-primary);
+    margin: 0 0 12px;
+    text-align: center;
+}
+
+.pj-install-body #frmStep7 .wizard > .content > .body p {
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .pj-install-wrap {
+        padding: 16px 12px;
+        justify-content: flex-start;
+    }
+
+    .pj-install-card__header {
+        padding: 20px 20px 16px;
+    }
+
+    .pj-install-card__title {
+        font-size: 22px;
+    }
+
+    .pj-install-panel,
+    .pj-install-body .wizard > .content > .body {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .pj-install-body .wizard > .actions {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .pj-install-body .wizard > .steps > ul > li a .title {
+        font-size: 9px;
+    }
+}

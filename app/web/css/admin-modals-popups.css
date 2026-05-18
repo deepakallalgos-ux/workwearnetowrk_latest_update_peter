@@ -1,0 +1,369 @@
+@charset "UTF-8";
+
+/**
+ * Admin popups & modals — SweetAlert, Bootstrap modal, jQuery UI dialog, popovers.
+ * Fixes off-center SweetAlert, z-index under sidebar, and inconsistent chrome.
+ */
+
+/* ---- Z-index stack (above sidebar 1000, below select2 in modals) ---- */
+.sweet-overlay { z-index: 20040 !important; }
+.sweet-alert { z-index: 20050 !important; }
+.modal-backdrop { z-index: 20040 !important; }
+.modal { z-index: 20050 !important; }
+.ui-widget-overlay { z-index: 20040 !important; }
+.ui-dialog { z-index: 20050 !important; }
+.popover { z-index: 20100 !important; }
+#gritter-notice-wrapper { z-index: 20110 !important; }
+.modal .select2-container { z-index: 20060 !important; }
+.select2-dropdown { z-index: 20070 !important; }
+
+/* ---- SweetAlert 1.x ---- */
+.sweet-overlay {
+    background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.sweet-alert {
+    width: min(480px, calc(100vw - 32px)) !important;
+    max-width: 480px !important;
+    padding: 28px 24px 22px !important;
+    margin: 0 !important;
+    left: 50% !important;
+    top: 50% !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+}
+
+.sweet-alert h2 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: var(--wj-text, #2d3436) !important;
+    margin: 12px 0 8px !important;
+    padding: 0 !important;
+    line-height: 1.35 !important;
+    text-transform: none !important;
+}
+
+.sweet-alert p {
+    font-size: 14px !important;
+    color: var(--wj-text-muted, #636e72) !important;
+    line-height: 1.55 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 400 !important;
+}
+
+.sweet-alert .sa-icon {
+    margin: 4px auto 0 !important;
+}
+
+.sweet-alert .sa-icon.sa-success .sa-line { background-color: var(--admin-success, #22c55e) !important; }
+.sweet-alert .sa-icon.sa-success .sa-placeholder { border-color: rgba(34, 197, 94, 0.3) !important; }
+.sweet-alert .sa-icon.sa-error { border-color: #e74c3c !important; }
+.sweet-alert .sa-icon.sa-warning { border-color: #f0ad4e !important; }
+.sweet-alert .sa-icon.sa-info {
+    border-color: var(--admin-primary, #0a5114) !important;
+}
+.sweet-alert .sa-icon.sa-info::before,
+.sweet-alert .sa-icon.sa-info::after {
+    background-color: var(--admin-primary, #0a5114) !important;
+}
+
+.sweet-alert .sa-button-container {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px !important;
+}
+
+.sweet-alert button,
+.sweet-alert .sa-button-container button {
+    border-radius: var(--wj-radius, 8px) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 9px 20px !important;
+    line-height: 1.35 !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    min-width: 96px;
+    margin: 0 !important;
+    cursor: pointer;
+}
+
+.sweet-alert button.confirm,
+.sweet-alert .sa-button-container .confirm {
+    background-color: var(--admin-primary, #0a5114) !important;
+    border-color: var(--admin-primary, #0a5114) !important;
+    color: #fff !important;
+}
+
+.sweet-alert button.confirm:hover,
+.sweet-alert button.confirm:focus,
+.sweet-alert .sa-button-container .confirm:hover,
+.sweet-alert .sa-button-container .confirm:focus {
+    background-color: var(--admin-primary-dark, #06370d) !important;
+    border-color: var(--admin-primary-dark, #06370d) !important;
+    color: #fff !important;
+}
+
+.sweet-alert button.cancel,
+.sweet-alert .sa-button-container .cancel {
+    background: #fff !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    color: var(--wj-text, #2d3436) !important;
+}
+
+.sweet-alert button.cancel:hover,
+.sweet-alert button.cancel:focus,
+.sweet-alert .sa-button-container .cancel:hover,
+.sweet-alert .sa-button-container .cancel:focus {
+    background: #f5f5f5 !important;
+    border-color: #ccc !important;
+    color: var(--wj-text, #2d3436) !important;
+}
+
+.sweet-alert .sa-input-error {
+    display: none !important;
+}
+
+.sweet-alert input[type="text"] {
+    border-radius: 8px !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+    height: auto !important;
+    margin-top: 12px !important;
+}
+
+.sweet-alert input[type="text"]:focus {
+    border-color: var(--admin-primary, #0a5114) !important;
+    box-shadow: 0 0 0 3px rgba(10, 81, 20, 0.12) !important;
+    outline: none !important;
+}
+
+/* ---- Bootstrap 3 modals ---- */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.modal.in,
+.modal.fade.in {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 16px !important;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.modal-dialog {
+    margin: 0 auto !important;
+    max-width: calc(100vw - 32px) !important;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.modal-content {
+    border-radius: 16px !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden;
+    background: #fff;
+}
+
+.modal-header {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid var(--wj-border, #e8e4ef) !important;
+    background: linear-gradient(180deg, rgba(10, 81, 20, 0.06) 0%, #fff 100%) !important;
+}
+
+.modal-header .close {
+    margin-top: 0;
+    font-size: 22px;
+    line-height: 1;
+    opacity: 0.45;
+    text-shadow: none;
+}
+
+.modal-header .close:hover {
+    opacity: 0.85;
+}
+
+.modal-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: var(--wj-text, #2d3436);
+    line-height: 1.3;
+}
+
+.modal-body {
+    padding: 20px !important;
+    color: var(--wj-text, #2d3436);
+}
+
+.modal-footer {
+    padding: 14px 20px 16px !important;
+    margin-top: 0 !important;
+    border-top: 1px solid var(--wj-border, #e8e4ef) !important;
+    background: #fafbfc !important;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-footer::before,
+.modal-footer::after {
+    display: none !important;
+}
+
+.modal-footer .btn {
+    margin: 0 !important;
+}
+
+/* Inspinia "inmodal" variant — toned down */
+.inmodal .modal-header {
+    padding: 22px 20px 14px !important;
+    text-align: center;
+}
+
+.inmodal .modal-title {
+    font-size: 20px !important;
+}
+
+.inmodal .modal-icon {
+    font-size: 52px !important;
+    color: var(--admin-primary, #0a5114) !important;
+    opacity: 0.2;
+    margin-bottom: 4px;
+}
+
+.inmodal .modal-body {
+    background: #f8faf9 !important;
+}
+
+.modal-lg {
+    width: min(900px, calc(100vw - 32px)) !important;
+}
+
+.modal-md {
+    width: min(600px, calc(100vw - 32px)) !important;
+}
+
+.modal-sm {
+    width: min(400px, calc(100vw - 32px)) !important;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open .wrapper-content.animated {
+    animation: none !important;
+}
+
+/* ---- jQuery UI dialog ---- */
+.ui-widget-overlay {
+    background: rgba(0, 0, 0, 0.45) !important;
+    opacity: 1 !important;
+}
+
+.ui-dialog {
+    border-radius: 16px !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+    padding: 0 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    max-width: calc(100vw - 32px) !important;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    border: none !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 14px 18px !important;
+    background: linear-gradient(180deg, rgba(10, 81, 20, 0.06) 0%, #fff 100%) !important;
+    color: var(--wj-text, #2d3436) !important;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+    border: none !important;
+    background: transparent !important;
+    right: 12px !important;
+    top: 50% !important;
+    margin-top: -10px !important;
+}
+
+.ui-dialog .ui-dialog-content {
+    padding: 16px 18px !important;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wj-text, #2d3436);
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+    padding: 12px 16px 14px !important;
+    border-top: 1px solid var(--wj-border, #e8e4ef) !important;
+    margin-top: 0 !important;
+    background: #fafbfc;
+    border-radius: 0 0 16px 16px;
+}
+
+/* ---- Popovers & tooltips ---- */
+.popover {
+    border-radius: 10px !important;
+    border: 1px solid var(--wj-border, #e2e6ea) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12) !important;
+    max-width: min(320px, calc(100vw - 24px));
+    font-size: 13px;
+}
+
+.popover-title {
+    background: #fafbfc !important;
+    border-bottom: 1px solid var(--wj-border, #e8e4ef) !important;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.tooltip-inner {
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    max-width: 280px;
+}
+
+/* ---- Floating side panel (keep readable, not clipped) ---- */
+.adm-floating-sidebar {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (max-width: 540px) {
+    .sweet-alert {
+        width: calc(100vw - 24px) !important;
+        padding: 22px 18px 18px !important;
+    }
+
+    .sweet-alert h2 {
+        font-size: 18px !important;
+    }
+
+    .modal {
+        padding: 12px !important;
+    }
+
+    .modal-body {
+        padding: 16px !important;
+    }
+}

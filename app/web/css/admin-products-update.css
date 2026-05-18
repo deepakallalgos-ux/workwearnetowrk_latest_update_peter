@@ -1,0 +1,141 @@
+/**
+ * Product edit (pjAdminProducts / pjActionUpdate) — Peter-style shell.
+ * Loaded only on this action; scoped to #frmUpdateProduct.sc-product-update.
+ */
+
+/* ----- Page heading (match order-edit chrome) ----- */
+.row.wrapper.border-bottom.white-bg.page-heading.sc-product-page-heading,
+.sc-product-page-heading {
+    padding-top: 18px;
+    padding-bottom: 16px;
+}
+
+.sc-product-page-heading h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--wj-text, #2d3436);
+}
+
+.sc-product-page-heading p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wj-text-muted, #636e72);
+}
+
+.sc-product-page-heading .fa-info-circle {
+    color: var(--admin-primary, #0a5114);
+    margin-right: 6px;
+}
+
+.sc-product-page-heading .product-page-heading__row {
+    margin-top: 4px;
+}
+
+.sc-product-page-heading .btn-group-languages {
+    margin-top: 4px;
+}
+
+@media (min-width: 768px) {
+    .sc-product-page-heading .product-page-heading__row p.m-b-none {
+        max-width: calc(100% - 220px);
+    }
+}
+
+/* ----- Soft info banners (first alert in each tab) ----- */
+#frmUpdateProduct.sc-product-update .tab-pane > .panel-body > .alert.alert-success:first-child {
+    border-radius: var(--wj-radius, 8px);
+    border: 1px solid rgba(10, 81, 20, 0.2);
+    background: rgba(10, 81, 20, 0.06);
+    color: #14532d;
+    margin-bottom: 18px;
+}
+
+#frmUpdateProduct.sc-product-update .tab-pane > .panel-body > .alert.alert-success:first-child strong {
+    color: var(--admin-primary-dark, #06370d);
+}
+
+/* Info strip inside adm-card (e.g. Similar tab: heading then alert) */
+#frmUpdateProduct.sc-product-update .adm-card > .alert.alert-success {
+    border-radius: var(--wj-radius, 8px);
+    border: 1px solid rgba(10, 81, 20, 0.2);
+    background: rgba(10, 81, 20, 0.06);
+    color: #14532d;
+    margin-bottom: 16px;
+}
+
+#frmUpdateProduct.sc-product-update .adm-card > .alert.alert-success strong {
+    color: var(--admin-primary-dark, #06370d);
+}
+
+/* ----- adm-card panels ----- */
+#frmUpdateProduct.sc-product-update .adm-card {
+    background: rgba(10, 81, 20, 0.03);
+    border: 1px solid var(--wj-border, #e8e4ef);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+#frmUpdateProduct.sc-product-update .adm-card__heading {
+    margin: 0 0 14px;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wj-text, #2d3436);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#frmUpdateProduct.sc-product-update .adm-card__heading .fa {
+    color: var(--admin-primary, #0a5114);
+    font-size: 16px;
+}
+
+#frmUpdateProduct.sc-product-update .adm-card .control-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--wj-text, #2d3436);
+}
+
+/* ----- Action row ----- */
+#frmUpdateProduct.sc-product-update .hr-line-dashed + .clearfix,
+#frmUpdateProduct.sc-product-update .m-b-md {
+    margin-bottom: 16px !important;
+}
+
+/* Multilang floating bar — brand primary (overrides inline theme hex) */
+#frmUpdateProduct.sc-product-update .pj-form-langbar-item.btn-primary,
+#frmUpdateProduct.sc-product-update .pj-form-langbar-item.btn-primary:focus {
+    background: var(--admin-primary, #0a5114) !important;
+    border-color: var(--admin-primary, #0a5114) !important;
+}
+
+/* Datagrid loading overlay (jquery.datagrid uses .ibox-content by default; Similar tab uses .adm-card + data-wrapper) */
+#frmUpdateProduct.sc-product-update .adm-card > .sk-spinner {
+    display: none;
+}
+#frmUpdateProduct.sc-product-update .adm-card.sk-loading {
+    position: relative;
+}
+#frmUpdateProduct.sc-product-update .adm-card.sk-loading:after {
+    content: '';
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+}
+#frmUpdateProduct.sc-product-update .adm-card.sk-loading > .sk-spinner {
+    display: block;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+}

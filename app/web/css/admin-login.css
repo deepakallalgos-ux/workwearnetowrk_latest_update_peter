@@ -1,0 +1,239 @@
+@charset "UTF-8";
+
+/* Admin login — matches pjInstaller / setup wizard */
+
+.pj-admin-login-body {
+    --pj-login-primary: #0a5114;
+    --pj-login-primary-dark: #06370d;
+    --pj-login-primary-light: #eaf4ec;
+    --pj-login-primary-soft: rgba(10, 81, 20, 0.08);
+    --pj-login-text: #2d3436;
+    --pj-login-muted: #636e72;
+    --pj-login-border: #e2e6ea;
+    --pj-login-bg: #eef1f4;
+    --pj-login-card: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    background: var(--pj-login-bg) !important;
+    color: var(--pj-login-text);
+    margin: 0;
+    min-height: 100vh;
+}
+
+.pj-admin-login-body #wrapper,
+.pj-admin-login-body .main,
+.pj-admin-login-body .container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px 24px;
+    box-sizing: border-box;
+    background: transparent !important;
+    width: 100%;
+    max-width: none;
+}
+
+.pj-admin-login-wrap {
+    width: 100%;
+    max-width: 920px;
+}
+
+.pj-admin-login-card {
+    background: var(--pj-login-card);
+    border-radius: 20px;
+    border: 1px solid var(--pj-login-border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.pj-admin-login-card__header {
+    text-align: center;
+    padding: 28px 32px 20px;
+    background: linear-gradient(180deg, var(--pj-login-primary-soft) 0%, var(--pj-login-card) 100%);
+    border-bottom: 1px solid var(--pj-login-border);
+}
+
+.pj-admin-login-card__brand {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--pj-login-muted);
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.pj-admin-login-card__brand:hover {
+    color: var(--pj-login-primary);
+    text-decoration: none;
+}
+
+.pj-admin-login-card__title {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--pj-login-text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.pj-admin-login-card__body {
+    padding: 32px 40px 36px;
+}
+
+.pj-admin-login-site-footer {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--pj-login-muted);
+    text-align: center;
+}
+
+.pj-admin-login-site-footer a {
+    color: var(--pj-login-primary);
+    text-decoration: none;
+}
+
+.pj-admin-login-site-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Hide legacy login chrome */
+.pj-admin-login-body .login-img-background,
+.pj-admin-login-body .welcome-section,
+.pj-admin-login-body .login-box-footer,
+.pj-admin-login-body .middle-box.login-box {
+    all: unset;
+    display: block;
+}
+
+.pj-admin-login-body .middle-box.login-box {
+    display: block;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+}
+
+.pj-admin-login-body .login-box h2 {
+    margin: 0 0 24px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--pj-login-text);
+}
+
+.pj-admin-login-body .login-box form {
+    position: static;
+}
+
+.pj-login-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 40px;
+    align-items: start;
+}
+
+.pj-login-grid__welcome {
+    padding: 24px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, var(--pj-login-primary) 0%, var(--pj-login-primary-dark) 100%);
+    color: #fff;
+}
+
+.pj-login-grid__welcome h3 {
+    margin: 0 0 12px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #fff;
+}
+
+.pj-login-grid__welcome p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.pj-login-grid__version {
+    margin-top: 16px !important;
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.pj-admin-login-body .form-control {
+    border-radius: 8px;
+    border-color: var(--pj-login-border);
+    height: 46px;
+}
+
+.pj-admin-login-body .input-group-addon {
+    border-radius: 8px 0 0 8px;
+    border-color: var(--pj-login-border);
+    background: var(--pj-login-primary-light);
+    color: var(--pj-login-primary);
+}
+
+.pj-admin-login-body .btn-primary {
+    background: var(--pj-login-primary);
+    border-color: var(--pj-login-primary);
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 12px 20px;
+}
+
+.pj-admin-login-body .btn-primary:hover,
+.pj-admin-login-body .btn-primary:focus {
+    background: var(--pj-login-primary-dark);
+    border-color: var(--pj-login-primary-dark);
+}
+
+.pj-admin-login-body .login-box .alert {
+    margin-top: 16px;
+    border-radius: 8px;
+}
+
+.pj-admin-login-body a {
+    color: var(--pj-login-primary);
+}
+
+.pj-admin-login-body .well {
+    border-radius: 8px;
+    border-color: var(--pj-login-border);
+    background: var(--pj-login-primary-light);
+    margin: 16px 0;
+    word-break: break-all;
+}
+
+.pj-admin-login-body .row.m-t-lg {
+    margin-top: 20px !important;
+}
+
+.pj-admin-login-body .row.m-t-lg .col-lg-6 {
+    width: 100%;
+    float: none;
+    max-width: 100%;
+}
+
+.pj-admin-login-body .row.m-t-lg .col-lg-6 + .col-lg-6 {
+    margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+    .pj-admin-login-card__body {
+        padding: 24px 20px 28px;
+    }
+
+    .pj-login-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .pj-login-grid__welcome {
+        order: -1;
+    }
+}

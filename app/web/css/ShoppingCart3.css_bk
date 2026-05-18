@@ -1,0 +1,719 @@
+@CHARSET "UTF-8";
+
+.scContainer {
+	margin-top: 10px;
+}
+
+.dropdown-menu {
+	margin-top: 0px !important;
+}
+
+.dropdown-submenu {
+	position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+	top: 0;
+	left: 100%;
+	margin-top: -6px;
+	margin-left: -1px;
+	-webkit-border-radius: 0 6px 6px 6px;
+	-moz-border-radius: 0 6px 6px;
+	border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+	display: block;
+}
+
+.dropdown-submenu>a:after {
+	display: block;
+	content: " ";
+	float: right;
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 5px 0 5px 5px;
+	border-left-color: #ccc;
+	margin-top: 5px;
+	margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+	border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+	float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+	left: -100%;
+	margin-left: 10px;
+	-webkit-border-radius: 6px 0 6px 6px;
+	-moz-border-radius: 6px 0 6px 6px;
+	border-radius: 6px 0 6px 6px;
+}
+
+.dropdown:hover>.dropdown-menu {
+	display: block;
+}
+
+.form-group.required label.control-label:after {
+	content: " *";
+	color: #a94442;
+}
+
+.form-group.required label.error {
+	color: #a94442;
+	font-weight: normal;
+	padding-left: 0px !important;
+}
+
+.scSelectorAddresses .scAddressHolder {
+	border-bottom: 2px solid #ddd;
+	padding-bottom: 10px;
+	margin-bottom: 14px;
+}
+
+.scSelectorAddresses .scAddressHolder:last-child {
+	border-bottom: none;
+	padding-bottom: 0px;
+	margin-bottom: 0px;
+}
+
+.modal-backdrop.fade {
+	opacity: 0;
+	filter: alpha(opacity=0);
+}
+
+.modal-backdrop.fade.in {
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+}
+
+.pjScHeader .pjScLocale img {
+	display: block;
+	float: left;
+	margin-right: 4px;
+	margin-top: 5px;
+}
+
+#pjWrapper .dropdown-menu>li>a {
+	padding-left: 15px;
+	padding-right: 28px;
+}
+
+/* ==========================================================================
+    #pjScEmptyCategoryMessage
+========================================================================== */
+#pjWrapper .pjScEmptyCategoryMessage {
+	padding: 0 15px;
+}
+
+#pjWrapper .pjScProduct .pjScProductImage {
+	margin: 0 auto;
+	width: 100%;
+}
+
+#pjWrapper label.scError {
+	color: #a94442 !important;
+	font-weight: normal !important;
+}
+
+#pjWrapper .scMaximumItems {
+	display: none;
+}
+
+[id^="pjWrapper"] .col-lg-1,
+[id^="pjWrapper"] .col-lg-10,
+[id^="pjWrapper"] .col-lg-11,
+[id^="pjWrapper"] .col-lg-12,
+[id^="pjWrapper"] .col-lg-2,
+[id^="pjWrapper"] .col-lg-3,
+[id^="pjWrapper"] .col-lg-4,
+[id^="pjWrapper"] .col-lg-5,
+[id^="pjWrapper"] .col-lg-6,
+[id^="pjWrapper"] .col-lg-7,
+[id^="pjWrapper"] .col-lg-8,
+[id^="pjWrapper"] .col-lg-9,
+[id^="pjWrapper"] .col-md-1,
+[id^="pjWrapper"] .col-md-10,
+[id^="pjWrapper"] .col-md-11,
+[id^="pjWrapper"] .col-md-12,
+[id^="pjWrapper"] .col-md-2,
+[id^="pjWrapper"] .col-md-3,
+[id^="pjWrapper"] .col-md-4,
+[id^="pjWrapper"] .col-md-5,
+[id^="pjWrapper"] .col-md-6,
+[id^="pjWrapper"] .col-md-7,
+[id^="pjWrapper"] .col-md-8,
+[id^="pjWrapper"] .col-md-9,
+[id^="pjWrapper"] .col-sm-1,
+[id^="pjWrapper"] .col-sm-10,
+[id^="pjWrapper"] .col-sm-11,
+[id^="pjWrapper"] .col-sm-12,
+[id^="pjWrapper"] .col-sm-2,
+[id^="pjWrapper"] .col-sm-3,
+[id^="pjWrapper"] .col-sm-4,
+[id^="pjWrapper"] .col-sm-5,
+[id^="pjWrapper"] .col-sm-6,
+[id^="pjWrapper"] .col-sm-7,
+[id^="pjWrapper"] .col-sm-8,
+[id^="pjWrapper"] .col-sm-9,
+[id^="pjWrapper"] .col-xs-1,
+[id^="pjWrapper"] .col-xs-10,
+[id^="pjWrapper"] .col-xs-11,
+[id^="pjWrapper"] .col-xs-12,
+[id^="pjWrapper"] .col-xs-2,
+[id^="pjWrapper"] .col-xs-3,
+[id^="pjWrapper"] .col-xs-4,
+[id^="pjWrapper"] .col-xs-5,
+[id^="pjWrapper"] .col-xs-6,
+[id^="pjWrapper"] .col-xs-7,
+[id^="pjWrapper"] .col-xs-8,
+[id^="pjWrapper"] .col-xs-9 {
+	position: inherit !important;
+	;
+}
+
+#pjWrapper .scSelectorProductForm label.error {
+	color: #a94442;
+	font-weight: normal;
+}
+
+#pjWrapper .pjScProducts .pjScProductName {
+	display: block;
+	line-height: 21px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#pjWrapper .pjScProducts .pjScProductName a {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pjScEyeIcon:hover {
+	cursor: pointer;
+}
+
+#pjWrapper .pjScProductDetails p.text-indent {
+	padding-left: 30px;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductImage {
+	text-align: center;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductImage img {
+	display: inline-block;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages {
+	position: relative;
+	overflow: hidden;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .scSelectorAddFavFromProductsList,
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .scSelectorRemoveFavFromProductsList {
+	position: absolute;
+	top: 0;
+	right: 5px;
+	z-index: 10;
+	font-size: 25px;
+	padding: 0;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav {
+	display: none;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav {
+	font-size: 17px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav .owl-prev {
+	position: absolute;
+	top: 43%;
+	left: 5px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel .owl-nav .owl-next {
+	position: absolute;
+	top: 43%;
+	right: 5px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel.owl-carousel-hidden {
+	opacity: 0;
+	height: 0;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .owl-carousel.owl-carousel-active {
+	opacity: 1;
+	height: 100%;
+	transition-duration: 0.4s;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .pjScProductAttributes {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	background: #fff;
+	width: 100%;
+	text-align: left;
+	padding: 20px 10px;
+	transition: margin .3s ease;
+	margin-bottom: -500px;
+}
+
+#pjWrapper .pjScProducts .pjScProduct .pjScProductImages .pjScProductAttributes.show {
+	margin-bottom: 0;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductShortDesc {
+	margin: 10px 0;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductViewFullDesc {
+	margin-bottom: 15px;
+	text-decoration: underline;
+	display: block;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs {
+	margin: 10px 0 20px 0;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs .scSelectorProductThumb {
+	display: block;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductThumbs .scSelectorProductThumb img {
+	border-radius: 5px;
+}
+
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper {
+	width: 100%;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-slide {
+	text-align: center;
+	font-size: 18px;
+	background: #fff;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-slide img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+#pjWrapper .pjScProductDetails .pjScSeeMoreOnMobile .pjScProductInfo {
+	position: relative;
+}
+
+#pjWrapper .pjScProductDetails .pjScSeeMoreOnMobile .pjScProductInfo .pjScCloseSeeMoreOnMobile {
+	position: absolute;
+	font-size: 25px;
+	right: 5px;
+	top: 5px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch {
+	padding-top: 4px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch a {
+	font-size: 20px;
+}
+
+#pjWrapper .pjScBar .pjScCategoriesSearch .pjScToggleSearch {
+	padding-left: 5px;
+}
+
+#pjWrapper .pjScBar .pjScSearchFormContainer {
+	display: block;
+}
+
+#pjWrapper .pjScSort {
+	position: relative;
+}
+
+#pjWrapper .pjScSort .btn {
+	font-weight: normal;
+	text-transform: inherit;
+}
+
+#pjWrapper .pjScSort .dropdown .dropdown-menu {
+	right: 0;
+	left: unset;
+	padding: 0;
+}
+
+/* ── Afbeelding overlay badges ── */
+
+/* Badge stapel container — linksboven */
+.sc-badge-stack {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 5px;
+	pointer-events: none;
+}
+
+/* Kortingsbadge op afbeelding */
+.sc-image-badge {
+	display: inline-block;
+	background-color: var(--accentColor);
+	color: #fff;
+	font-size: 0.82em;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 50px;
+	letter-spacing: 0.3px;
+	line-height: 1.4;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
+}
+
+/* Product badge (configureerbaar) */
+.sc-product-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 50px;
+	color: #fff;
+	font-size: 0.78em;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+	line-height: 1.4;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
+}
+
+/* Automatische "Digitaal product" badge (bij is_digital=1) —
+   donker leesbare kleur, exact dezelfde maten/stijl als .sc-product-badge */
+.sc-product-badge--digital {
+	background: #1e293b;
+	color: #fff;
+}
+
+/* Automatische rental badges (Verhuur / Koop óf huur) — gebruik branding-kleuren
+   zodat ze meegaan met het webshop-thema. Verhuur = brandColor (paurs op shop.webjongens.nl),
+   Koop-óf-huur = accentColor (roze) zodat hybride producten visueel onderscheidbaar zijn. */
+.sc-product-badge--rental {
+	background: var(--brandColor, #8438df);
+	color: #fff;
+}
+
+.sc-product-badge--rental.sc-product-badge--hybrid,
+.sc-product-badge--hybrid {
+	background: var(--accentColor, #f7148b);
+	color: #fff;
+}
+
+/* Product galerij: position relative voor overlay badges */
+.pjScProductGallery {
+	position: relative;
+}
+
+
+/* Product galerij: position relative voor overlay badges */
+.pjScProductGallery {
+	position: relative;
+}
+
+/* Vergelijkbare producten: image wrapper */
+.sc-similar-image-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+/* ── Placeholder bij ontbrekende productafbeelding ── */
+/*
+   Aspect-ratio wordt inline gezet via PJ_GALLERY_MEDIUM (listing) of
+   PJ_GALLERY_PRODUCT (detail) zodat de placeholder synchroon loopt
+   met de geconfigureerde formaten in Systeem > Afbeeldingen.
+*/
+.sc-noimg-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	background: var(--surfaceSubtle, #f5f3fa);
+	border: 1px dashed var(--borderColor, #e8e4ef);
+	border-radius: 12px;
+	color: var(--brandColor, #8438df);
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.sc-noimg-placeholder svg {
+	width: 38%;
+	max-width: 96px;
+	height: auto;
+	opacity: 0.45;
+}
+
+.sc-noimg-placeholder--detail {
+	border-radius: 16px;
+}
+
+.sc-noimg-placeholder--similar svg {
+	max-width: 56px;
+}
+
+/* ── Product Gallery: main image + thumbnail strip ── */
+
+/* Gallery container */
+#pjWrapper .pjScProductDetails .pjScProductGallery {
+	position: relative;
+}
+
+/* Grote hoofdafbeelding */
+.sc-gallery-main {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	border-radius: 12px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.sc-gallery-main-img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.sc-gallery-main-link {
+	display: block;
+}
+
+/* Zoom icoon overlay bij hover */
+.sc-gallery-zoom {
+	position: absolute;
+	bottom: 12px;
+	right: 12px;
+	width: 36px;
+	height: 36px;
+	background: rgba(255, 255, 255, 0.85);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
+	color: var(--textSecondary, #4a4a68);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+}
+
+.sc-gallery-main:hover .sc-gallery-zoom {
+	opacity: 1;
+}
+
+/* Thumbnail strip */
+.sc-gallery-thumbs {
+	display: flex;
+	gap: 8px;
+	margin-top: 10px;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	-webkit-overflow-scrolling: touch;
+	padding-bottom: 4px;
+}
+
+/* Verberg scrollbar maar behoud functionaliteit */
+.sc-gallery-thumbs::-webkit-scrollbar {
+	height: 0;
+	display: none;
+}
+
+.sc-gallery-thumbs {
+	scrollbar-width: none;
+}
+
+.sc-gallery-thumb {
+	flex: 0 0 auto;
+	width: 72px;
+	height: 72px;
+	border-radius: 8px;
+	overflow: hidden;
+	cursor: pointer;
+	border: 2px solid transparent;
+	transition: border-color 0.2s ease, opacity 0.2s ease;
+	scroll-snap-align: start;
+	opacity: 0.6;
+}
+
+.sc-gallery-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sc-gallery-thumb:hover {
+	opacity: 0.85;
+}
+
+.sc-gallery-thumb.active {
+	border-color: var(--brandColor);
+	opacity: 1;
+}
+
+/* ── Responsief: mobiel ── */
+@media (max-width: 767px) {
+	.sc-gallery-thumb {
+		width: 56px;
+		height: 56px;
+	}
+
+	.sc-gallery-thumbs {
+		gap: 6px;
+		margin-top: 8px;
+	}
+
+	.sc-gallery-zoom {
+		display: none;
+	}
+}
+
+@media only screen and (max-width: 480px) {
+	#pjWrapper .pjScBar .btn-group .btn {
+		padding: 6px 6px;
+	}
+}
+
+@media only screen and (max-width: 520px) {
+
+	/* ==========================================================================
+        #Product
+    ========================================================================== */
+	#pjWrapper .pjScProduct .pjScBtnPrimary {
+		margin-bottom: 5px;
+	}
+}
+
+@media only screen and (max-width: 767px) {
+
+	/* ==========================================================================
+        #Product
+    ========================================================================== */
+	#pjWrapper .pjScBar .pjScCloseToggleWrap {
+		position: absolute;
+		right: 7px;
+		top: 3px;
+	}
+
+	#pjWrapper .pjScBar .pjScCloseToggleWrap a {
+		font-size: 25px
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer {
+		background: #fff;
+		position: fixed;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		left: 0;
+		padding: 35px 15px 15px 15px;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories {
+		margin: 0;
+		padding: 0;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li {
+		list-style: none;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li a {
+		font-size: 17px;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li a:hover {
+		text-decoration: none;
+	}
+
+	#pjWrapper .pjScBar .pjScCategoriesContainer .pjScNavCategories li ul {
+		padding-left: 25px;
+	}
+
+	#pjWrapper .pjScBar .pjScSearchFormContainer {
+		background: #fff;
+		position: fixed;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		left: 0;
+		display: none;
+		padding: 35px 15px 15px 15px;
+	}
+
+	#pjWrapper .pjScProducts .pjScProduct .pjScProductImages {
+		margin: 0 auto;
+	}
+}
+
+@media only screen and (max-width: 991px) {
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+		height: 400px;
+	}
+}
+
+
+@media only screen and (min-width: 992px) {
+	#pjWrapper .pjScProductDetails .pjScProductGallery {
+		width: 100%;
+		height: 100%;
+		position: relative;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-container {
+		height: 100%;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper .swiper-slide {
+		display: block;
+		width: 50% !important;
+		padding: 0 0 2px 2px;
+		margin: 0;
+	}
+
+	#pjWrapper .pjScProductDetails .pjScProductGallery .swiper-wrapper .swiper-slide img {
+		max-width: 100%;
+	}
+}

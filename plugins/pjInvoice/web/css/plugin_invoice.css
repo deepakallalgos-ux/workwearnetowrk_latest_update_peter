@@ -1,0 +1,5 @@
+@CHARSET "UTF-8";
+/* Legacy iconen-CSS (../img/pj-active.png, pj-pending.png, pj-disabled.png) verwijderd.
+   Deze regels overschreven onze moderne pj-status-* badges met een witte achtergrond
+   plus een PNG-icoontje rechts in de cel. De moderne styling staat nu volledig in
+   admin.css (groene/oranje/rode badges met witte tekst). */

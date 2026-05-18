@@ -1,0 +1,2 @@
+-- Fresh install: tabellen aangemaakt via app/config/database.sql
+-- Plugin: pjInvoice

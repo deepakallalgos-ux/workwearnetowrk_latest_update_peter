@@ -1,0 +1,118 @@
+/**
+ * Admin floating sidebar — shared layout
+ * Used by: Manual, Notifications, frontend notices, form fields, booking, etc.
+ *
+ * HTML structure:
+ *   <div class="adm-floating-sidebar" id="...">
+ *     <div class="adm-sidebar-search">...</div>      (optional)
+ *     <div class="adm-sidebar-content">
+ *       <a class="adm-sidebar-item active">...</a>    (standalone link)
+ *       <div class="adm-nav-group open">              (accordion group)
+ *         <a class="adm-nav-group-title">...</a>
+ *         <ul class="adm-nav-items">
+ *           <li><a class="adm-sidebar-item">...</a></li>
+ *         </ul>
+ *       </div>
+ *     </div>
+ *   </div>
+ */
+
+/* Container */
+.adm-floating-sidebar {
+    position: fixed;
+    top: 195px;
+    width: 220px;
+    max-height: calc(100vh - 215px);
+    overflow-y: auto;
+    z-index: 1000;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e7eaec;
+    padding: 12px;
+    font-size: 13px;
+}
+body:not(.mini-navbar) .adm-floating-sidebar { left: 230px; }
+body.mini-navbar .adm-floating-sidebar { left: 80px; }
+body.body-small .adm-floating-sidebar { display: none; }
+@media (max-width: 768px) {
+    .adm-floating-sidebar { display: none; }
+}
+
+/* Scrollbar */
+.adm-floating-sidebar::-webkit-scrollbar { width: 4px; }
+.adm-floating-sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+/* Zoekbalk (sticky binnen sidebar) */
+.adm-sidebar-search {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    z-index: 1;
+}
+.adm-sidebar-search input {
+    font-size: 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 5px 8px;
+    width: 100%;
+    outline: none;
+}
+.adm-sidebar-search input:focus {
+    border-color: var(--admin-primary, #0a5114);
+    box-shadow: 0 0 0 2px rgba(10, 81, 20, 0.1);
+}
+
+/* Accordion groepen */
+.adm-nav-group { margin-bottom: 2px; }
+.adm-nav-group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.adm-nav-group-title:hover { background: #f5f5f5; color: #333; text-decoration: none; }
+.adm-nav-group-title .fa { font-size: 10px; color: #aaa; transition: transform 0.15s; }
+.adm-nav-group.open > .adm-nav-group-title { color: var(--admin-primary, #0a5114); }
+
+/* Item lijst */
+.adm-nav-items { list-style: none; padding: 0 0 4px 0; margin: 0; }
+.adm-nav-items li { margin: 0; }
+
+/* Sidebar items */
+.adm-sidebar-item {
+    display: block;
+    padding: 5px 8px 5px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #555;
+    text-decoration: none;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.adm-sidebar-item:hover { background: rgba(10, 81, 20, 0.06); color: #333; text-decoration: none; }
+.adm-sidebar-item.active {
+    background: var(--admin-primary, #0a5114);
+    color: #fff;
+}
+.adm-sidebar-item.active:hover { color: #fff; text-decoration: none; }
+
+/* Top-level items (niet in een groep) */
+.adm-sidebar-item.adm-top-item { padding-left: 8px; font-weight: 600; }
+
+/* Content offset */
+.adm-sidebar-content-row { padding-left: 240px; max-width: 1200px; }
+body.mini-navbar .adm-sidebar-content-row { padding-left: 240px; }
+@media (max-width: 768px) {
+    .adm-sidebar-content-row { padding-left: 0; max-width: 100%; }
+}

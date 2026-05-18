@@ -1,0 +1,536 @@
+[2026-04-22 09:27:20] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:27:20] RAW COLUMN: status
+[2026-04-22 09:27:20] RAW VALUE: 0
+[2026-04-22 09:27:20] ID: 704
+[2026-04-22 09:27:20] NORMALIZED COLUMN: status
+[2026-04-22 09:27:20] STOCK DATA:
+[2026-04-22 09:27:20] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 26
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:27:20] PRODUCT ID: 201
+[2026-04-22 09:27:20] BLOCK: STOCK UPDATE
+[2026-04-22 09:27:20] STATUS BEFORE MAP: 0
+[2026-04-22 09:27:20] STATUS AFTER MAP: F
+[2026-04-22 09:27:20] STOCK UPDATE RESULT:
+[2026-04-22 09:27:20] pjStockModel Object
+(
+    [ClassFile] => /Applications/XAMPP/xamppfiles/htdocs/workwearnetwork/core/framework/pjModel.class.php
+    [affectedRows:pjModel:private] => 0
+    [arBatch:pjModel:private] => Array
+        (
+        )
+
+    [arBatchFields:pjModel:private] => Array
+        (
+        )
+
+    [arData:pjModel:private] => Array
+        (
+            [id] => 704
+            [status] => F
+        )
+
+    [arDebug:pjModel:private] => 
+    [arDistinct:pjModel:private] => 
+    [arFrom:pjModel:private] => 
+    [arGroupBy:pjModel:private] => 
+    [arHaving:pjModel:private] => 
+    [arIndex:pjModel:private] => 
+    [arJoin:pjModel:private] => Array
+        (
+        )
+
+    [arOffset:pjModel:private] => 
+    [arOrderBy:pjModel:private] => 
+    [arRowCount:pjModel:private] => 
+    [arSelect:pjModel:private] => Array
+        (
+        )
+
+    [arWhere:pjModel:private] => Array
+        (
+        )
+
+    [arWhereIn:pjModel:private] => Array
+        (
+        )
+
+    [assocTypes:pjModel:private] => Array
+        (
+            [0] => hasOne
+            [1] => hasMany
+            [2] => belongsTo
+            [3] => hasAndBelongsToMany
+        )
+
+    [belongsTo:protected] => 
+    [data:pjModel:private] => Array
+        (
+        )
+
+    [dbo:pjModel:private] => pjMysqliDriver Object
+        (
+            [ClassFile] => /Applications/XAMPP/xamppfiles/htdocs/workwearnetwork/core/framework/pjMysqliDriver.class.php
+            [charset:protected] => utf8
+            [collation:protected] => utf8_general_ci
+            [driver:protected] => mysqli
+            [connectionId:protected] => mysqli Object
+                (
+                    [affected_rows] => 0
+                    [client_info] => mysqlnd 8.2.4
+                    [client_version] => 80204
+                    [connect_errno] => 0
+                    [connect_error] => 
+                    [errno] => 0
+                    [error] => 
+                    [error_list] => Array
+                        (
+                        )
+
+                    [field_count] => 0
+                    [host_info] => Localhost via UNIX socket
+                    [info] => Rows matched: 1  Changed: 0  Warnings: 0
+                    [insert_id] => 0
+                    [server_info] => 10.4.28-MariaDB
+                    [server_version] => 100428
+                    [sqlstate] => 00000
+                    [protocol_version] => 10
+                    [thread_id] => 343
+                    [warning_count] => 0
+                )
+
+            [data:protected] => Array
+                (
+                    [0] => Array
+                        (
+                            [id] => 704
+                            [company_id] => 1
+                            [product_id] => 201
+                            [image_id] => 1108
+                            [qty] => 26
+                            [price] => 100.00
+                            [article_number] => ART-1005
+                            [article_name] => 850DL 
+                            [ean] => 8,9E+12
+                            [status] => F
+                        )
+
+                )
+
+            [database:protected] => workwearnetwork
+            [hostname:protected] => localhost
+            [password:protected] => 
+            [persistent:protected] => 
+            [port:protected] => 3306
+            [result:protected] => 1
+            [socket:protected] => 
+            [username:protected] => root
+            [useSetNames:pjMysqliDriver:private] => 
+        )
+
+    [errors:pjModel:private] => Array
+        (
+        )
+
+    [hasAndBelongsToMany:protected] => 
+    [hasMany:protected] => 
+    [hasOne:protected] => 
+    [initialized:pjModel:private] => 1
+    [insertId:pjModel:private] => 
+    [joinArr:pjModel:private] => Array
+        (
+            [0] => LEFT
+            [1] => RIGHT
+            [2] => OUTER
+            [3] => INNER
+            [4] => LEFT OUTER
+            [5] => RIGHT OUTER
+            [6] => CROSS
+            [7] => NATURAL
+            [8] => STRAIGHT
+        )
+
+    [prefix:pjModel:private] => 
+    [primaryKey:protected] => id
+    [schema:protected] => Array
+        (
+            [0] => Array
+                (
+                    [name] => id
+                    [type] => int
+                    [default] => :NULL
+                )
+
+            [1] => Array
+                (
+                    [name] => company_id
+                    [type] => int
+                    [default] => :NULL
+                )
+
+            [2] => Array
+                (
+                    [name] => product_id
+                    [type] => int
+                    [default] => :NULL
+                )
+
+            [3] => Array
+                (
+                    [name] => image_id
+                    [type] => int
+                    [default] => :NULL
+                )
+
+            [4] => Array
+                (
+                    [name] => qty
+                    [type] => int
+                    [default] => :NULL
+                )
+
+            [5] => Array
+                (
+                    [name] => price
+                    [type] => decimal
+                    [default] => :NULL
+                )
+
+            [6] => Array
+                (
+                    [name] => article_number
+                    [type] => varchar
+                    [default] => :NULL
+                )
+
+            [7] => Array
+                (
+                    [name] => article_name
+                    [type] => varchar
+                    [default] => :NULL
+                )
+
+            [8] => Array
+                (
+                    [name] => ean
+                    [type] => varchar
+                    [default] => :NULL
+                )
+
+            [9] => Array
+                (
+                    [name] => status
+                    [type] => enum
+                    [default] => T
+                )
+
+        )
+
+    [scriptPrefix:pjModel:private] => shopping_cart_
+    [statement:pjModel:private] => 
+    [table:protected] => stocks
+    [i18n:protected] => Array
+        (
+        )
+
+    [transactionStarted:pjModel:private] => 
+    [validate:protected] => Array
+        (
+        )
+
+    [defaultCompany] => admin_selected_company
+)
+
+[2026-04-22 09:27:20] SUCCESS: Row updated
+[2026-04-22 09:27:20] ===== END REQUEST =====
+[2026-04-22 09:31:24] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:31:24] RAW COLUMN: status
+[2026-04-22 09:31:24] RAW VALUE: 0
+[2026-04-22 09:31:24] ID: 703
+[2026-04-22 09:31:24] NORMALIZED COLUMN: status
+[2026-04-22 09:31:24] STOCK DATA:
+[2026-04-22 09:31:24] Array
+(
+    [id] => 703
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1107
+    [qty] => 25
+    [price] => 100.00
+    [article_number] => ART-1004
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:31:24] PRODUCT ID: 201
+[2026-04-22 09:31:24] SUCCESS: Row updated
+[2026-04-22 09:31:24] ===== END REQUEST =====
+[2026-04-22 09:33:10] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:33:10] RAW COLUMN: status
+[2026-04-22 09:33:10] RAW VALUE: 1
+[2026-04-22 09:33:10] ID: 703
+[2026-04-22 09:33:10] NORMALIZED COLUMN: status
+[2026-04-22 09:33:10] STOCK DATA:
+[2026-04-22 09:33:10] Array
+(
+    [id] => 703
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1107
+    [qty] => 25
+    [price] => 100.00
+    [article_number] => ART-1004
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:33:10] PRODUCT ID: 201
+[2026-04-22 09:33:10] SUCCESS: Row updated
+[2026-04-22 09:33:10] ===== END REQUEST =====
+[2026-04-22 09:33:27] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:33:27] RAW COLUMN: status
+[2026-04-22 09:33:27] RAW VALUE: 1
+[2026-04-22 09:33:27] ID: 704
+[2026-04-22 09:33:27] NORMALIZED COLUMN: status
+[2026-04-22 09:33:27] STOCK DATA:
+[2026-04-22 09:33:27] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 26
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:33:27] PRODUCT ID: 201
+[2026-04-22 09:33:27] SUCCESS: Row updated
+[2026-04-22 09:33:27] ===== END REQUEST =====
+[2026-04-22 09:33:37] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:33:37] RAW COLUMN: status
+[2026-04-22 09:33:37] RAW VALUE: 1
+[2026-04-22 09:33:37] ID: 704
+[2026-04-22 09:33:37] NORMALIZED COLUMN: status
+[2026-04-22 09:33:37] STOCK DATA:
+[2026-04-22 09:33:37] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 26
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 09:33:37] PRODUCT ID: 201
+[2026-04-22 09:33:37] SUCCESS: Row updated
+[2026-04-22 09:33:37] ===== END REQUEST =====
+[2026-04-22 09:35:23] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:35:23] RAW COLUMN: qty
+[2026-04-22 09:35:23] RAW VALUE: 326
+[2026-04-22 09:35:23] ID: 704
+[2026-04-22 09:35:23] NORMALIZED COLUMN: qty
+[2026-04-22 09:35:23] STOCK DATA:
+[2026-04-22 09:35:23] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 26
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 09:35:23] PRODUCT ID: 201
+[2026-04-22 09:35:23] SUCCESS: Row updated
+[2026-04-22 09:35:23] ===== END REQUEST =====
+[2026-04-22 09:35:26] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:35:26] RAW COLUMN: status
+[2026-04-22 09:35:26] RAW VALUE: 1
+[2026-04-22 09:35:26] ID: 704
+[2026-04-22 09:35:26] NORMALIZED COLUMN: status
+[2026-04-22 09:35:26] STOCK DATA:
+[2026-04-22 09:35:26] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 09:35:26] PRODUCT ID: 201
+[2026-04-22 09:35:26] SUCCESS: Row updated
+[2026-04-22 09:35:26] ===== END REQUEST =====
+[2026-04-22 09:39:37] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:39:37] RAW COLUMN: status
+[2026-04-22 09:39:37] RAW VALUE: 0
+[2026-04-22 09:39:37] ID: 704
+[2026-04-22 09:39:37] NORMALIZED COLUMN: status
+[2026-04-22 09:39:37] STOCK DATA:
+[2026-04-22 09:39:37] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 09:39:37] PRODUCT ID: 201
+[2026-04-22 09:39:37] SUCCESS: Row updated
+[2026-04-22 09:39:37] ===== END REQUEST =====
+[2026-04-22 09:39:38] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:39:38] RAW COLUMN: status
+[2026-04-22 09:39:38] RAW VALUE: 1
+[2026-04-22 09:39:38] ID: 704
+[2026-04-22 09:39:38] NORMALIZED COLUMN: status
+[2026-04-22 09:39:38] STOCK DATA:
+[2026-04-22 09:39:38] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:39:38] PRODUCT ID: 201
+[2026-04-22 09:39:38] SUCCESS: Row updated
+[2026-04-22 09:39:38] ===== END REQUEST =====
+[2026-04-22 09:39:39] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:39:39] RAW COLUMN: status
+[2026-04-22 09:39:39] RAW VALUE: 0
+[2026-04-22 09:39:39] ID: 704
+[2026-04-22 09:39:39] NORMALIZED COLUMN: status
+[2026-04-22 09:39:39] STOCK DATA:
+[2026-04-22 09:39:39] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 09:39:39] PRODUCT ID: 201
+[2026-04-22 09:39:39] SUCCESS: Row updated
+[2026-04-22 09:39:39] ===== END REQUEST =====
+[2026-04-22 09:40:01] ===== NEW SAVE REQUEST =====
+[2026-04-22 09:40:01] RAW COLUMN: status
+[2026-04-22 09:40:01] RAW VALUE: 1
+[2026-04-22 09:40:01] ID: 704
+[2026-04-22 09:40:01] NORMALIZED COLUMN: status
+[2026-04-22 09:40:01] STOCK DATA:
+[2026-04-22 09:40:01] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1108
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL 
+    [ean] => 8,9E+12
+    [status] => F
+)
+
+[2026-04-22 09:40:01] PRODUCT ID: 201
+[2026-04-22 09:40:01] SUCCESS: Row updated
+[2026-04-22 09:40:01] ===== END REQUEST =====
+[2026-04-22 11:30:52] ===== NEW SAVE REQUEST =====
+[2026-04-22 11:30:52] RAW COLUMN: color
+[2026-04-22 11:30:52] RAW VALUE: Blue
+[2026-04-22 11:30:52] ID: 704
+[2026-04-22 11:30:52] NORMALIZED COLUMN: color
+[2026-04-22 11:30:52] STOCK DATA:
+[2026-04-22 11:30:52] Array
+(
+    [id] => 704
+    [company_id] => 1
+    [product_id] => 201
+    [image_id] => 1107
+    [qty] => 326
+    [price] => 100.00
+    [article_number] => ART-1005
+    [article_name] => 850DL
+    [ean] => 8,9E+12
+    [status] => T
+)
+
+[2026-04-22 11:30:52] PRODUCT ID: 201
+[2026-04-22 11:30:52] BLOCK: ATTRIBUTE UPDATE (color)
+[2026-04-22 11:30:52] ATTRIBUTES:
+[2026-04-22 11:30:52] Array
+(
+    [0] => Array
+        (
+            [stock_id] => 704
+            [product_id] => 201
+            [company_id] => 1
+            [attribute_parent_id] => 1155
+            [attribute_id] => 1159
+        )
+
+    [1] => Array
+        (
+            [stock_id] => 704
+            [product_id] => 201
+            [company_id] => 1
+            [attribute_parent_id] => 1157
+            [attribute_id] => 1160
+        )
+
+)
+
+[2026-04-22 11:30:52] GROUP FOUND: size
+[2026-04-22 11:30:52] GROUP FOUND: color
+[2026-04-22 11:30:52] MATCHED ATTRIBUTE -> updating
+[2026-04-22 11:30:52] SUCCESS: Row updated
+[2026-04-22 11:30:52] ===== END REQUEST =====

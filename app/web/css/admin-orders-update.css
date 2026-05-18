@@ -1,0 +1,129 @@
+/**
+ * Order edit (pjAdminOrders / pjActionUpdate) — Peter-style layout.
+ * Loaded only on this action; scoped to #frmUpdateOrder.sc-order-update.
+ */
+
+/* ----- Page heading (Peter: flat h2 + muted intro) ----- */
+.row.wrapper.border-bottom.white-bg.page-heading.sc-order-page-heading,
+.sc-order-page-heading {
+    padding-top: 18px;
+    padding-bottom: 16px;
+}
+
+.sc-order-page-heading h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--wj-text, #2d3436);
+}
+
+.sc-order-page-heading p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wj-text-muted, #636e72);
+}
+
+.sc-order-page-heading .fa-info-circle {
+    color: var(--admin-primary, #0a5114);
+    margin-right: 6px;
+}
+
+/* ----- Soft info banners (replace loud Bootstrap success strip) ----- */
+#frmUpdateOrder.sc-order-update .tab-pane > .panel-body > .alert.alert-success:first-child {
+    border-radius: var(--wj-radius, 8px);
+    border: 1px solid rgba(10, 81, 20, 0.2);
+    background: rgba(10, 81, 20, 0.06);
+    color: #14532d;
+    margin-bottom: 18px;
+}
+
+#frmUpdateOrder.sc-order-update .tab-pane > .panel-body > .alert.alert-success:first-child strong {
+    color: var(--admin-primary-dark, #06370d);
+}
+
+/* ----- adm-card (Peter “card” panels, Workwear green tint) ----- */
+#frmUpdateOrder.sc-order-update .adm-card {
+    background: rgba(10, 81, 20, 0.03);
+    border: 1px solid var(--wj-border, #e8e4ef);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+#frmUpdateOrder.sc-order-update .adm-card__heading {
+    margin: 0 0 14px;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wj-text, #2d3436);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#frmUpdateOrder.sc-order-update .adm-card__heading .fa {
+    color: var(--admin-primary, #0a5114);
+    font-size: 16px;
+}
+
+#frmUpdateOrder.sc-order-update .adm-card__divider {
+    border-top: 1px solid var(--wj-border, #e8e4ef);
+    margin: 14px -20px;
+}
+
+#frmUpdateOrder.sc-order-update .adm-card .control-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--wj-text, #2d3436);
+}
+
+/* ----- Line products area (override legacy #frmUpdateOrder .ibox-content reset) ----- */
+#frmUpdateOrder.sc-order-update .form-group.ibox-content {
+    border: 1px solid var(--wj-border, #e8e4ef) !important;
+    border-radius: var(--wj-radius, 8px);
+    background: #fff !important;
+    padding: 16px !important;
+    margin-bottom: 0;
+}
+
+#frmUpdateOrder.sc-order-update #boxStockProducts {
+    margin-top: 8px;
+}
+
+#frmUpdateOrder.sc-order-update #boxStockProducts #fdProductList .sc-order-line-thumb {
+    width: 64px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+#frmUpdateOrder.sc-order-update #boxStockProducts #fdProductList .sc-order-line-thumb__img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--wj-border, #e8e4ef);
+    display: block;
+    margin: 0 auto;
+    background: #f8f9fa;
+}
+
+/* ----- Section titles (client / shipping h3) ----- */
+#frmUpdateOrder.sc-order-update .tab-pane .panel-body > h3 {
+    margin: 20px 0 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--wj-text, #2d3436);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--wj-border, #e8e4ef);
+}
+
+#frmUpdateOrder.sc-order-update .tab-pane .panel-body > h3:first-of-type {
+    margin-top: 0;
+}
+
+/* ----- Action row spacing ----- */
+#frmUpdateOrder.sc-order-update .m-b-md {
+    margin-bottom: 16px !important;
+}

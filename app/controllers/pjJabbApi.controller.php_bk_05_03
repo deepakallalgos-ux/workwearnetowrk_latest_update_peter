@@ -1,0 +1,2613 @@
+<?php
+if (! defined("ROOT_PATH")) {
+    header("HTTP/1.1 403 Forbidden");
+    exit;
+}
+class pjJabbApi extends pjAppController
+{
+
+    protected function initializePermissions()
+    {
+        $pair                      = [];
+        $pjAuthUserPermissionModel = pjAuthUserPermissionModel::factory();
+        $cnt                       = $pjAuthUserPermissionModel->where("t1.user_id", $this->getUserId())->findCount()->getData();
+        if ($cnt > 0) {
+            $pair = $pjAuthUserPermissionModel
+                ->reset()
+                ->select("t1.*, t2.`key`")
+                ->join('pjAuthPermission', 't2.id=t1.permission_id', 'left')
+                ->where("t1.user_id", $this->getUserId())
+                ->findAll()->getDataPair(null, 'key');
+        } else {
+            $pair = pjAuthRolePermissionModel::factory()
+                ->select("t1.*, t2.`key`")
+                ->join('pjAuthPermission', 't2.id=t1.permission_id', 'left')
+                ->where("t1.role_id", $this->getRoleId())
+                ->findAll()->getDataPair(null, 'key');
+        }
+        $this->session->setData($this->defaultPermissions, $pair);
+    }
+
+    public function pjActionLogin()
+    {
+        header("Content-Type: application/json");
+
+        // Read POST (JSON or normal form)
+        $raw_input = file_get_contents("php://input");
+        $input     = json_decode($raw_input, true);
+
+        $email    = isset($input['email']) ? trim($input['email']) : trim($this->_post->toString('email'));
+        $password = isset($input['password']) ? $input['password'] : $this->_post->toString('password');
+
+        // ---------------- VALIDATION ----------------
+        $errors = [];
+
+        if (!pjValidation::pjActionNotEmpty($email)) {
+            $errors[] = "Email is required";
+        } elseif (!pjValidation::pjActionEmail($email)) {
+            $errors[] = "Invalid email format";
+        }
+
+        if (!pjValidation::pjActionNotEmpty($password)) {
+            $errors[] = "Password is required";
+        }
+
+        if (!empty($errors)) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'Validation failed',
+                'errors'  => $errors
+            ]);
+            exit;
+        }
+
+        // ---------------- FIND CLIENT ----------------
+        $pjClientModel = pjClientModel::factory();
+        $locale_id = $this->getLocaleId();
+
+        $client = $pjClientModel
+            ->join(
+                'pjAddress',
+                't2.client_id = t1.id',
+                'left'
+            )
+            ->join(
+                'pjBaseCountry',
+                't3.id = t2.country_id',
+                'left'
+            )
+            ->join(
+                'pjBaseMultiLang',
+                "t4.model='pjBaseCountry' AND t4.foreign_id=t3.id AND t4.field='name' AND t4.locale='$locale_id'",
+                'left'
+            )
+            ->join(
+                'pjCompany',
+                't5.id = t1.company_id',
+                'left'
+            )
+            ->where('t1.email', $email)
+            ->orderBy('t2.is_default_shipping DESC, t2.id ASC')
+            ->select("
+                        t1.*,
+                        t2.id AS address_id,
+                        t1.company_id,
+                        t2.country_id,
+                        t4.content AS country_name,
+                        t2.state,
+                        t2.city,
+                        t2.zip,
+                        t2.address_1,
+                        t2.address_2,
+                        t2.name AS address_name,
+                        t2.is_default_shipping,
+                        t2.is_default_billing,
+                        t5.name AS company_name,
+                    ")
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+
+        // echo "<pre>";
+        // print_r($client);
+        // die;
+        if (count($client) != 1) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 401,
+                'message' => 'Invalid credentials',
+                'errors'  => []
+            ]);
+            exit;
+        }
+
+        $client = $client[0];
+        unset($client['password']);
+
+        // ---------------- STATUS CHECK ----------------
+        if ($client['status'] != 'T') {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 403,
+                'message' => 'Account disabled',
+                'errors'  => []
+            ]);
+            exit;
+        }
+
+        // ---------------- TOKEN GENERATION ----------------
+        $api_login_token = bin2hex(random_bytes(32));
+        $current_login  = date("Y-m-d H:i:s");
+
+        $update = [
+            'api_login_token' => $api_login_token,
+            'current_login'   => $current_login
+        ];
+
+        if (!empty($client['current_login'])) {
+            $update['last_login'] = $client['current_login'];
+        }
+
+        $pjClientModel
+            ->reset()
+            ->setAttributes(['id' => $client['id']])
+            ->modify($update);
+
+        // ---------------- SUCCESS RESPONSE ----------------
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Login successful',
+            'client'  => $client,
+            'data'    => [
+                'id'              => $client['id'],
+                'email'           => $client['email'],
+                'company_id'      => $client['company_id'],
+                'api_login_token' => $api_login_token,
+                'current_login'   => $current_login
+            ]
+        ]);
+        exit;
+    }
+    public function pjActionRegister()
+    {
+        header("Content-Type: application/json");
+
+        // Read JSON or Form POST
+        $raw_input = file_get_contents("php://input");
+        $input     = json_decode($raw_input, true);
+
+        $client_name = isset($input['client_name']) ? trim($input['client_name']) : trim($this->_post->toString('client_name'));
+        $email       = isset($input['email']) ? trim($input['email']) : trim($this->_post->toString('email'));
+        $password    = isset($input['password']) ? $input['password'] : $this->_post->toString('password');
+        $phone       = isset($input['phone']) ? trim($input['phone']) : trim($this->_post->toString('phone'));
+
+        $company_id = $_SESSION[$this->defaultCompany]['id'] ?? NULL;
+
+        // ---------------- VALIDATION ----------------
+        $errors = [];
+
+        if (!pjValidation::pjActionNotEmpty($client_name)) {
+            $errors[] = "Name is required";
+        }
+
+        if (!pjValidation::pjActionNotEmpty($email)) {
+            $errors[] = "Email is required";
+        } elseif (!pjValidation::pjActionEmail($email)) {
+            $errors[] = "Invalid email format";
+        }
+
+        if (!pjValidation::pjActionNotEmpty($password)) {
+            $errors[] = "Password is required";
+        }
+
+        if (!empty($errors)) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'Validation failed',
+                'errors'  => $errors
+            ]);
+            exit;
+        }
+
+        // ---------------- CHECK DUPLICATE ----------------
+        $pjClientModel = pjClientModel::factory();
+
+        if ($pjClientModel->where('t1.email', $email)->findCount()->getData() > 0) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 409,
+                'message' => 'Email already registered'
+            ]);
+            exit;
+        }
+
+        // ---------------- INSERT CLIENT ----------------
+        $data = [
+            'client_name' => $client_name,
+            'email'       => $email,
+            'password'    =>  $password,
+            'phone'      => $phone,
+            'company_id' => $company_id,
+            'status'     => 'T',
+            'created'    => date("Y-m-d H:i:s")
+        ];
+
+        $client_id = $pjClientModel
+            ->reset()
+            ->setAttributes($data)
+            ->insert()
+            ->getInsertId();
+
+        if (!$client_id) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 500,
+                'message' => 'Registration failed'
+            ]);
+            exit;
+        }
+
+        // ---------------- TOKEN ----------------
+        $api_login_token = bin2hex(random_bytes(32));
+        $current_login   = date("Y-m-d H:i:s");
+
+        $pjClientModel->reset()
+            ->setAttributes(['id' => $client_id])
+            ->modify([
+                'api_login_token' => $api_login_token,
+                'current_login'   => $current_login
+            ]);
+
+        // ---------------- SEND EMAIL ----------------
+        $notificationModel = pjNotificationModel::factory()
+            ->where('recipient', 'client')
+            ->where('transport', 'email')
+            ->where('variant', 'account');
+
+        if ((int)$company_id > 0) {
+            $notificationModel->where('t1.company_id', $company_id);
+        }
+
+        $notification = $notificationModel
+            ->findAll()
+            ->getDataIndex(0);
+
+        if ((int)$notification['id'] > 0 && $notification['is_active'] == 1) {
+
+            $resp = pjAppController::pjActionGetSubjectMessage($notification, $this->getLocaleId());
+            $lang_message = $resp['lang_message'];
+            $lang_subject = $resp['lang_subject'];
+
+            if (count($lang_message) === 1 && count($lang_subject) === 1) {
+
+                $arr = $pjClientModel->reset()->find($client_id)->getData();
+
+                $search  = ['{ClientName}', '{ClientPassword}', '{ClientEmail}', '{ClientPhone}', '{ClientURL}', '{StoreName}'];
+                $replace = [
+                    $arr['client_name'],
+                    $password, // original password
+                    $arr['email'],
+                    $arr['phone'],
+                    $arr['url'],
+                    __('lblStoreName', true)
+                ];
+
+                $subject_client = str_replace($search, $replace, $lang_subject[0]['content']);
+                $message_client = str_replace($search, $replace, $lang_message[0]['content']);
+
+                $Email = self::getMailer($this->option_arr);
+                $Email->setTo($arr['email'])
+                    ->setSubject($subject_client)
+                    ->send(pjUtil::textToHtml($message_client));
+            }
+        }
+
+        // ---------------- SUCCESS ----------------
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 201,
+            'message' => 'Registration successful',
+            'data'    => [
+                'id'              => $client_id,
+                'client_name'     => $client_name,
+                'email'           => $email,
+                'api_login_token' => $api_login_token,
+                'current_login'   => $current_login
+            ]
+        ]);
+        exit;
+    }
+
+    public function logout()
+    {
+        header("Content-Type: application/json");
+
+        $token = $this->_post->toString('token');
+        $email = $this->_post->toString('email') ?? $this->_get->toString('email');
+
+        if (! $token || ! $email) {
+            echo json_encode([
+                'status'  => 'ERROR',
+                'code'    => 400,
+                'message' => 'Missing token or email',
+            ]);
+            exit;
+        }
+
+        // Check if user with this token exists
+        $user = pjAuthUserModel::factory()
+            ->where('t1.email', $email)
+            ->where('t1.api_login_token', $token)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (count($user) === 1) {
+            // Invalidate the token (set to NULL or empty string)
+            $data                    = [];
+            $data['api_login_token'] = 'sdsd';
+            pjAuthUserModel::factory()->reset()->setAttributes(['id' => $user[0]['id']])->modify($data);
+            echo json_encode([
+                'status'  => 'OK',
+                'code'    => 200,
+                'message' => 'Logout successful',
+            ]);
+        } else {
+            echo json_encode([
+                'status'  => 'ERROR',
+                'code'    => 401,
+                'message' => 'Invalid token or user not found',
+            ]);
+        }
+
+        exit;
+    }
+    public function pjActionForgot()
+    {
+        header("Content-Type: application/json");
+
+        // Read JSON or Form
+        $raw_input = file_get_contents("php://input");
+        $input     = json_decode($raw_input, true);
+
+        $email = isset($input['email'])
+            ? trim($input['email'])
+            : trim($this->_post->toString('email'));
+
+        $company_id = $_SESSION[$this->defaultCompany]['id'] ?? NULL;
+
+        // ---------------- IP BLOCK CHECK ----------------
+        $is_ip_blocked = pjBase::isBlockedIp(pjUtil::getClientIp(), $this->option_arr);
+        if ($is_ip_blocked == true) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 403,
+                'message' => 'IP_BLOCKED'
+            ]);
+            exit;
+        }
+
+        // ---------------- VALIDATION ----------------
+        if (!pjValidation::pjActionNotEmpty($email) || !pjValidation::pjActionEmail($email)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 123,
+                'message' => __('system_123', true)
+            ]);
+            exit;
+        }
+
+        // ---------------- FIND CLIENT ----------------
+        $pjClientModel = pjClientModel::factory()
+            ->where('t1.email', $email);
+
+        if ((int)$company_id > 0) {
+            $pjClientModel->where('t1.company_id', $company_id);
+        }
+
+        $arr = $pjClientModel
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (empty($arr)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 124,
+                'message' => __('system_124', true)
+            ]);
+            exit;
+        }
+
+        $arr = $arr[0];
+
+        // ---------------- EMAIL TEMPLATE ----------------
+        $notificationModel = pjNotificationModel::factory()
+            ->where('recipient', 'client')
+            ->where('transport', 'email')
+            ->where('variant', 'forgot');
+
+        if ((int)$company_id > 0) {
+            $notificationModel->where('t1.company_id', $company_id);
+        }
+
+        $notification = $notificationModel
+            ->findAll()
+            ->getDataIndex(0);
+
+        if ((int)$notification['id'] > 0 && $notification['is_active'] == 1) {
+
+            $resp = pjAppController::pjActionGetSubjectMessage(
+                $notification,
+                $this->getLocaleId()
+            );
+
+            $lang_message = $resp['lang_message'];
+            $lang_subject = $resp['lang_subject'];
+
+            if (count($lang_message) === 1 && count($lang_subject) === 1) {
+
+                // SAME placeholders as old system
+                $search  = [
+                    '{ClientName}',
+                    '{ClientPassword}',
+                    '{ClientEmail}',
+                    '{ClientPhone}',
+                    '{ClientURL}',
+                    '{StoreName}'
+                ];
+
+                $replace = [
+                    $arr['client_name'],
+                    $arr['password'], // encrypted value (same as old)
+                    $arr['email'],
+                    $arr['phone'],
+                    $arr['url'],
+                    __('lblStoreName', true)
+                ];
+
+                $subject_client = str_replace(
+                    $search,
+                    $replace,
+                    $lang_subject[0]['content']
+                );
+
+                $message_client = str_replace(
+                    $search,
+                    $replace,
+                    $lang_message[0]['content']
+                );
+
+                $Email = self::getMailer($this->option_arr);
+
+                $r = $Email
+                    ->setTo($arr['email'])
+                    ->setSubject($subject_client)
+                    ->send(pjUtil::textToHtml($message_client));
+
+                if ($r) {
+                    echo json_encode([
+                        'status' => 'OK',
+                        'code'   => 213,
+                        'message' => __('system_213', true)
+                    ]);
+                    exit;
+                }
+            }
+        }
+
+        // ---------------- FAIL ----------------
+        echo json_encode([
+            'status' => 'ERR',
+            'code'   => 125,
+            'message' => __('system_125', true)
+        ]);
+        exit;
+    }
+
+    public function pjActionProduct()
+    {
+        header("Content-Type: application/json");
+
+        // ---------- INPUT ----------
+        $raw  = file_get_contents("php://input");
+        $json = json_decode($raw, true);
+
+        $id = isset($json['product_id'])
+            ? (int)$json['product_id']
+            : (
+                $this->_post->check('product_id')
+                ? $this->_post->toInt('product_id')
+                : $this->_get->toInt('product_id')
+            );
+
+        if ($id <= 0) {
+            echo json_encode(['status' => 'ERR', 'code' => 400, 'message' => 'Invalid product id']);
+            exit;
+        }
+
+        // ---------- IP BLOCK ----------
+        if (pjBase::isBlockedIp(pjUtil::getClientIp(), $this->option_arr)) {
+            echo json_encode(['status' => 'ERR', 'code' => 403, 'message' => 'IP_BLOCKED']);
+            exit;
+        }
+
+        // ---------- CART MAP ----------
+        $order_arr = [];
+        foreach ($this->get('cart_arr') as $c) {
+            if ($c['is_cart'] == 0) {
+
+                if (!isset($order_arr[$c['stock_id']])) {
+                    $order_arr[$c['stock_id']] = 0;
+                }
+                $order_arr[$c['stock_id']] += $c['qty'];
+            }
+        }
+
+        $pjGalleryModel = pjGalleryModel::factory();
+        $pjStockModel   = pjStockModel::factory();
+        $pjProductCategoryModel = pjProductCategoryModel::factory();
+        $pjStockAttributeTable = pjStockAttributeModel::factory()->getTable();
+
+        // ---------- PRODUCT ----------
+        $product = pjProductModel::factory()
+            ->select(sprintf(
+                "t1.*,
+            t2.content AS name,
+            t3.content AS full_desc,
+            t4.content AS short_desc,
+
+            (SELECT MIN(price) FROM %2\$s WHERE product_id=t1.id AND (qty>0 OR t1.is_digital='1')) AS price,
+            (SELECT MAX(price) FROM %2\$s WHERE product_id=t1.id AND (qty>0 OR t1.is_digital='1')) AS max_price,
+
+            (SELECT id FROM %2\$s WHERE product_id=t1.id AND (qty>0 OR t1.is_digital='1')
+                ORDER BY price ASC LIMIT 1) AS stockId,
+
+            (SELECT GROUP_CONCAT(CONCAT_WS('_',
+                STA.attribute_id,
+                STA.attribute_parent_id,
+                ST.id,
+                ST.qty
+            ))
+            FROM %4\$s STA
+            INNER JOIN %2\$s ST ON ST.id = STA.stock_id
+            WHERE STA.product_id = t1.id
+            LIMIT 1) AS stockId_attr,
+
+            (SELECT CONCAT_WS('~:~',medium_path,large_path)
+                FROM %1\$s WHERE foreign_id=t1.id
+                ORDER BY sort ASC,id ASC LIMIT 1) AS pic,
+
+            (SELECT GROUP_CONCAT(category_id) FROM %3\$s WHERE product_id=t1.id) AS category_ids",
+
+                $pjGalleryModel->getTable(),
+                $pjStockModel->getTable(),
+                $pjProductCategoryModel->getTable(),
+                $pjStockAttributeTable
+            ))
+            ->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left')
+            ->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t1.id AND t3.locale='" . $this->getLocaleId() . "' AND t3.field='full_desc'", 'left')
+            ->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t1.id AND t4.locale='" . $this->getLocaleId() . "' AND t4.field='short_desc'", 'left')
+            ->find($id)
+            ->toArray('category_ids', ',')
+            ->getData();
+
+        if (empty($product) || $product['status'] == 2) {
+            echo json_encode(['status' => 'ERR', 'code' => 404, 'message' => 'Product not found']);
+            exit;
+        }
+
+        // Main pic
+        if (!empty($product['pic'])) {
+            list($m, $l) = explode('~:~', $product['pic']);
+            $product['pic_medium'] = PJ_INSTALL_URL . $m;
+            $product['pic_large']  = PJ_INSTALL_URL . $l;
+        }
+        unset($product['pic']);
+
+        // ---------- GALLERY ----------
+        $gallery = $pjGalleryModel
+            ->select('small_path,medium_path,large_path,alt')
+            ->where('foreign_id', $id)
+            ->orderBy('sort ASC')
+            ->findAll()->getData();
+
+        foreach ($gallery as &$g) {
+            $g['small_path']  = PJ_INSTALL_URL . $g['small_path'];
+            $g['medium_path'] = PJ_INSTALL_URL . $g['medium_path'];
+            $g['large_path']  = PJ_INSTALL_URL . $g['large_path'];
+        }
+
+        // ---------- STOCK IMAGES ----------
+        $stock_images = $pjStockModel
+            ->select('t1.id AS stock_id,t2.medium_path,t2.large_path,t2.alt AS title')
+            ->join('pjGallery', 't2.id=t1.image_id', 'inner')
+            ->where('t1.product_id', $id)
+            ->orderBy('t2.sort ASC')
+            ->findAll()->getData();
+
+        foreach ($stock_images as &$im) {
+            $im['medium_path'] = PJ_INSTALL_URL . $im['medium_path'];
+            $im['large_path'] = PJ_INSTALL_URL . $im['large_path'];
+        }
+
+        // ---------- EXTRAS ----------
+        $extra_arr = pjExtraModel::factory()
+            ->select('t1.*,t2.content AS name,t3.content AS title')
+            ->join('pjMultiLang', "t2.model='pjExtra' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='extra_name'", 'left')
+            ->join('pjMultiLang', "t3.model='pjExtra' AND t3.foreign_id=t1.id AND t3.locale='" . $this->getLocaleId() . "' AND t3.field='extra_title'", 'left')
+            ->where('t1.product_id', $id)
+            ->orderBy('title ASC,name ASC')
+            ->findAll()->getData();
+
+        $pjExtraItemModel = pjExtraItemModel::factory();
+        foreach ($extra_arr as &$e) {
+            $e['extra_items'] = $pjExtraItemModel
+                ->reset()
+                ->select('t1.*,t2.content AS name')
+                ->join('pjMultiLang', "t2.model='pjExtraItem' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='extra_name'", 'left')
+                ->where('t1.extra_id', $e['id'])
+                ->orderBy('price ASC')
+                ->findAll()->getData();
+        }
+
+        // ---------- ATTRIBUTES ----------
+        $attrs = pjAttributeModel::factory()
+            ->select('t1.id,t1.parent_id,t2.content AS name')
+            ->join('pjMultiLang', "t2.model='pjAttribute' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left')
+            ->where('t1.product_id', $id)
+            ->where(sprintf(
+                "(CONCAT_WS('_', t1.id, t1.parent_id) IN (
+                SELECT CONCAT_WS('_', TSA.attribute_id, TSA.attribute_parent_id)
+                FROM `%s` TSA
+                INNER JOIN `%s` TS ON TS.id = TSA.stock_id AND TS.qty > 0
+                WHERE TSA.product_id = t1.product_id
+            ) OR t1.parent_id IS NULL OR t1.parent_id = 0)",
+                $pjStockAttributeTable,
+                $pjStockModel->getTable()
+            ))
+            ->orderBy('order_group ASC,order_item ASC')
+            ->findAll()->getData();
+
+        $attr_arr = [];
+        foreach ($attrs as $a) {
+            if ($a['parent_id'] == 0) {
+                $attr_arr[$a['id']] = $a;
+            } else {
+                $attr_arr[$a['parent_id']]['child'][] = $a;
+            }
+        }
+
+        // ---------- STOCK ----------
+        $stock_arr = $pjStockModel
+            ->reset()
+            ->select('t1.*,t2.small_path')
+            ->join('pjGallery', 't2.id=t1.image_id', 'left')
+            ->where('t1.product_id', $id)
+            ->where('t1.qty > 0')
+            ->findAll()->getData();
+
+        $final_stock = [];
+        foreach ($stock_arr as $s) {
+
+            if (isset($order_arr[$s['id']])) {
+                $s['qty'] -= $order_arr[$s['id']];
+            }
+            if ($s['qty'] < 1) continue;
+
+            $s['small_path'] = PJ_INSTALL_URL . $s['small_path'];
+
+            $s['attributes'] = pjStockAttributeModel::factory()
+                ->where('stock_id', $s['id'])
+                ->orderBy('attribute_id ASC')
+                ->findAll()
+                ->getDataPair('attribute_parent_id', 'attribute_id');
+
+            $final_stock[] = $s;
+        }
+
+        // ---------- SIMILAR ----------
+        $similar = pjProductSimilarModel::factory()
+            ->select(sprintf(
+                "t2.*,t3.content AS name,
+            (SELECT medium_path FROM %1\$s WHERE foreign_id=t1.similar_id ORDER BY sort ASC LIMIT 1) AS pic,
+            (SELECT MIN(price) FROM %2\$s WHERE product_id=t1.similar_id) AS price,
+            (SELECT GROUP_CONCAT(category_id) FROM %3\$s WHERE product_id=t1.similar_id) AS category_ids",
+                $pjGalleryModel->getTable(),
+                $pjStockModel->getTable(),
+                $pjProductCategoryModel->getTable()
+            ))
+            ->join('pjProduct', 't2.id=t1.similar_id AND t2.status!=2', 'inner')
+            ->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t2.id AND t3.locale='" . $this->getLocaleId() . "' AND t3.field='name'", 'left')
+            ->where('t1.product_id', $id)
+            ->where('t2.status', 1)
+            ->limit(5)
+            ->findAll()
+            ->toArray('category_ids', ',')
+            ->getData();
+
+        foreach ($similar as &$s) {
+            if (!empty($s['pic'])) {
+                $s['pic'] = PJ_INSTALL_URL . $s['pic'];
+            }
+        }
+        /* ---------- STRUCTURED RESPONSE ---------- */
+
+        $product_object = [
+            'id'          => $product['id'],
+            'sku'         => $product['sku'],
+            'status'      => $product['status'],
+            'is_digital'  => $product['is_digital'],
+
+            'name'        => $product['name'],
+            'short_desc'  => $product['short_desc'],
+            'full_desc'   => $product['full_desc'],
+
+            'pricing' => [
+                'min_price' => $product['price'],
+                'max_price' => $product['max_price']
+            ],
+
+            'images' => [
+                'main' => [
+                    'medium' => $product['pic_medium'] ?? null,
+                    'large'  => $product['pic_large'] ?? null
+                ],
+                'gallery'      => $gallery,
+                'stock_images' => $stock_images
+            ],
+
+            'attributes' => array_values($attr_arr),
+
+            'stock' => $final_stock,
+
+            'extras' => $extra_arr,
+
+            'similar_products' => $similar
+        ];
+
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => $product_object
+        ]);
+
+        exit;
+        // ---------- RESPONSE ----------
+        // echo json_encode([
+        //     'status' => 'OK',
+        //     'code' => 200,
+        //     'data' => [
+        //         'product' => $product,
+        //         'gallery' => $gallery,
+        //         'stock_images' => $stock_images,
+        //         'extras' => $extra_arr,
+        //         'attributes' => array_values($attr_arr),
+        //         'stock' => $final_stock,
+        //         'similar' => $similar
+        //     ]
+        // ]);
+        // exit;
+    }
+
+    public function pjActionProducts()
+    {
+        header("Content-Type: application/json");
+
+        $q           = $this->_post->toString('q');
+        $category_id = $this->_post->toInt('category_id');
+        $page        = $this->_post->toInt('page');
+        $sort        = $this->_post->toString('sort');
+
+        // ---------------- IP BLOCK ----------------
+        if (pjBase::isBlockedIp(pjUtil::getClientIp(), $this->option_arr)) {
+            echo json_encode(['status' => 'ERR', 'code' => 403, 'message' => 'IP_BLOCKED']);
+            exit;
+        }
+
+        // ---------------- CART QTY MAP ----------------
+        $order_arr = [];
+        foreach ($this->get('cart_arr') as $c) {
+            if ($c['is_cart'] == 0) {
+
+                if (!isset($order_arr[$c['stock_id']])) {
+                    $order_arr[$c['stock_id']] = 0;
+                }
+                $order_arr[$c['stock_id']] += $c['qty'];
+            }
+        }
+
+        // ---------------- PRODUCT MODEL ----------------
+        $pjProductModel = pjProductModel::factory()
+            ->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left')
+            ->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t1.id AND t3.locale='" . $this->getLocaleId() . "' AND t3.field='short_desc'", 'left')
+            ->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t1.id AND t4.locale='" . $this->getLocaleId() . "' AND t4.field='full_desc'", 'left')
+            ->where('t1.status !=', 2);
+
+        // ---------------- CATEGORY ----------------
+        if ($category_id > 0) {
+            $cat = pjCategoryModel::factory()->find($category_id)->getData();
+            if ($cat) {
+                $ids = pjCategoryModel::factory()
+                    ->reset()
+                    ->where("lft BETWEEN {$cat['lft']} AND {$cat['rgt']}")
+                    ->findAll()->getDataPair(null, 'id');
+            } else {
+                $ids = [$category_id];
+            }
+
+            $pjProductModel->where(sprintf(
+                "t1.id IN (SELECT product_id FROM %s WHERE category_id IN (%s))",
+                pjProductCategoryModel::factory()->getTable(),
+                implode(',', $ids)
+            ));
+        }
+
+        // ---------------- SEARCH ----------------
+        if (!empty($q)) {
+            $q = str_replace(['_', '%'], ['\_', '\%'], trim($q));
+            $pjProductModel->where("(t2.content LIKE '%$q%' OR t3.content LIKE '%$q%' OR t4.content LIKE '%$q%')");
+        }
+
+        // ---------------- PAGINATION ----------------
+        $page = $page > 0 ? $page : 1;
+        $row_count = (int)$this->option_arr['o_products_per_page'] ?: 10;
+        $offset = ($page - 1) * $row_count;
+
+        $count = $pjProductModel->findCount()->getData();
+        $pages = ceil($count / $row_count);
+
+        // ---------------- SORT ----------------
+        switch ($sort) {
+            case 'newest':
+                $pjProductModel->orderBy('t1.id DESC');
+                break;
+            case 'price_asc':
+                $pjProductModel->orderBy('IF(t1.is_digital=1,price,min_price) ASC');
+                break;
+            case 'price_desc':
+                $pjProductModel->orderBy('IF(t1.is_digital=1,price,min_price) DESC');
+                break;
+            case 'name_asc':
+                $pjProductModel->orderBy('name ASC');
+                break;
+            case 'name_desc':
+                $pjProductModel->orderBy('name DESC');
+                break;
+            default:
+                $pjProductModel->orderBy('is_featured DESC, name ASC');
+        }
+
+        // ---------------- PRODUCTS ----------------
+        $products = $pjProductModel
+            ->select(sprintf(
+                "t1.*, 
+             t2.content AS name,
+             t3.content AS short_desc,
+             t4.content AS full_desc,
+
+             (SELECT price FROM %1\$s WHERE product_id=t1.id AND t1.is_digital=1 LIMIT 1) AS price,
+             (SELECT MIN(price) FROM %1\$s WHERE product_id=t1.id AND qty>0 LIMIT 1) AS min_price,
+             (SELECT MAX(price) FROM %1\$s WHERE product_id=t1.id AND qty>0 LIMIT 1) AS max_price,
+             (SELECT id FROM %1\$s WHERE product_id=t1.id AND (qty>0 OR t1.is_digital=1) ORDER BY price ASC LIMIT 1) AS stockId,
+             (SELECT qty FROM %1\$s WHERE id=stockId LIMIT 1) AS stockQty,
+
+             (SELECT GROUP_CONCAT(CONCAT_WS('_',STA.attribute_id,STA.attribute_parent_id,ST.id,ST.qty))
+              FROM %2\$s STA
+              INNER JOIN %1\$s ST ON ST.id=STA.stock_id
+              WHERE STA.product_id=t1.id LIMIT 1) AS stockId_attr,
+
+             (SELECT GROUP_CONCAT(category_id) FROM %3\$s WHERE product_id=t1.id) AS category_ids,
+
+             (SELECT GROUP_CONCAT(CONCAT_WS('.',id,
+                IF(type='single',NULL,
+                   (SELECT id FROM %5\$s WHERE extra_id=te.id ORDER BY price ASC LIMIT 1)
+                )))
+              FROM %4\$s te WHERE product_id=t1.id AND is_mandatory='1') AS m_extras",
+                pjStockModel::factory()->getTable(),
+                pjStockAttributeModel::factory()->getTable(),
+                pjProductCategoryModel::factory()->getTable(),
+                pjExtraModel::factory()->getTable(),
+                pjExtraItemModel::factory()->getTable()
+            ))
+            ->limit($row_count, $offset)
+            ->findAll()
+            ->toArray('category_ids', ',')
+            ->toArray('m_extras', ',')
+            ->getData();
+
+        // ---------------- IMAGES ----------------
+        $images_map = [];
+
+        if ($products) {
+
+            $ids = array_column($products, 'id');
+
+            $imgs = pjGalleryModel::factory()
+                ->whereIn('foreign_id', $ids)
+                ->orderBy('sort ASC')
+                ->findAll()
+                ->getData();
+
+            foreach ($imgs as $i) {
+
+                $i['small_path']  = PJ_INSTALL_URL . $i['small_path'];
+                $i['medium_path'] = PJ_INSTALL_URL . $i['medium_path'];
+                $i['large_path']  = PJ_INSTALL_URL . $i['large_path'];
+                $i['source_path'] = PJ_INSTALL_URL . $i['source_path'];
+
+                $images_map[$i['foreign_id']][] = $i;
+            }
+        }
+
+        // echo "<pre>";
+        // print_r($images_map);
+        // die;
+
+        // ---------------- ATTRIBUTES ----------------
+        $product_attr_arr = [];
+
+        if ($products) {
+            $ids = array_column($products, 'id');
+
+            $attrs = pjAttributeModel::factory()
+                ->select("t1.id,t1.product_id,t1.parent_id,t2.content AS name")
+                ->join('pjMultiLang', "t2.model='pjAttribute' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left')
+                ->whereIn('t1.product_id', $ids)
+                ->orderBy('order_group ASC, order_item ASC')
+                ->findAll()->getData();
+
+            foreach ($attrs as $a) {
+                if ((int)$a['parent_id'] == 0) {
+                    $product_attr_arr[$a['product_id']][$a['id']] = $a;
+                } else {
+                    $product_attr_arr[$a['product_id']][$a['parent_id']]['child'][] = $a;
+                }
+            }
+        }
+        /* ---------------- BUILD CLEAN PRODUCT OBJECT ---------------- */
+
+        $final_products = [];
+
+        foreach ($products as $p) {
+
+            $product_id = $p['id'];
+
+            // Attach images
+            $product_images = $images_map[$product_id] ?? [];
+
+            // Attach attributes
+            $product_attributes = isset($product_attr_arr[$product_id])
+                ? array_values($product_attr_arr[$product_id])
+                : [];
+
+            // In cart quantity (based on stock)
+            $in_cart_qty = 0;
+            if (!empty($p['stockId']) && isset($order_arr[$p['stockId']])) {
+                $in_cart_qty = $order_arr[$p['stockId']];
+            }
+
+            $final_products[] = [
+                'id'          => $p['id'],
+                'sku'         => $p['sku'],
+                'status'      => $p['status'],
+                'is_digital'  => $p['is_digital'],
+                'is_featured' => $p['is_featured'],
+
+                'name'        => $p['name'],
+                'short_desc'  => $p['short_desc'],
+                'full_desc'   => $p['full_desc'],
+
+                'pricing' => [
+                    'price'      => $p['price'],
+                    'min_price'  => $p['min_price'],
+                    'max_price'  => $p['max_price']
+                ],
+
+                'stock' => [
+                    'stock_id' => $p['stockId'],
+                    'qty'      => $p['stockQty']
+                ],
+
+                'images'     => $product_images,
+                'attributes' => $product_attributes,
+
+                'in_cart_qty' => $in_cart_qty
+            ];
+        }
+
+        /* ---------------- RESPONSE ---------------- */
+
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => [
+                'products'   => $final_products,
+                'pagination' => [
+                    'page'  => $page,
+                    'pages' => $pages,
+                    'total' => $count,
+                    'limit' => $row_count
+                ]
+            ]
+        ]);
+
+        exit;
+        // ---------------- RESPONSE ----------------
+        // echo json_encode([
+        //     'status' => 'OK',
+        //     'code' => 200,
+        //     'data' => [
+        //         'products' => $products,
+        //         'images' => $images_map,
+        //         'attributes' => $product_attr_arr,
+        //         'order_arr' => $order_arr,
+        //         'pagination' => [
+        //             'page' => $page,
+        //             'pages' => $pages,
+        //             'total' => $count,
+        //             'limit' => $row_count
+        //         ]
+        //     ]
+        // ]);
+        // exit;
+    }
+
+    public function pjActionForgotPassword()
+    {
+        header("Content-Type: application/json");
+        $token = $this->_post->toString('token');
+
+        $email = $this->_post->toString('email') ?? $this->_get->toString('email');
+        // 1. Validate input
+        if (
+            empty($email) ||
+            ! pjValidation::pjActionNotEmpty($email) ||
+            ! pjValidation::pjActionEmail($email)
+        ) {
+            echo json_encode(['status' => 'ERR', 'code' => 400, 'message' => 'Invalid email']);
+            exit;
+        }
+
+        // 2. Find user
+        $pjAuthUserModel = pjAuthUserModel::factory();
+        $user            = $pjAuthUserModel
+            ->select('t1.*,t2.role')
+            ->join("pjAuthRole", "t1.role_id=t2.id", "left")
+            ->where('t1.email', $email)
+            // ->where('t1.api_login_token', $token)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+        if (! $user) {
+            echo json_encode(['status' => 'ERR', 'code' => 404, 'message' => 'User not found']);
+            exit;
+        }
+
+        // 3. Build tokens and reset URL
+        $reset_hash = sha1(PJ_SALT . $user['email'] . $user['pswd_modified'] . PJ_SALT);
+        $reset_url  = sprintf(
+            "%sindex.php?controller=pjBase&action=pjActionReset&email=%s&hash=%s",
+            PJ_INSTALL_URL,
+            urlencode($user['email']),
+            $reset_hash
+        );
+
+        $tokens = [
+            '{Name}'  => $user['name'],
+            '{Email}' => $user['email'],
+            '{Phone}' => $user['phone'],
+            '{URL}'   => $reset_url,
+        ];
+
+        $email_sent = false;
+        $sms_sent   = false;
+
+        // 4. Send email to admin (if enabled)
+        if ($this->option_arr['o_forgot_contact_admin'] == 'Yes') {
+            $master_email = $this->getMasterAdminEmail();
+            $subject      = $this->getI18nContent("o_forgot_contact_admin_subject", $this->getLocaleId());
+            $message      = $this->getI18nContent("o_forgot_contact_admin_message", $this->getLocaleId());
+
+            if (! empty($subject) && ! empty($message)) {
+                $subject = str_ireplace(array_keys($tokens), $tokens, $subject);
+                $message = str_ireplace(array_keys($tokens), $tokens, $message);
+
+                $pjEmail = self::getMailer($this->option_arr);
+                $pjEmail->setTo($master_email);
+                $pjEmail->setSubject(stripslashes($subject));
+                $pjEmail->send($message);
+            }
+        }
+
+        // 5. Send email to user (if enabled)
+        if ($this->option_arr['o_forgot_email_confirmation'] == 'Yes') {
+            $subject = $this->getI18nContent("o_forgot_email_subject", $this->getLocaleId());
+            $message = $this->getI18nContent("o_forgot_email_message", $this->getLocaleId());
+
+            if (! empty($subject) && ! empty($message)) {
+                $subject = str_ireplace(array_keys($tokens), $tokens, $subject);
+                $message = str_ireplace(array_keys($tokens), $tokens, $message);
+
+                $pjEmail = self::getMailer($this->option_arr);
+                $pjEmail->setTo($user['email']);
+                $pjEmail->setSubject(stripslashes($subject));
+
+                if ($pjEmail->send($message)) {
+                    $email_sent = true;
+                }
+            }
+        }
+
+        // 6. Send SMS (if enabled)
+        if ($this->option_arr['o_forgot_sms_confirmation'] == 'Yes') {
+            if (! empty($user['phone']) && ! empty($this->option_arr['o_forgot_sms_message'])) {
+                $message = $this->getI18nContent("o_forgot_sms_message", $this->getLocaleId());
+                $message = str_ireplace(array_keys($tokens), $tokens, $message);
+
+                $sms_params = [
+                    'text'   => $message,
+                    'number' => $user['phone'],
+                    'type'   => 'unicode',
+                    'key'    => md5($this->option_arr['private_key'] . PJ_SALT),
+                ];
+                $response = pjBaseSms::init($sms_params)->pjActionSend();
+                $sms_sent = ($response == 1);
+            }
+        }
+
+        // 7. Final response
+        if ($email_sent || $sms_sent) {
+            echo json_encode([
+                'status'  => 'OK',
+                'code'    => 200,
+                'message' => 'Password reset instructions sent',
+                'data'    => [
+                    'email_sent' => $email_sent,
+                    'sms_sent'   => $sms_sent,
+                    'reset_url'  => $reset_url, // include for debugging, remove in production
+                ],
+            ]);
+        } else {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 500,
+                'message' => 'Unable to send reset instructions',
+            ]);
+        }
+        exit;
+    }
+
+    public function pjActionChangePassword()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        // Validate input
+        if (
+            ! isset($params['user_id'], $params['old_password'], $params['new_password'])
+            || (int) $params['user_id'] <= 0
+            || empty($params['old_password'])
+            || empty($params['new_password'])
+        ) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 400,
+                'text'   => 'Missing or invalid parameters', // Missing parameters
+            ]);
+            exit;
+        }
+
+        // Fetch user
+        $user = pjAuthUserModel::factory()->find($params['user_id'])->getData();
+        if (! $user) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 404,
+                'text'   => 'User not found',
+            ]);
+            exit;
+        }
+
+        // Verify old password
+        if ($user['password'] !== $params['old_password']) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 401,
+                'text'   => 'Old password does not match',
+            ]);
+            exit;
+        }
+
+        // Update new password
+        $update_data = [
+            'password'      => $params['new_password'],
+            'pswd_modified' => ':NOW()',
+            'ip'            => pjUtil::getClientIp(),
+        ];
+
+        pjAuthUserModel::factory()->set('id', $params['user_id'])->modify($update_data);
+
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'text'   => 'Password has been updated.', // Successfully updated
+        ]);
+        exit;
+    }
+
+    public function pjActionGetCountries()
+    {
+        header("Content-Type: application/json");
+
+        $params    = $this->_post->raw();
+        $countries = pjBaseCountryModel::factory()
+            ->select('t1.*, t2.content AS name')
+            ->join('pjMultiLang', "t2.model='pjBaseCountry' AND t2.foreign_id=t1.id AND t2.field='name' AND t2.locale='" . $this->getLocaleId() . "'", 'left outer')
+            ->where('t1.status', 'T')
+            ->orderBy('`name` ASC')->findAll()->getData();
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => $countries,
+            // 'text'   => __('plugin_base_error_bodies_ARRAY_PU01', true, true), // Successfully updated
+        ]);
+        exit;
+    }
+
+    public function pjActionGetCategory()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_get->raw();
+
+        // 🔹 Pagination
+        $rowCount = isset($params['rowCount']) ? (int)$params['rowCount'] : 50;
+        $page     = isset($params['page']) ? (int)$params['page'] : 1;
+
+        if ($page < 1) $page = 1;
+        if ($rowCount < 1) $rowCount = 50;
+
+        $pjCategoryModel = pjCategoryModel::factory();
+
+        // 🔹 Get category tree
+        $data  = $pjCategoryModel->getNode($this->getLocaleId(), 1);
+        $total = count($data);
+
+        $pages = $total > 0 ? ceil($total / $rowCount) : 1;
+        if ($page > $pages) $page = $pages;
+
+        $offset = ($page - 1) * $rowCount;
+
+        // 🔹 Get product count per category
+        $c_arr = $pjCategoryModel
+            ->reset()
+            ->select(sprintf(
+                "t1.id,
+            (SELECT COUNT(*) 
+             FROM `%s`
+             WHERE `category_id` = `t1`.`id`
+             LIMIT 1) AS `products`",
+                pjProductCategoryModel::factory()->getTable()
+            ))
+            ->findAll()
+            ->getDataPair('id', 'products');
+
+        $data = array_slice($data, $offset, $rowCount);
+
+        $formatted = [];
+        $stack = [];
+
+        foreach ($data as $k => $category) {
+
+            $cat_id     = (int)$category['data']['id'];
+            $parent_id  = (int)$category['data']['parent_id'];
+            $level      = (int)$category['deep'];
+
+            $item = [
+                'id'        => $cat_id,
+                'name'      => $category['data']['name'],
+                'parent_id' => $parent_id,
+                'level'     => $level,
+                'products'  => (int) @$c_arr[$cat_id],
+                'up'        => 0,
+                'down'      => 0
+            ];
+
+            // Tree movement logic (optional for UI arrows)
+            if (!isset($stack[$level . "|" . $parent_id])) {
+                $stack[$level . "|" . $parent_id] = 0;
+            }
+
+            $stack[$level . "|" . $parent_id] += 1;
+
+            if ($stack[$level . "|" . $parent_id] > 1) {
+                $item['up'] = 1;
+            }
+
+            if (
+                isset($data[$k + 1]) &&
+                (
+                    $data[$k + 1]['deep'] == $level ||
+                    $stack[$level . "|" . $parent_id] < $category['siblings']
+                )
+            ) {
+                $item['down'] = 1;
+            }
+
+            $formatted[] = $item;
+        }
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Category list fetched successfully.',
+            'data'    => $formatted,
+            'pagination' => [
+                'total'    => $total,
+                'pages'    => $pages,
+                'page'     => $page,
+                'rowCount' => $rowCount
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionUpdateProfile()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        // 🔹 Validate client_id
+        if (!isset($params['client_id']) || empty($params['client_id'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id is required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+
+        $pjClientModel = pjClientModel::factory();
+
+        // 🔹 Check client exists
+        $client = $pjClientModel
+            ->where('id', $client_id)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (empty($client)) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 404,
+                'message' => 'Client not found.'
+            ]);
+            exit;
+        }
+
+        // 🔹 Email duplicate check
+        if (isset($params['email']) && !empty($params['email'])) {
+            $exists = $pjClientModel
+                ->reset()
+                ->where('email', $params['email'])
+                ->where('id !=', $client_id)
+                ->findCount()
+                ->getData();
+
+            if ($exists > 0) {
+                echo json_encode([
+                    'status'  => 'ERR',
+                    'code'    => 409,
+                    'message' => 'Email already exists.'
+                ]);
+                exit;
+            }
+        }
+
+        // 🔹 Update profile
+        $update_data = [];
+        if (isset($params['client_name'])) $update_data['client_name'] = $params['client_name'];
+        if (isset($params['email']))       $update_data['email']       = $params['email'];
+        if (isset($params['phone']))       $update_data['phone']       = $params['phone'];
+
+        if (!empty($update_data)) {
+            $pjClientModel->reset()->set('id', $client_id)->modify($update_data);
+        }
+
+        /* ================= DEFAULT ADDRESS ================= */
+
+        $pjAddressModel = pjAddressModel::factory();
+
+        $defaultAddress = $pjAddressModel
+            ->where('client_id', $client_id)
+            ->where('is_default_shipping', 1)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        $address_data = [
+            'client_id'  => $client_id,
+            'country_id' => $params['country_id'] ?? null,
+            'state'      => $params['state'] ?? null,
+            'city'       => $params['city'] ?? null,
+            'zip'        => $params['zip'] ?? null,
+            'address_1'  => $params['address_1'] ?? null,
+            'address_2'  => $params['address_2'] ?? null,
+            'name'       => $params['address_name'] ?? 'Default Address',
+            'is_default_shipping' => 1,
+            'is_default_billing'  => 1
+        ];
+
+        if (!empty($defaultAddress)) {
+            $pjAddressModel->reset()->set('id', $defaultAddress[0]['id'])->modify($address_data);
+        } else {
+            $pjAddressModel->reset()->setAttributes($address_data)->insert();
+        }
+
+        /* ================= FETCH UPDATED DATA ================= */
+
+        $updated_client = $pjClientModel
+            ->reset()
+            ->where('id', $client_id)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+        $locale_id = $this->getLocaleId();
+
+        $updated_address = $pjAddressModel
+            ->reset()
+            ->join('pjBaseCountry', 't2.id = t1.country_id', 'left')
+            ->join(
+                'pjBaseMultiLang',
+                "t3.model='pjBaseCountry' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'",
+                'left'
+            )
+            ->select("
+                t1.*,
+                t3.content AS country_name
+            ")
+            ->where('t1.client_id', $client_id)
+            ->where('t1.is_default_shipping', 1)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Profile updated successfully.',
+            'data' => [
+                'client'  => $updated_client[0] ?? null,
+                'address' => $updated_address[0] ?? null
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionGetCompany()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_get->raw();
+
+        $pjCompanyModel = pjCompanyModel::factory()->where('is_deleted', 0);
+
+        /* ================= SEARCH ================= */
+
+        if (!empty($params['q'])) {
+            $q = pjSanitize::clean($params['q']);
+            $pjCompanyModel->where("(t1.name LIKE '%$q%')");
+        }
+
+        /* ================= STATUS FILTER ================= */
+
+        if (!empty($params['status']) && in_array($params['status'], ['T', 'F'])) {
+            $pjCompanyModel->where('t1.status', $params['status']);
+        }
+
+        /* ================= SORTING ================= */
+
+        $column    = !empty($params['column']) ? $params['column'] : 'name';
+        $direction = (!empty($params['direction']) && in_array(strtoupper($params['direction']), ['ASC', 'DESC']))
+            ? strtoupper($params['direction'])
+            : 'ASC';
+
+        /* ================= PAGINATION ================= */
+
+        $rowCount = !empty($params['rowCount']) ? (int)$params['rowCount'] : 10;
+        $page     = !empty($params['page']) ? (int)$params['page'] : 1;
+
+        if ($page < 1) $page = 1;
+        if ($rowCount < 1) $rowCount = 10;
+
+        $total = $pjCompanyModel->findCount()->getData();
+        $pages = $total > 0 ? ceil($total / $rowCount) : 1;
+
+        if ($page > $pages) $page = $pages;
+
+        $offset = ($page - 1) * $rowCount;
+
+        /* ================= FETCH DATA ================= */
+
+        $company_arr = $pjCompanyModel
+            ->reset()
+            ->where('is_deleted', 0)
+            ->select("t1.*")
+            ->orderBy("`$column` $direction")
+            ->limit($rowCount, $offset)
+            ->findAll()
+            ->getData();
+
+        $data = [];
+        foreach ($company_arr as $k => $v) {
+            $data[$k] = [
+                'id'     => (int)$v['id'],
+                'name'   => pjSanitize::clean($v['name']),
+                'status' => $v['status'],
+            ];
+        }
+
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => $data,
+            'pagination' => [
+                'total'    => $total,
+                'pages'    => $pages,
+                'page'     => $page,
+                'rowCount' => $rowCount
+            ],
+            'sort' => [
+                'column'    => $column,
+                'direction' => $direction
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionAddToCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        if (empty($params['client_id']) || empty($params['product_id']) || empty($params['qty'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id, product_id and qty are required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $qty       = (int)$params['qty'];
+
+        if ($qty <= 0) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'Quantity must be greater than 0.'
+            ]);
+            exit;
+        }
+
+        $hash = md5(PJ_SALT . $client_id);
+
+        $post = $params;
+
+        unset($post['client_id'], $post['qty'], $post['action']);
+
+        // echo "<pre>"; print_r($post); die;
+        $key = serialize($post);
+
+        /* 🔥 CHECK EXISTING ROW DIRECTLY IN DB */
+        $existing = pjCartModel::factory()
+            ->where('hash', $hash)
+            ->where('is_cart', '0')
+            ->where('key_data', $key)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (!empty($existing)) {
+
+            // Update existing qty
+            $new_qty = $existing[0]['qty'] + $qty;
+
+            pjCartModel::factory()
+                ->reset()
+                ->where('id', $existing[0]['id'])
+                ->limit(1)
+                ->modifyAll(['qty' => $new_qty]);
+        } else {
+
+            // Insert new
+            pjCartModel::factory()
+                ->reset()
+                ->setAttributes([
+                    'hash'       => $hash,
+                    'key_data'   => $key,
+                    'product_id' => $post['product_id'],
+                    'stock_id'   => $post['stock_id'] ?? null,
+                    'qty'        => $qty,
+                    'is_cart'        => '0'
+                ])
+                ->insert();
+        }
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Product added to cart successfully.'
+        ]);
+        exit;
+    }
+
+    // private function buildCartData($cart_arr)
+    // {
+    //     $locale_id = $this->getLocaleId();
+
+    //     $arr = [];
+    //     $order_arr = [
+    //         'subtotal' => 0,
+    //         'tax'      => 0,
+    //         'shipping' => 0,
+    //         'total'    => 0
+    //     ];
+
+    //     if (empty($cart_arr)) {
+    //         return [
+    //             'arr'       => [],
+    //             'extra_arr' => [],
+    //             'order_arr' => $order_arr,
+    //             'attr_arr'  => [],
+    //             'stock_arr' => [],
+    //             'tax_arr'   => [],
+    //             'image_arr' => []
+    //         ];
+    //     }
+
+    //     /* ================= MERGE DUPLICATES ================= */
+
+    //     $unique = [];
+    //     foreach ($cart_arr as $item) {
+    //         if ($item['is_cart'] == 0) {
+
+    //             $key = $item['key_data'];
+    //             if (!isset($unique[$key])) {
+    //                 $unique[$key] = $item;
+    //             } else {
+    //                 $unique[$key]['qty'] += $item['qty'];
+    //             }
+    //         }
+    //     }
+
+    //     $pjGalleryModel = pjGalleryModel::factory();
+    //     $pjStockModel   = pjStockModel::factory();
+    //     $pjProductCategoryModel = pjProductCategoryModel::factory();
+
+    //     foreach ($unique as $item) {
+
+    //         $key_data   = unserialize($item['key_data']);
+    //         $product_id = $key_data['product_id'];
+    //         $stock_id   = $key_data['stock_id'] ?? 0;
+    //         $qty        = $item['qty'];
+
+    //         /* ================= LOAD PRODUCT ================= */
+
+    //         $product = pjProductModel::factory()
+    //             ->select(sprintf(
+    //                 "t1.*,
+    //             t2.content AS name,
+    //             t3.content AS full_desc,
+    //             t4.content AS short_desc,
+
+    //             (SELECT CONCAT_WS('~:~',medium_path,large_path)
+    //                 FROM %1\$s WHERE foreign_id=t1.id
+    //                 ORDER BY sort ASC,id ASC LIMIT 1) AS pic",
+    //                 $pjGalleryModel->getTable()
+    //             ))
+    //             ->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.locale='$locale_id' AND t2.field='name'", 'left')
+    //             ->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t1.id AND t3.locale='$locale_id' AND t3.field='full_desc'", 'left')
+    //             ->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t1.id AND t4.locale='$locale_id' AND t4.field='short_desc'", 'left')
+    //             ->find($product_id)
+    //             ->getData();
+
+    //         if (empty($product)) continue;
+
+    //         /* ================= MAIN IMAGE ================= */
+
+    //         if (!empty($product['pic'])) {
+    //             list($m, $l) = explode('~:~', $product['pic']);
+    //             $product['pic_medium'] = PJ_INSTALL_URL . $m;
+    //             $product['pic_large']  = PJ_INSTALL_URL . $l;
+    //         }
+    //         unset($product['pic']);
+
+    //         /* ================= STOCK ================= */
+
+    //         $stock = $pjStockModel
+    //             ->select('t1.*,t2.small_path,t2.medium_path,t2.large_path')
+    //             ->join('pjGallery', 't2.id=t1.image_id', 'left')
+    //             ->where('t1.id', $stock_id)
+    //             ->limit(1)
+    //             ->findAll()
+    //             ->getData();
+
+    //         $price = 0;
+    //         if (!empty($stock)) {
+    //             $stock = $stock[0];
+    //             $price = $stock['price'];
+    //             $stock['small_path']  = PJ_INSTALL_URL . $stock['small_path'];
+    //             $stock['medium_path'] = PJ_INSTALL_URL . $stock['medium_path'];
+    //             $stock['large_path']  = PJ_INSTALL_URL . $stock['large_path'];
+    //         } else {
+    //             $price = $product['price'];
+    //         }
+
+    //         $subtotal = $price * $qty;
+    //         $order_arr['subtotal'] += $subtotal;
+
+    //         /* ================= GALLERY ================= */
+
+    //         $gallery = $pjGalleryModel
+    //             ->select('small_path,medium_path,large_path,alt')
+    //             ->where('foreign_id', $product_id)
+    //             ->orderBy('sort ASC')
+    //             ->findAll()
+    //             ->getData();
+
+    //         foreach ($gallery as &$g) {
+    //             $g['small_path']  = PJ_INSTALL_URL . $g['small_path'];
+    //             $g['medium_path'] = PJ_INSTALL_URL . $g['medium_path'];
+    //             $g['large_path']  = PJ_INSTALL_URL . $g['large_path'];
+    //         }
+
+    //         /* ================= PUSH TO CART ARRAY ================= */
+
+    //         $arr[] = [
+    //             'product' => $product,
+    //             // 'selected_stock' => $stock ?? null,
+    //             'gallery' => $gallery,
+    //             'qty'     => (int)$qty,
+    //             'price'   => (float)$price,
+    //             'subtotal' => (float)$subtotal,
+    //             'hash'    => md5($item['key_data'])
+    //         ];
+    //     }
+
+    //     /* ================= TAX ================= */
+
+    //     $tax_percent = isset($this->option_arr['o_tax'])
+    //         ? (float)$this->option_arr['o_tax']
+    //         : 0;
+
+    //     $order_arr['tax'] = ($order_arr['subtotal'] * $tax_percent) / 100;
+
+    //     /* ================= SHIPPING ================= */
+
+    //     $shipping = isset($this->option_arr['o_shipping'])
+    //         ? (float)$this->option_arr['o_shipping']
+    //         : 0;
+
+    //     $order_arr['shipping'] = $shipping;
+
+    //     /* ================= TOTAL ================= */
+
+    //     $order_arr['total'] =
+    //         $order_arr['subtotal'] +
+    //         $order_arr['tax'] +
+    //         $order_arr['shipping'];
+
+    //     return [
+    //         'arr'       => $arr,
+    //         'extra_arr' => [],
+    //         'order_arr' => $order_arr,
+    //         'attr_arr'  => [],
+    //         'stock_arr' => [],
+    //         'tax_arr'   => [],
+    //         'image_arr' => []
+    //     ];
+    // }
+    private function buildCartData($cart_arr)
+    {
+        $arr        = [];
+        $extra_arr  = [];
+        $attr_arr   = [];
+        $stock_arr  = [];
+        $tax_arr    = [];
+        $image_arr  = [];
+
+        $order_arr  = [
+            'subtotal' => 0,
+            'tax'      => 0,
+            'shipping' => 0,
+            'total'    => 0
+        ];
+
+        if (empty($cart_arr)) {
+            return [
+                'arr'       => [],
+                'extra_arr' => [],
+                'order_arr' => $order_arr,
+                'attr_arr'  => [],
+                'stock_arr' => [],
+                'tax_arr'   => [],
+                'image_arr' => []
+            ];
+        }
+
+        /* ================= COLLECT IDS ================= */
+
+        $product_ids = [];
+        $stock_ids   = [];
+
+        foreach ($cart_arr as $item) {
+
+            $product_ids[] = (int)$item['product_id'];
+
+            if (!empty($item['stock_id'])) {
+                $stock_ids[] = (int)$item['stock_id'];
+            }
+        }
+
+        $product_ids = array_unique($product_ids);
+        $stock_ids   = array_unique($stock_ids);
+
+        /* ================= LOAD PRODUCTS ================= */
+
+        $product_data = pjProductModel::factory()
+            ->whereIn('t1.id', $product_ids)
+            ->findAll()
+            ->getData();
+
+        $product_map = [];
+        foreach ($product_data as $p) {
+            $product_map[(int)$p['id']] = $p;
+        }
+
+        /* ================= LOAD STOCK ================= */
+
+        if (!empty($stock_ids)) {
+
+            $stock_data = pjStockModel::factory()
+                ->whereIn('t1.id', $stock_ids)
+                ->findAll()
+                ->getData();
+
+            foreach ($stock_data as $s) {
+                $stock_arr[(int)$s['id']] = $s;
+            }
+        }
+
+        /* ================= LOAD IMAGES ================= */
+
+        $gallery_data = pjGalleryModel::factory()
+            ->whereIn('foreign_id', $product_ids)
+            ->orderBy('sort ASC')
+            ->findAll()
+            ->getData();
+
+        foreach ($gallery_data as $g) {
+            $image_arr[$g['foreign_id']][] = [
+                'small_path'  => PJ_INSTALL_URL . $g['small_path'],
+                'medium_path' => PJ_INSTALL_URL . $g['medium_path'],
+                'large_path'  => PJ_INSTALL_URL . $g['large_path'],
+                'alt'         => $g['alt']
+            ];
+        }
+
+        /* ================= BUILD CART ITEMS ================= */
+
+        foreach ($cart_arr as $item) {
+
+            $product_id = (int)$item['product_id'];
+            $stock_id   = (int)$item['stock_id'];
+            $qty        = (int)$item['qty'];
+
+            if (!isset($product_map[$product_id])) {
+                continue;
+            }
+
+            $product = $product_map[$product_id];
+
+            /* ===== FIXED PRICE LOGIC ===== */
+
+            $price = 0;
+
+            if (!empty($stock_id) && isset($stock_arr[$stock_id])) {
+
+                $price = (float)$stock_arr[$stock_id]['price'];
+            } else {
+
+                $price = (float)$product['price'];
+            }
+
+            $subtotal = $price * $qty;
+
+            $order_arr['subtotal'] += $subtotal;
+
+            /* ===== PRODUCT IMAGES ===== */
+
+            $product_images = $image_arr[$product_id] ?? [];
+
+            /* ===== MAIN IMAGE ===== */
+
+            $main_image = null;
+
+            if (!empty($product_images)) {
+                $main_image = $product_images[0];
+            }
+
+            $arr[] = [
+                'product' => [
+                    'id'         => $product['id'],
+                    'company_id' => $product['company_id'],
+                    'sku'        => $product['sku'],
+                    'status'     => $product['status'],
+                    'is_digital' => $product['is_digital'],
+                    'name'       => $product['name'],
+                    'short_desc' => $product['short_desc'] ?? null,
+                    'full_desc'  => $product['full_desc'] ?? null,
+                    'pic_medium' => $main_image['medium_path'] ?? null,
+                    'pic_large'  => $main_image['large_path'] ?? null
+                ],
+                'gallery'  => $product_images,
+                'qty'      => $qty,
+                'price'    => $price,
+                'subtotal' => $subtotal,
+                'hash'     => md5($item['key_data'])
+            ];
+        }
+
+        /* ================= TAX ================= */
+
+        $tax_percent = isset($this->option_arr['o_tax'])
+            ? (float)$this->option_arr['o_tax']
+            : 0;
+
+        $order_arr['tax'] = ($order_arr['subtotal'] * $tax_percent) / 100;
+
+        /* ================= SHIPPING ================= */
+
+        $shipping = isset($this->option_arr['o_shipping'])
+            ? (float)$this->option_arr['o_shipping']
+            : 0;
+
+        $order_arr['shipping'] = $shipping;
+
+        /* ================= TOTAL ================= */
+
+        $order_arr['total'] =
+            $order_arr['subtotal'] +
+            $order_arr['tax'] +
+            $order_arr['shipping'];
+
+        return [
+            'arr'       => $arr,
+            'extra_arr' => $extra_arr,
+            'order_arr' => $order_arr,
+            'attr_arr'  => $attr_arr,
+            'stock_arr' => $stock_arr,
+            'tax_arr'   => $tax_arr,
+            'image_arr' => $image_arr
+        ];
+    }
+    
+    public function pjActionGetCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        if (empty($params['client_id'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id is required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $hash = md5(PJ_SALT . $client_id);
+
+        $cart_items = pjCartModel::factory()
+            ->where('hash', $hash)
+            ->where('is_cart', '0')
+            ->findAll()
+            ->getData();
+        if (empty($cart_items)) {
+            echo json_encode([
+                'status' => 'OK',
+                'code'   => 200,
+                'message' => 'Cart is empty.',
+                'data'   => []
+            ]);
+            exit;
+        }
+
+        $data = $this->buildCartData($cart_items);
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Cart fetched successfully.',
+            'data'    => [
+                'items'   => $data['arr'],
+                'summary' => $data['order_arr']
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionEmptyCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        if (empty($params['client_id'])) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 400,
+                'message' => 'client_id is required.'
+            ]);
+            exit;
+        }
+
+        $hash = md5(PJ_SALT . (int)$params['client_id']);
+        $cart = new pjShoppingCart(pjCartModel::factory(), $hash);
+
+        if (!$cart->isEmpty()) {
+            $cart->clear();
+
+            echo json_encode([
+                'status' => 'OK',
+                'code'   => 200,
+                'message' => 'Cart emptied successfully.'
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'status' => 'ERR',
+            'code'   => 404,
+            'message' => 'Cart already empty.'
+        ]);
+        exit;
+    }
+
+    public function pjActionRemoveFromCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        /* ================= VALIDATION ================= */
+
+        if (empty($params['client_id']) || empty($params['hash'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id and hash are required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $hash_key  = trim($params['hash']);
+
+        $cart_hash = md5(PJ_SALT . $client_id);
+
+        /* ================= CHECK ITEM EXISTS ================= */
+
+        $exists = pjCartModel::factory()
+            ->where('hash', $cart_hash)
+            ->where(sprintf("MD5(`key_data`) = '%s'", pjCartModel::factory()->escapeStr($hash_key)))
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (empty($exists)) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 404,
+                'message' => 'Cart item not found.'
+            ]);
+            exit;
+        }
+
+        /* ================= REMOVE ITEM ================= */
+
+        pjCartModel::factory()
+            ->reset()
+            ->where('hash', $cart_hash)
+            ->where(sprintf("MD5(`key_data`) = '%s'", pjCartModel::factory()->escapeStr($hash_key)))
+            ->limit(1)
+            ->eraseAll();
+
+        /* ================= RETURN UPDATED CART ================= */
+
+        $remaining = pjCartModel::factory()
+            ->where('hash', $cart_hash)
+            ->findAll()
+            ->getData();
+
+        $cart_count = 0;
+        foreach ($remaining as $item) {
+            $cart_count += $item['qty'];
+        }
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Item removed successfully.',
+            'data'    => [
+                'cart_count' => $cart_count
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionUpdateCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        /* ================= VALIDATION ================= */
+
+        if (empty($params['client_id']) || empty($params['qty']) || !is_array($params['qty'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id and qty array are required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $cart_hash = md5(PJ_SALT . $client_id);
+        $qty_arr   = $params['qty'];
+
+        /* ================= PROCESS EACH ITEM ================= */
+
+        foreach ($qty_arr as $hash => $qty) {
+
+            $qty = (int)$qty;
+
+            // Find matching row
+            $item = pjCartModel::factory()
+                ->where('hash', $cart_hash)
+                ->where(sprintf("MD5(`key_data`) = '%s'", pjCartModel::factory()->escapeStr($hash)))
+                ->limit(1)
+                ->findAll()
+                ->getData();
+
+            if (empty($item)) {
+                continue;
+            }
+
+            if ($qty > 0) {
+                // Update quantity
+                pjCartModel::factory()
+                    ->reset()
+                    ->where('id', $item[0]['id'])
+                    ->limit(1)
+                    ->modifyAll(['qty' => $qty]);
+            } else {
+                // Remove item if qty = 0
+                pjCartModel::factory()
+                    ->reset()
+                    ->where('id', $item[0]['id'])
+                    ->limit(1)
+                    ->eraseAll();
+            }
+        }
+
+        /* ================= RETURN UPDATED CART COUNT ================= */
+
+        $remaining = pjCartModel::factory()
+            ->where('hash', $cart_hash)
+            ->findAll()
+            ->getData();
+
+        $cart_count = 0;
+        foreach ($remaining as $item) {
+            $cart_count += $item['qty'];
+        }
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Cart updated successfully.',
+            'data'    => [
+                'cart_count' => $cart_count
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionClearCart()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        /* ================= VALIDATION ================= */
+
+        if (empty($params['client_id'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id is required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $cart_hash = md5(PJ_SALT . $client_id);
+
+        /* ================= CHECK IF CART HAS ITEMS ================= */
+
+        $count = pjCartModel::factory()
+            ->where('hash', $cart_hash)
+            ->where('is_cart', '0')
+            ->findCount()
+            ->getData();
+
+        if ($count == 0) {
+            echo json_encode([
+                'status'  => 'OK',
+                'code'    => 200,
+                'message' => 'Cart already empty.',
+                'data'    => [
+                    'cart_count' => 0
+                ]
+            ]);
+            exit;
+        }
+
+        /* ================= CLEAR CART ================= */
+
+        pjCartModel::factory()
+            ->reset()
+            ->where('hash', $cart_hash)
+            ->eraseAll();
+
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Cart cleared successfully.',
+            'data'    => [
+                'cart_count' => 0
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionCreateOrder()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        /* ================= VALIDATION ================= */
+
+        if (
+            empty($params['client_id']) ||
+            empty($params['full_name']) ||
+            empty($params['email']) ||
+            empty($params['phone']) ||
+            empty($params['address_1']) ||
+            empty($params['city']) ||
+            empty($params['state']) ||
+            empty($params['zip'])
+        ) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 400,
+                'message' => 'Missing required fields.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int)$params['client_id'];
+        $cart_hash = md5(PJ_SALT . $client_id);
+        // $client = pjClientModel::factory()->find($client_id)->getData();
+
+
+        /* ================= LOAD CART ================= */
+
+        $cart_items = pjCartModel::factory()
+            ->where('hash', $cart_hash)
+            ->findAll()
+            ->getData();
+
+        if (empty($cart_items)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 404,
+                'message' => 'Cart is empty.'
+            ]);
+            exit;
+        }
+
+        /* ================= CALCULATE TOTAL ================= */
+
+        $subtotal = 0;
+        $stock_ids = [];
+
+        foreach ($cart_items as $item) {
+            $stock_ids[] = $item['stock_id'];
+        }
+
+        $stock_data = pjStockModel::factory()
+            ->whereIn('id', $stock_ids)
+            ->findAll()
+            ->getData();
+
+        $stock_map = [];
+        foreach ($stock_data as $s) {
+            $stock_map[$s['id']] = $s;
+        }
+
+        foreach ($cart_items as $item) {
+            $price = $stock_map[$item['stock_id']]['price'];
+            $subtotal += $price * $item['qty'];
+        }
+
+        $tax      = 0;
+        $shipping = 0;
+        $total    = $subtotal;
+
+        /* ================= CREATE ORDER ================= */
+
+        $order_data = [
+            'uuid'          => pjUtil::uuid(),
+            'client_id'     => $client_id,
+            'company_id'     => '0',
+            'locale_id'     => $this->getLocaleId(),
+            'status'        => 'new',
+            'payment_method' => $params['payment_method'] ?? 'cash',
+            'price'         => $subtotal,
+            'tax'           => $tax,
+            'shipping'      => $shipping,
+            'total'         => $total,
+            'ip'            => $_SERVER['REMOTE_ADDR'],
+
+            // Billing Details
+            'b_name'        => $params['full_name'],
+            'b_country_id'  => $params['country_id'] ?? 0,
+            'b_state'       => $params['state'],
+            'b_city'        => $params['city'],
+            'b_zip'         => $params['zip'],
+            'b_address_1'   => $params['address_1'],
+            'b_address_2'   => $params['address_2'] ?? null,
+
+            // Shipping same as billing
+            'same_as'       => 1,
+            's_name'        => $params['full_name'],
+            's_country_id'  => $params['country_id'] ?? 0,
+            's_state'       => $params['state'],
+            's_city'        => $params['city'],
+            's_zip'         => $params['zip'],
+            's_address_1'   => $params['address_1'],
+            's_address_2'   => $params['address_2'] ?? null,
+
+            // Optional
+            'notes'         => $params['company_name'] ?? null
+        ];
+
+        $order_id = pjOrderModel::factory()
+            ->setAttributes($order_data)
+            ->insert()
+            ->getInsertId();
+
+        if (!$order_id) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code'   => 500,
+                'message' => 'Order creation failed.'
+            ]);
+            exit;
+        }
+
+        /* ================= INSERT ORDER ITEMS ================= */
+
+        foreach ($cart_items as $item) {
+
+            $price = $stock_map[$item['stock_id']]['price'];
+
+            pjOrderStockModel::factory()
+                ->setAttributes([
+                    'order_id'   => $order_id,
+                    'product_id' => $item['product_id'],
+                    'stock_id'   => $item['stock_id'],
+                    'price'      => $price,
+                    'qty'        => $item['qty']
+                ])
+                ->insert();
+
+            // pjStockModel::factory()
+            //     ->reset()
+            //     ->set('id', $item['stock_id'])
+            //     ->modify(['qty' => ":qty - " . (int)$item['qty']]);
+        }
+        # Confirmation email(s)/SMS
+        $pjOrderModel = pjOrderModel::factory();
+
+        $order_arr = $pjOrderModel
+            ->reset()
+            ->select(sprintf("t1.*,
+						AES_DECRYPT(t1.cc_type, '%1\$s') AS `cc_type`,
+						AES_DECRYPT(t1.cc_num, '%1\$s') AS `cc_num`,
+						AES_DECRYPT(t1.cc_exp_month, '%1\$s') AS `cc_exp_month`,
+						AES_DECRYPT(t1.cc_exp_year, '%1\$s') AS `cc_exp_year`,
+						AES_DECRYPT(t1.cc_code, '%1\$s') AS `cc_code`,
+						t2.content AS `b_country`, t3.content AS `s_country`,
+						t4.email, t4.client_name, t4.phone, t4.url, AES_DECRYPT(t4.password, '%1\$s') AS `password`", PJ_SALT))
+            ->join('pjMultiLang', "t2.model='pjCountry' AND t2.foreign_id=t1.b_country_id AND t2.locale=t1.locale_id AND t2.field='name'", 'left outer')
+            ->join('pjMultiLang', "t3.model='pjCountry' AND t3.foreign_id=t1.s_country_id AND t3.locale=t1.locale_id AND t3.field='name'", 'left outer')
+            ->join('pjClient', 't4.id=t1.client_id', 'left outer')
+            ->find($order_id)
+            ->getData();
+
+        pjFront::pjActionConfirmSend($this->option_arr, $order_arr, PJ_SALT, 'quote', $this->getLocaleId());
+
+        /* ================= CLEAR CART ================= */
+
+        pjCartModel::factory()
+            ->reset()
+            ->where('hash', $cart_hash)
+            ->where('is_cart', '0')
+            ->eraseAll();
+        // echo "<pre>";
+        //         print_r($order_arr);
+        //         die;
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'message' => 'Order placed successfully.',
+            'data'   => [
+                'order_id' => $order_id,
+                'total'    => $total
+            ]
+        ]);
+
+        exit;
+    }
+
+    public function pjActionGetOrders()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        /* ================= REQUIRED ================= */
+
+
+
+        $company_id = (int)0;
+
+        /* ================= BASE QUERY ================= */
+
+        $pjOrderModel = pjOrderModel::factory()
+            ->join('pjClient', 't2.id=t1.client_id', 'left outer')
+            ->where('t1.company_id', $company_id);
+
+        /* ================= SEARCH ================= */
+
+        if (!empty($params['q'])) {
+            $q = trim($params['q']);
+            $q = str_replace(['%', '_'], ['\%', '\_'], $q);
+
+            $pjOrderModel->where("
+            (t1.uuid LIKE '%$q%' 
+            OR t2.client_name LIKE '%$q%'
+            OR t2.email LIKE '%$q%'
+            OR t1.s_name LIKE '%$q%'
+            OR t1.b_name LIKE '%$q%')
+        ");
+        }
+
+        /* ================= FILTERS ================= */
+
+        if (!empty($params['status'])) {
+            $pjOrderModel->where('t1.status', $params['status']);
+        }
+
+        if (!empty($params['payment_method'])) {
+            $pjOrderModel->where('t1.payment_method', $params['payment_method']);
+        }
+
+        if (!empty($params['total_from'])) {
+            $pjOrderModel->where('t1.total >=', (float)$params['total_from']);
+        }
+
+        if (!empty($params['total_to'])) {
+            $pjOrderModel->where('t1.total <=', (float)$params['total_to']);
+        }
+
+        if (!empty($params['date_from'])) {
+            $pjOrderModel->where('DATE(t1.created) >=', $params['date_from']);
+        }
+
+        if (!empty($params['date_to'])) {
+            $pjOrderModel->where('DATE(t1.created) <=', $params['date_to']);
+        }
+
+        /* ================= SORT ================= */
+
+        $column    = !empty($params['column']) ? $params['column'] : 't1.id';
+        $direction = (!empty($params['direction']) && strtoupper($params['direction']) === 'ASC') ? 'ASC' : 'DESC';
+
+        /* ================= PAGINATION ================= */
+
+        $rowCount = !empty($params['rowCount']) ? (int)$params['rowCount'] : 10;
+        $page     = !empty($params['page']) ? (int)$params['page'] : 1;
+
+        $total = $pjOrderModel->findCount()->getData();
+        $pages = ceil($total / $rowCount);
+        $offset = ($page - 1) * $rowCount;
+
+        if ($page > $pages) {
+            $page = $pages;
+        }
+
+        /* ================= FETCH DATA ================= */
+
+        $data = $pjOrderModel
+            ->select('t1.id, t1.uuid, t1.total, t1.status, t1.created, t1.client_id, t2.client_name')
+            ->orderBy("$column $direction")
+            ->limit($rowCount, $offset)
+            ->findAll()
+            ->getData();
+
+        /* ================= FORMAT ================= */
+
+        foreach ($data as $k => $v) {
+            $data[$k]['total_formatted'] = number_format($v['total'], 2);
+            $data[$k]['created_formatted'] = date("Y-m-d H:i:s", strtotime($v['created']));
+        }
+
+        /* ================= RESPONSE ================= */
+
+        echo json_encode([
+            'status' => 'OK',
+            'code'   => 200,
+            'data'   => $data,
+            'pagination' => [
+                'total'    => $total,
+                'pages'    => $pages,
+                'page'     => $page,
+                'rowCount' => $rowCount
+            ],
+            'sort' => [
+                'column'    => $column,
+                'direction' => $direction
+            ]
+        ]);
+
+        exit;
+    }
+}

@@ -1,0 +1,3 @@
+<link href="http://localhost/workwearnetowrk_latest_update_peter/core/framework/libs/pj/css/pj.bootstrap.min.css" type="text/css" rel="stylesheet" />
+									<link href="http://localhost/workwearnetowrk_latest_update_peter/index.php?controller=pjFront&action=pjActionLoadCss" type="text/css" rel="stylesheet" />
+									<script type="text/javascript" src="http://localhost/workwearnetowrk_latest_update_peter/index.php?controller=pjFront&action=pjActionLoad&company_id=Mg=="></script>

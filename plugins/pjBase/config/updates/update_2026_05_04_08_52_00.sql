@@ -1,0 +1,7 @@
+
+START TRANSACTION;
+
+ 
+ALTER TABLE `plugin_auth_users`  ADD COLUMN `created_by` INT(10) UNSIGNED NULL AFTER `id`;
+
+COMMIT;

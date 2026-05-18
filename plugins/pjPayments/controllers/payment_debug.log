@@ -1,0 +1,117 @@
+2025-12-29 11:53:21 | Loading payment options modal
+2025-12-29 11:53:24 | --- PAYMENT OPTIONS SAVE START ---
+2025-12-29 11:53:24 | POST = pjInput Object
+(
+    [_sanitize_clean:protected] => 
+    [_pj_post:protected] => Array
+        (
+            [options_update] => 1
+            [payment_method] => cash
+            [is_active] => 1
+            [enablePayment] => on
+            [i18n] => Array
+                (
+                    [1] => Array
+                        (
+                            [cash] => Cash
+                        )
+
+                )
+
+        )
+
+    [_pj_get:protected] => Array
+        (
+            [controller] => pjPayments
+            [action] => pjActionPaymentOptions
+        )
+
+    [_method:protected] => post
+)
+
+2025-12-29 11:53:24 | foreign_id = 1
+2025-12-29 11:53:24 | payment_method = cash
+2025-12-29 11:53:24 | is_active = 1
+2025-12-29 11:53:24 | company_id = 2
+2025-12-29 11:53:24 | Saving OFFLINE payment method
+2025-12-29 11:53:24 | DB update done, affected rows = 1
+2025-12-29 11:53:24 | Saving payment labels (i18n)
+2025-12-29 11:53:24 | --- PAYMENT OPTIONS SAVE END ---
+2025-12-29 11:53:41 | Loading payment options modal
+2025-12-29 11:53:46 | --- PAYMENT OPTIONS SAVE START ---
+2025-12-29 11:53:46 | POST = pjInput Object
+(
+    [_sanitize_clean:protected] => 
+    [_pj_post:protected] => Array
+        (
+            [options_update] => 1
+            [payment_method] => cash
+            [is_active] => 0
+            [i18n] => Array
+                (
+                    [1] => Array
+                        (
+                            [cash] => Cash
+                        )
+
+                )
+
+        )
+
+    [_pj_get:protected] => Array
+        (
+            [controller] => pjPayments
+            [action] => pjActionPaymentOptions
+        )
+
+    [_method:protected] => post
+)
+
+2025-12-29 11:53:46 | foreign_id = 1
+2025-12-29 11:53:46 | payment_method = cash
+2025-12-29 11:53:46 | is_active = 0
+2025-12-29 11:53:46 | company_id = 2
+2025-12-29 11:53:46 | Saving OFFLINE payment method
+2025-12-29 11:53:46 | DB update done, affected rows = 1
+2025-12-29 11:53:46 | Saving payment labels (i18n)
+2025-12-29 11:53:46 | --- PAYMENT OPTIONS SAVE END ---
+2025-12-29 11:53:52 | Loading payment options modal
+2025-12-29 11:53:55 | --- PAYMENT OPTIONS SAVE START ---
+2025-12-29 11:53:55 | POST = pjInput Object
+(
+    [_sanitize_clean:protected] => 
+    [_pj_post:protected] => Array
+        (
+            [options_update] => 1
+            [payment_method] => cash
+            [is_active] => 1
+            [enablePayment] => on
+            [i18n] => Array
+                (
+                    [1] => Array
+                        (
+                            [cash] => Cash
+                        )
+
+                )
+
+        )
+
+    [_pj_get:protected] => Array
+        (
+            [controller] => pjPayments
+            [action] => pjActionPaymentOptions
+        )
+
+    [_method:protected] => post
+)
+
+2025-12-29 11:53:55 | foreign_id = 1
+2025-12-29 11:53:55 | payment_method = cash
+2025-12-29 11:53:55 | is_active = 1
+2025-12-29 11:53:55 | company_id = 2
+2025-12-29 11:53:55 | Saving OFFLINE payment method
+2025-12-29 11:53:55 | DB update done, affected rows = 1
+2025-12-29 11:53:55 | Saving payment labels (i18n)
+2025-12-29 11:53:55 | --- PAYMENT OPTIONS SAVE END ---
+2025-12-29 11:54:02 | Loading payment options modal

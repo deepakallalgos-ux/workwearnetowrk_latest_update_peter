@@ -1,0 +1,334 @@
+/* ============================================================================
+   ADMIN REPORTS STYLING
+   ----------------------------------------------------------------------------
+   Extracted from `app/views/pjAdminReports/pjActionIndex.php` inline <style>
+   block (Sprint 2 — 2026-05-04, v5.10.88). Covers:
+     • Top filter bar (period select + date range + action buttons)
+     • Section titles + subtitles
+     • KPI cards (large — primary metrics)
+     • Trend pills (comparison vs previous period)
+     • Compact stat cards (avg/min/max order value + products)
+     • VAT table (aligned with other admin tables)
+     • VAT-rate badges (high / low / none)
+
+   Branding: colours from `pjBaseAppController::getAdminThemeColors()`.
+   Primary accents use `var(--admin-primary)` (Workwear default #0a5114 when unset).
+   ============================================================================ */
+
+.rpt-page { font-size: 13px; color: var(--wj-text, #1a1a2e); }
+.rpt-page .ibox-content { padding: 24px; }
+
+/* === Filter — single horizontal row === */
+.rpt-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--wj-border, #e8e4ef);
+}
+.rpt-filter select.form-control,
+.rpt-filter .input-group .form-control,
+.rpt-filter .input-group .input-group-addon {
+    height: 36px !important;
+    box-sizing: border-box;
+    line-height: 1.4;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--wj-text, #1a1a2e) !important;
+    background: #fff !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    box-shadow: none !important;
+}
+.rpt-filter select.form-control {
+    flex: 0 1 auto;
+    min-width: 100px;
+    width: auto;
+    border-radius: 6px !important;
+    /* Custom chevron — replaces the native arrow with a brand-coloured SVG */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%230a5114' d='M6 8L0 0h12z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 10px 7px !important;
+    padding-right: 28px !important;
+}
+.rpt-filter .input-group {
+    display: flex;
+    align-items: stretch;
+    width: auto;
+}
+.rpt-filter .input-group .form-control,
+.rpt-filter .input-group .input-group-addon {
+    border-radius: 0 !important;
+}
+.rpt-filter .input-group .input-group-addon {
+    color: var(--admin-primary, #0a5114) !important;
+    background: #fff !important;
+    font-size: 13px;
+    font-weight: 600;
+    /* Extra padding for calendar icon and “through” separator */
+    padding: 0 12px !important;
+    line-height: 34px;
+    border-left-width: 0 !important;
+    border-right-width: 0 !important;
+    white-space: nowrap;
+}
+.rpt-filter .input-group .input-group-addon i.fa {
+    font-size: 15px;
+    line-height: 34px;
+    color: var(--admin-primary, #0a5114);
+}
+/* “Through” separator between the two dates: subtle tint, reads as one range control */
+.rpt-filter .input-group .input-group-addon.rpt-tm {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.06)) !important;
+    color: var(--admin-primary, #0a5114) !important;
+    font-style: italic;
+    font-weight: 500;
+}
+.rpt-filter .input-group > :first-child {
+    border-radius: 6px 0 0 6px !important;
+    border-left-width: 1px !important;
+}
+.rpt-filter .input-group > :last-child {
+    border-radius: 0 6px 6px 0 !important;
+    border-right-width: 1px !important;
+}
+/* Date range: no flex-grow so “From … through …” stays a compact pill.
+   Previously `.rpt-date { flex: 1 1 auto }` + `.form-control { flex: 1 1 auto }`
+   stretched the group on wide screens and pushed “From” and “through” to opposite ends. */
+.rpt-filter .rpt-date {
+    flex: 0 0 auto;
+}
+.rpt-filter .rpt-date .input-group {
+    width: auto;
+}
+.rpt-filter .rpt-date .form-control {
+    cursor: default;
+    text-align: center;
+    flex: 0 0 110px;
+    width: 110px;
+}
+.rpt-filter .rpt-btns {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    margin-left: 4px;
+}
+.rpt-filter .rpt-btns .btn {
+    /* Outline primary style (same idea as .sc-page-help-link on other admin pages) */
+    height: 36px !important;
+    padding: 0 14px !important;
+    border-radius: var(--wj-radius, 8px) !important;
+    border: 1px solid var(--admin-primary, #0a5114) !important;
+    background: #fff !important;
+    color: var(--admin-primary, #0a5114) !important;
+    font-size: 13px !important;
+    font-weight: 500;
+    line-height: 1;
+    margin: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.rpt-filter .rpt-btns .btn:hover,
+.rpt-filter .rpt-btns .btn:focus {
+    background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.08)) !important;
+    color: var(--admin-primary-dark, #6b2cb8) !important;
+    border-color: var(--admin-primary-dark, #6b2cb8) !important;
+}
+
+/* === Section titles — strong contrast === */
+.rpt-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--wj-text, #1a1a2e);
+    margin: 32px 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--admin-primary, #0a5114);
+    display: inline-block;
+}
+.rpt-section-title:first-of-type { margin-top: 0; }
+
+/* === Subtitles inside the key metrics block === */
+.rpt-subsection-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--wj-text, #1a1a2e);
+    margin: 20px 0 10px 0;
+}
+
+/* === KPI cards (large — primary metrics) === */
+.rpt-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 8px;
+}
+.rpt-kpi-card {
+    background: #fff;
+    border: 1px solid var(--wj-border, #e8e4ef);
+    border-radius: var(--wj-radius, 10px);
+    padding: 18px 20px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+.rpt-kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(10, 81, 20, 0.10);
+    transform: translateY(-1px);
+}
+.rpt-kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--admin-primary, #0a5114);
+}
+.rpt-kpi-card.rpt-kpi-accent::before { background: var(--admin-secondary, #1ab394); }
+.rpt-kpi-card .rpt-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--wj-text, #1a1a2e);
+    margin-bottom: 8px;
+}
+.rpt-kpi-card .rpt-kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--wj-text, #1a1a2e);
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+.rpt-kpi-card .rpt-kpi-value a {
+    color: var(--admin-primary, #0a5114);
+    text-decoration: none;
+}
+.rpt-kpi-card .rpt-kpi-value a:hover {
+    color: var(--admin-primary-dark, #6b2cb8);
+    text-decoration: underline;
+}
+
+/* === Trend pill (vs previous period) === */
+.rpt-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.5;
+}
+.rpt-trend-up      { background: var(--admin-success-light, rgba(34, 197, 94, 0.20)); color: var(--admin-success, #22C55E); }
+.rpt-trend-down    { background: var(--admin-danger-light, rgba(220, 38, 38, 0.20)); color: var(--admin-danger, #DC2626); }
+.rpt-trend-neutral { background: rgba(107, 114, 128, 0.08); color: var(--wj-text, #1a1a2e); }
+
+/* === Compact stat cards (avg/min/max order value + products) === */
+.rpt-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.rpt-stat-card {
+    background: #fff;
+    border: 1px solid var(--wj-border, #e8e4ef);
+    border-radius: var(--wj-radius, 10px);
+    padding: 14px 16px;
+    text-align: center;
+    transition: box-shadow 0.15s ease;
+}
+.rpt-stat-card:hover {
+    box-shadow: 0 2px 8px rgba(10, 81, 20, 0.06);
+}
+.rpt-stat-card .rpt-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--wj-text, #1a1a2e);
+    margin-bottom: 6px;
+}
+.rpt-stat-card .rpt-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--wj-text, #1a1a2e);
+    font-variant-numeric: tabular-nums;
+}
+
+/* === VAT table — same visual language as other admin tables === */
+.rpt-vat-table-wrap {
+    border: 1px solid var(--wj-border, #e8e4ef);
+    border-radius: var(--wj-radius, 8px);
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.rpt-vat-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0 !important;
+    table-layout: auto;
+}
+.rpt-vat-table thead th {
+    background: var(--admin-primary, #0a5114);
+    color: var(--admin-on-primary, #fff);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    padding: 12px 14px;
+    border: none;
+    text-align: right;
+    white-space: nowrap;
+}
+.rpt-vat-table thead th:first-child { text-align: left; }
+.rpt-vat-table tbody td {
+    padding: 12px 14px;
+    border: none;
+    border-top: 1px solid var(--wj-border, #f0eef5);
+    text-align: right;
+    color: var(--wj-text, #1a1a2e);
+    background: #fff;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.rpt-vat-table tbody tr:first-child td { border-top: none; }
+.rpt-vat-table tbody td:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+.rpt-vat-table tbody tr:hover td { background: var(--admin-primary-lighter, rgba(10, 81, 20, 0.04)); }
+.rpt-vat-table tfoot td {
+    padding: 14px;
+    background: var(--surfaceSubtle, #f8f7fc);
+    border-top: 2px solid var(--admin-primary, #0a5114);
+    font-weight: 700;
+    font-size: 13px;
+    text-align: right;
+    color: var(--wj-text, #1a1a2e);
+    font-variant-numeric: tabular-nums;
+}
+.rpt-vat-table tfoot td:first-child { text-align: left; }
+
+/* VAT-rate badge — semantic colours per rate, not brand-tinted
+   (high/low/none stay visually distinct at a glance — purple/blue/grey). */
+.rpt-vat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.rpt-vat-badge-high { background: #eaf4ec; color: var(--admin-primary, #0a5114); }
+.rpt-vat-badge-low  { background: #e3f2fd; color: #1976d2; }
+.rpt-vat-badge-none { background: #f0eef5; color: var(--wj-text, #1a1a2e); }
