@@ -344,10 +344,12 @@ var jQuery = jQuery || $.noConflict();
 			if (myLabel.has_delete) {
 				$buttons.push({ type: "delete", url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProduct&id={:id}" });
 			}
+			if (myLabel.exported) {
+				$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
+			}
 			if (myLabel.has_delete_bulk) {
 				$actions.push({ text: myLabel.delete_selected, url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProductBulk", render: true, confirmation: myLabel.delete_confirmation });
 			}
-			$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
 			if ($actions.length > 0) {
 				$select = {
 					field: "id",
@@ -407,10 +409,12 @@ var jQuery = jQuery || $.noConflict();
 			if (myLabel.has_delete) {
 				$buttons.push({ type: "delete", url: "index.php?controller=pjAdminProducts&action=pjActionDeleteStock&id={:id}" });
 			}
+			if (myLabel.exported) {
+				$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
+			}
 			if (myLabel.has_delete_bulk) {
 				$actions.push({ text: myLabel.delete_selected, url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProductBulk", render: true, confirmation: myLabel.delete_confirmation });
 			}
-			$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
 			if ($actions.length > 0) {
 				$select = {
 					field: "id",

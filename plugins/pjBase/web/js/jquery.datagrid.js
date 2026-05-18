@@ -1038,10 +1038,10 @@
 				
 				if (inst.settings.paginator.actions && inst.settings.paginator.actions.length) {
 					
-					var $actionsWrap = $("<div>").addClass("btn-group btn-block").appendTo($pagin1);
+					var $actionsWrap = $("<div>").addClass("btn-group dropup pj-paginator-actions").appendTo($pagin1);
 					var $btnActions = $("<button>")
 						.attr("data-toggle", "dropdown")
-						.addClass("btn btn-primary btn-outline dropdown-toggle btn-block")
+						.addClass("btn btn-primary btn-outline dropdown-toggle")
 						.append(self.messages.choose_action + " ")
 						.append( $('<span>').addClass("caret") )
 						.appendTo($actionsWrap);
@@ -1136,11 +1136,11 @@
 				
 				$pagin1.wrap('<div class="col-lg-5 col-md-7 col-sm-7" />');
 				
-				$('.dropdown-toggle').each(function () {
+				$target.find('.table-responsive-secondary .dropdown-toggle, .table-responsive-tertiary .dropdown-toggle').each(function () {
 					var $this = $(this),
 						$win = $(window);
 					if ($this.offset().top > ($win.scrollTop() + $win.height() - 220)) {
-						$this.parent().toggleClass('dropup');
+						$this.parent().addClass('dropup');
 					}
 				});
 			}

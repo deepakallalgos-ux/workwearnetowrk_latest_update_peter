@@ -104,7 +104,7 @@ class pjInstaller extends pjInstallerAppController
 					if (!$dbo->query($statement)) {
 						$error = $dbo->error();
 						$dbo->query("ROLLBACK");
-						return array('status' => 'ERR', 'text' => $error . $file . $statement);
+						return array('status' => 'ERR', 'text' => self::pjActionFormatSqlError($error, $file, $statement));
 					}
 				}
 			}
@@ -1157,6 +1157,64 @@ class pjInstaller extends pjInstallerAppController
 		return $haystack;
 	}
 
+	private static function pjActionFormatSqlError($error, $file, $statement)
+	{
+		$statement = preg_replace('/\s+/', ' ', trim($statement));
+		if (strlen($statement) > 500) {
+			$statement = substr($statement, 0, 500) . '...';
+		}
+		return sprintf(
+			"SQL error in %s:\n%s\n\nFailed statement:\n%s",
+			basename($file),
+			trim($error),
+			$statement
+		);
+	}
+
+	private static function pjActionNormalizeUpdatePath($path)
+	{
+		$path = str_replace('\\', '/', $path);
+		if (defined('PJ_INSTALL_PATH')) {
+			$root = rtrim(str_replace('\\', '/', PJ_INSTALL_PATH), '/') . '/';
+			if (strpos($path, $root) === 0) {
+				$path = substr($path, strlen($root));
+			}
+		}
+		return ltrim($path, '/');
+	}
+
+	private static function pjActionIsAllowedUpdatePath($path, $module)
+	{
+		$path = self::pjActionNormalizeUpdatePath($path);
+		if ($path === '' || strpos($path, '..') !== false || !preg_match('/\.sql$/i', $path)) {
+			return false;
+		}
+		switch ($module) {
+			case 'template':
+				return (bool) preg_match('#^templates/.+/updates/.+\.sql$#', $path)
+					|| (defined('PJ_TEMPLATE_PATH') && strpos($path, rtrim(str_replace('\\', '/', PJ_TEMPLATE_PATH), '/')) === 0);
+			case 'plugin':
+				return (bool) preg_match('#^plugins/[^/]+/config/updates/.+\.sql$#', $path);
+			case 'script':
+			default:
+				return (bool) preg_match('#^app/config/updates/.+\.sql$#', $path);
+		}
+	}
+
+	private static function pjActionResolveUpdateFilePath($path)
+	{
+		if (is_file($path)) {
+			return $path;
+		}
+		if (defined('PJ_INSTALL_PATH')) {
+			$resolved = PJ_INSTALL_PATH . self::pjActionNormalizeUpdatePath($path);
+			if (is_file($resolved)) {
+				return $resolved;
+			}
+		}
+		return $path;
+	}
+
 	private static function pjActionGetUpdates($update_folder = 'app/config/updates', $override_data = array())
 	{
 		if (!is_dir($update_folder)) {
@@ -1195,130 +1253,155 @@ class pjInstaller extends pjInstallerAppController
 	public function pjActionSecureSetUpdate()
 	{
 		$this->setAjax(true);
-		// ini_set('display_errors', 1);
-		// ini_set('display_startup_errors', 1);
-		// error_reporting(E_ALL);
-		if ($this->isXHR() && $this->isLoged() && $this->isAdmin()) {
+		ini_set('display_errors', '0');
+
+		try {
+			if (!$this->isXHR()) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Invalid request (AJAX required).'));
+			}
+			if (!$this->isLoged()) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Login required.'));
+			}
+			if (!$this->isAdmin()) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Administrator access required (Super Admin only).'));
+			}
+
 			# Next will init dbo
 			pjAppModel::factory();
 
-			$dbo = NULL;
-			$registry = pjRegistry::getInstance();
-			if ($registry->is('dbo')) {
-				$dbo = $registry->get('dbo');
+		$dbo = NULL;
+		$registry = pjRegistry::getInstance();
+		if ($registry->is('dbo')) {
+			$dbo = $registry->get('dbo');
+		}
+
+		if (!isset($_REQUEST['module'])) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Module parameter is missing.'));
+		}
+
+		$this->_get->reassign_post_get();
+		$this->_post->reassign_post_get();
+
+		if (isset($_POST['path']) && !empty($_POST['path'])) {
+			$module = is_array($_REQUEST['module']) ? $_REQUEST['module'][0] : $_REQUEST['module'];
+			$postPath = $_POST['path'];
+
+			if (!self::pjActionIsAllowedUpdatePath($postPath, $module)) {
+				pjAppController::jsonResponse(array(
+					'status' => 'ERR',
+					'code' => 100,
+					'text' => 'Update file path is not allowed: ' . self::pjActionNormalizeUpdatePath($postPath)
+				));
 			}
 
-			if (!isset($_REQUEST['module'])) {
-				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Module parameter is missing.'));
+			$filePath = self::pjActionResolveUpdateFilePath($postPath);
+			if (!is_file($filePath)) {
+				pjAppController::jsonResponse(array(
+					'status' => 'ERR',
+					'code' => 100,
+					'text' => 'Update file not found: ' . basename($postPath)
+				));
 			}
 
-			$this->_get->reassign_post_get();
-			$this->_post->reassign_post_get();
-
-			if (isset($_POST['path']) && !empty($_POST['path'])) {
-				switch ($_REQUEST['module']) {
-					case 'template':
-						$pattern = defined('PJ_TEMPLATE_PATH') ? sprintf('|^%s(.*)/updates|', PJ_TEMPLATE_PATH) : '|^templates/(.*)/updates|';
-						break;
-					case 'plugin':
-						$pattern = '|^' . str_replace('\\', '/', PJ_PLUGINS_PATH) . '|';
-						break;
-					case 'script':
-					default:
-						$pattern = '|^app/config/updates|';
-						break;
-				}
-
-				if (preg_match($pattern, str_replace('\\', '/', $_POST['path']))) {
-					$response = self::pjActionExecuteSQL($dbo, $_POST['path']);
-					if ($response['status'] == "OK") {
-						$key = sprintf('o_%s_%s', basename($_POST['path']), md5($_POST['path']));
-						$pjOptionModel = pjBaseOptionModel::factory()
-							->where('t1.foreign_id', $this->getForeignId())
-							->where('t1.key', $key);
-						if (0 != $pjOptionModel->findCount()->getData()) {
-							$pjOptionModel
-								->reset()
-								->where('foreign_id', $this->getForeignId())
-								->where('`key`', $key)
-								->modifyAll(array('value' => ':NOW()'));
-						} else {
-							$pjOptionModel
-								->reset()
-								->setAttributes(array(
-									'foreign_id' => $this->getForeignId(),
-									'key' => $key,
-									'tab_id' => 99,
-									'value' => ':NOW()',
-									'type' => 'string'
-								))
-								->insert();
-						}
-					}
-					pjAppController::jsonResponse($response);
+			$response = self::pjActionExecuteSQL($dbo, $filePath);
+			if ($response['status'] == "OK") {
+				$key = sprintf('o_%s_%s', basename($postPath), md5($postPath));
+				$pjOptionModel = pjBaseOptionModel::factory()
+					->where('t1.foreign_id', $this->getForeignId())
+					->where('t1.key', $key);
+				if (0 != $pjOptionModel->findCount()->getData()) {
+					$pjOptionModel
+						->reset()
+						->where('foreign_id', $this->getForeignId())
+						->where('`key`', $key)
+						->modifyAll(array('value' => ':NOW()'));
 				} else {
-					pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Filename pattern doesn\'t match.'));
+					$pjOptionModel
+						->reset()
+						->setAttributes(array(
+							'foreign_id' => $this->getForeignId(),
+							'key' => $key,
+							'tab_id' => 99,
+							'value' => ':NOW()',
+							'type' => 'string'
+						))
+						->insert();
 				}
 			}
+			pjAppController::jsonResponse($response);
+		}
 
-			if (isset($_POST['record']) && !empty($_POST['record'])) {
-				$pjOptionModel = pjBaseOptionModel::factory();
-				foreach ($_POST['record'] as $k => $record) {
-					switch ($_REQUEST['module'][$k]) {
-						case 'template':
-							$pattern = defined('PJ_TEMPLATE_PATH') ? sprintf('|^%s(.*)/updates|', PJ_TEMPLATE_PATH) : '|^templates/(.*)/updates|';
-							break;
-						case 'plugin':
-							$pattern = '|^' . str_replace('\\', '/', PJ_PLUGINS_PATH) . '|';
-							break;
-						case 'script':
-						default:
-							$pattern = '|^app/config/updates|';
-							break;
-					}
+		if (isset($_POST['record']) && !empty($_POST['record'])) {
+			$pjOptionModel = pjBaseOptionModel::factory();
+			$response = array('status' => 'ERR', 'code' => 100, 'text' => 'No update files were executed.');
+			foreach ($_POST['record'] as $k => $record) {
+				$module = isset($_REQUEST['module'][$k]) ? $_REQUEST['module'][$k] : 'script';
 
-					if (!preg_match($pattern, str_replace('\\', '/', $record))) {
-						continue;
-					}
-					$response = self::pjActionExecuteSQL($dbo, $record);
-					if ($response['status'] == 'ERR') {
-						pjAppController::jsonResponse($response);
-					} elseif ($response['status'] == 'OK') {
-						$key = sprintf('o_%s_%s', basename($record), md5($record));
+				if (!self::pjActionIsAllowedUpdatePath($record, $module)) {
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'code' => 100,
+						'text' => 'Update file path is not allowed: ' . self::pjActionNormalizeUpdatePath($record)
+					));
+				}
+
+				$filePath = self::pjActionResolveUpdateFilePath($record);
+				if (!is_file($filePath)) {
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'code' => 100,
+						'text' => 'Update file not found: ' . basename($record)
+					));
+				}
+
+				$response = self::pjActionExecuteSQL($dbo, $filePath);
+				if ($response['status'] == 'ERR') {
+					pjAppController::jsonResponse($response);
+				} elseif ($response['status'] == 'OK') {
+					$key = sprintf('o_%s_%s', basename($record), md5($record));
+					$pjOptionModel
+						->reset()
+						->where('t1.foreign_id', $this->getForeignId())
+						->where('t1.key', $key);
+					if (0 != $pjOptionModel->findCount()->getData()) {
 						$pjOptionModel
 							->reset()
-							->where('t1.foreign_id', $this->getForeignId())
-							->where('t1.key', $key);
-						if (0 != $pjOptionModel->findCount()->getData()) {
-							$pjOptionModel
-								->reset()
-								->where('foreign_id', $this->getForeignId())
-								->where('`key`', $key)
-								->modifyAll(array('value' => ':NOW()'));
-						} else {
-							$pjOptionModel
-								->reset()
-								->setAttributes(array(
-									'foreign_id' => $this->getForeignId(),
-									'key' => $key,
-									'tab_id' => 99,
-									'value' => ':NOW()',
-									'type' => 'string'
-								))
-								->insert();
-						}
+							->where('foreign_id', $this->getForeignId())
+							->where('`key`', $key)
+							->modifyAll(array('value' => ':NOW()'));
+					} else {
+						$pjOptionModel
+							->reset()
+							->setAttributes(array(
+								'foreign_id' => $this->getForeignId(),
+								'key' => $key,
+								'tab_id' => 99,
+								'value' => ':NOW()',
+								'type' => 'string'
+							))
+							->insert();
 					}
 				}
-
-				pjAppController::jsonResponse($response);
 			}
+
+			pjAppController::jsonResponse($response);
 		}
-		exit;
+
+			pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'No update file was specified.'));
+		} catch (Throwable $e) {
+			pjAppController::jsonResponse(array(
+				'status' => 'ERR',
+				'code' => 500,
+				'text' => 'Exception: ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
+			));
+		}
 	}
 
 	public function pjActionSecureGetUpdate()
 	{
 		$this->setAjax(true);
+		$prevDisplayErrors = ini_get('display_errors');
+		ini_set('display_errors', '0');
 
 		if ($this->isXHR() && $this->isLoged() && $this->isAdmin()) {
 			# Build data
@@ -1364,6 +1447,8 @@ class pjInstaller extends pjInstallerAppController
 
 			pjAppController::jsonResponse(compact('data', 'total', 'pages', 'page', 'rowCount', 'column', 'direction'));
 		}
+
+		ini_set('display_errors', $prevDisplayErrors);
 		exit;
 	}
 

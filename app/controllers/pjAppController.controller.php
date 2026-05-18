@@ -85,6 +85,11 @@ class pjAppController extends pjBaseAppController
 				'value' => pjUtil::getStorefrontBaseUrl()
 			));
 
+		pjOptionModel::factory()
+			->where('company_id', 1)
+			->where('`key`', 'o_setup_wizard_completed')
+			->modifyAll(array('value' => '1'));
+
 		// Grant full permissions to Admin
 		$user_id = 1; // Admin ID
 		$pjAuthUserPermissionModel->reset()->where('user_id', $user_id)->eraseAll();
@@ -132,14 +137,58 @@ class pjAppController extends pjBaseAppController
 
 	public static function jsonEncode($arr)
 	{
+		if (function_exists('json_encode'))
+		{
+			$flags = 0;
+			if (defined('JSON_INVALID_UTF8_SUBSTITUTE'))
+			{
+				$flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+			}
+			if (defined('JSON_UNESCAPED_UNICODE'))
+			{
+				$flags |= JSON_UNESCAPED_UNICODE;
+			}
+			$encoded = json_encode($arr, $flags);
+			if ($encoded !== false)
+			{
+				return $encoded;
+			}
+		}
+
 		$Services_JSON = new pjServices_JSON();
 		return $Services_JSON->encode($arr);
 	}
 
 	public static function jsonResponse($arr)
 	{
-		header("Content-Type: application/json; charset=utf-8");
-		echo pjAppController::jsonEncode($arr);
+		while (ob_get_level() > 0)
+		{
+			ob_end_clean();
+		}
+
+		if (!headers_sent())
+		{
+			header("Content-Type: application/json; charset=utf-8");
+		}
+
+		$json = pjAppController::jsonEncode($arr);
+		if ($json === false || $json === null || $json === '')
+		{
+			$fallback = array(
+				'status' => 'ERR',
+				'code' => 500,
+				'text' => 'Could not encode server response as JSON.'
+			);
+			if (isset($arr['text']) && is_string($arr['text']))
+			{
+				$fallback['text'] = mb_substr(strip_tags($arr['text']), 0, 2000);
+			}
+			$json = function_exists('json_encode')
+				? json_encode($fallback)
+				: '{"status":"ERR","code":500,"text":"Could not encode server response as JSON."}';
+		}
+
+		echo $json;
 		exit;
 	}
 

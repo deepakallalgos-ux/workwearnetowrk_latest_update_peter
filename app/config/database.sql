@@ -370,7 +370,7 @@ INSERT INTO `shopping_cart_options`
 (1, 1, 'o_layout', 1, '1|2|3::3', 'Layout 1|Layout 2|Bootstrap template', 'enum', 5, 0, NULL),
 (1, 1, 'o_page_prefix', 1, 'pj', '', 'string', NULL, 0, NULL),
 (1, 1, 'o_theme', 1, '1|2|3|4|5|6|7|8|9|10::1', 'Theme 1|Theme 2|Theme 3|Theme 4|Theme 5|Theme 6|Theme 7|Theme 8|Theme 9|Theme 10', 'enum', 5, 0, NULL),
-(1, 1, 'o_setup_wizard_completed', 0, '0', 'Setup wizard completed', 'int', 0, 0, NULL),
+(1, 1, 'o_setup_wizard_completed', 0, '1', 'Setup wizard completed', 'int', 0, 0, NULL),
 
 (1, 1, 'o_seo_url', 2, 'Yes|No::Yes', 'Yes|No', 'enum', 1, 1, NULL),
 (1, 1, 'o_products_per_page', 2, '16', NULL, 'int', 2, 1, NULL),
@@ -5349,9 +5349,9 @@ SET @id := (SELECT LAST_INSERT_ID());
 INSERT INTO `shopping_cart_plugin_base_multi_lang` VALUES (NULL, @id, 'pjField', '::LOCALE::', 'title', 'Use the form below to set your payment and order process options.', 'script');
 
 
-INSERT INTO `shopping_cart_plugin_base_fields` VALUES (NULL, 'script_name', 'backend', 'Shopping Cart', 'script', NULL);
+INSERT INTO `shopping_cart_plugin_base_fields` VALUES (NULL, 'script_name', 'backend', 'Shopping Cart v5.0', 'script', NULL);
 SET @id := (SELECT LAST_INSERT_ID());
-INSERT INTO `shopping_cart_plugin_base_multi_lang` VALUES (NULL, @id, 'pjField', '::LOCALE::', 'title', 'Shopping Cart', 'script');
+INSERT INTO `shopping_cart_plugin_base_multi_lang` VALUES (NULL, @id, 'pjField', '::LOCALE::', 'title', 'Shopping Cart v5.0', 'script');
 
 INSERT INTO `shopping_cart_plugin_base_fields` VALUES (NULL, 'script_offline_payment', 'backend', 'script_offline_payment', 'script', NULL);
 SET @id := (SELECT LAST_INSERT_ID());

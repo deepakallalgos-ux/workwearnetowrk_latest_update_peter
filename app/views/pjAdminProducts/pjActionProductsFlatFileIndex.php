@@ -201,6 +201,7 @@
 	myLabel.inactive = "<?php echo $product_statuses[2]; ?>";
 	myLabel.delete_selected = <?php x__encode('delete_selected'); ?>;
 	myLabel.delete_confirmation = <?php x__encode('delete_confirmation'); ?>;
+	myLabel.exported = <?php x__encode('lblExport'); ?>;
 
 	myLabel.has_create = <?php echo (int) $tpl['has_create']; ?>;
 	myLabel.has_update = <?php echo (int) $tpl['has_update']; ?>;

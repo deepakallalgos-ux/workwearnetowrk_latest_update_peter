@@ -56,10 +56,18 @@
 }
 
 /* ---------- Table container ---------- */
-/* overflow-y: visible so row dropdowns (e.g. invoice actions) are not clipped
-   under the next row. x:auto + y:visible works in modern browsers
-   (Chrome 60+, Firefox 67+, Safari 14+). */
-.pj-grid { overflow-x: auto; overflow-y: visible; position: relative; }
+/* IMPORTANT: Do not set overflow-x on .pj-grid itself — CSS will force overflow-y
+   to auto as well and clip the paginator “Choose action” menu. Scroll only the
+   table wrapper; keep paginator/actions outside that scroll box. */
+.pj-grid {
+    overflow: visible;
+    position: relative;
+}
+.pj-grid > .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
 /* Keep open row dropdowns above neighbouring content */
 .pj-grid .btn-group.open > .dropdown-menu { z-index: 1050; }
 
@@ -866,6 +874,49 @@ body[data-table-density="spacious"] .pj-grid .table > tbody > tr > td { padding:
 .pj-grid > .table-responsive-actions > [class*="col-"]:first-child > .row > [class*="col-"]:first-child > .btn-group {
     display: inline-flex;
     width: auto;
+    position: relative;
+}
+/* Paginator is at the bottom of the card — open menu upward so it is never clipped */
+.pj-grid > .table-responsive-actions {
+    overflow: visible !important;
+    position: relative;
+    z-index: 2;
+}
+.pj-grid > .table-responsive-actions .btn-group.pj-paginator-actions {
+    position: relative;
+}
+.pj-grid > .table-responsive-actions .btn-group.pj-paginator-actions > .dropdown-menu {
+    position: absolute;
+    top: auto !important;
+    bottom: 100% !important;
+    left: 0;
+    right: auto;
+    z-index: 2000;
+    display: none;
+    float: none;
+    min-width: 180px;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin-top: 0 !important;
+    margin-bottom: 6px;
+    padding: 4px 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.pj-grid > .table-responsive-actions .btn-group.pj-paginator-actions.open > .dropdown-menu {
+    display: block;
+}
+.pj-grid > .table-responsive-actions .btn-group.pj-paginator-actions > .dropdown-menu > li > a {
+    padding: 8px 16px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+/* Do not clip paginator dropdowns inside listing iboxes */
+.wrapper-content .ibox:has(.pj-grid),
+.wrapper-content .ibox:has(.pj-grid) > .ibox-content,
+.wrapper-content .row:has(.pj-grid),
+#page-wrapper .wrapper-content:has(.pj-grid) {
+    overflow: visible !important;
 }
 
 /* Right column (grid col 2): align content to the end */

@@ -1,7 +1,6 @@
 <?php
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+// Enable debug output via URL instead of ini_set here (keeps AJAX/JSON and sessions working):
+// index.php?reporting=1&controller=...
 if (!headers_sent())
 {
 	if (isset($_GET['session_id']) && !empty($_GET['session_id']))

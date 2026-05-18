@@ -1,3 +1,0 @@
-model,model_name,sku,status,brand,category,article_number,article_name,ean,qty,price,size,color,name_en,short_desc_en,full_description_en,image
-W-201-DEL850,"Dell Model 850DL",SKU-DEL-990,1,Dell,Shirt,ART-1004,"850DL ","8,9E+12",25,100.00,M,Red,"850DL ","850DL ","850DL ",https://picsum.photos/seed/Dell%20XPS%2013/800/800
-W-201-DEL8501,"Dell Moddfsdfel 850DL",SKU-DEL-991,1,Dell,Shirt,ART-1005,"850DL ","8,9E+12",26,100.00,XL,Blue,"850DL ","850DL ","850DL ",https://picsum.photos/seed/Dell%20Streak%20Pro/800/800

@@ -5,6 +5,91 @@ if (!defined("ROOT_PATH")) {
 }
 class pjAdminProductImportHistory extends pjAdmin
 {
+	const IMPORT_SYNC_BATCH_SIZE = 75;
+
+	/** @var array product_id|url => gallery id (avoids re-downloading the same image URL) */
+	private static $importImageGalleryCache = array();
+
+	private function getImportSyncBatchLimit()
+	{
+		$limit = (int) self::IMPORT_SYNC_BATCH_SIZE;
+		if ($this->_post->check('batch_size')) {
+			$requested = (int) $this->_post->toInt('batch_size');
+			if ($requested > 0 && $requested <= 150) {
+				$limit = $requested;
+			}
+		}
+		return $limit;
+	}
+
+	private function importSyncProgressPayload($status, $offset, $next_offset, $total_rows, $batch_count, $extra = array())
+	{
+		$processed = min($next_offset, $total_rows);
+		$payload = array(
+			'status'          => $status,
+			'offset'          => $next_offset,
+			'total'           => $total_rows,
+			'processed'       => $processed,
+			'processed_from'  => $total_rows > 0 ? ($offset + 1) : 0,
+			'processed_to'    => $processed,
+			'batch'           => $batch_count,
+			'url'             => $_SERVER['REQUEST_URI'],
+		);
+		return array_merge($payload, $extra);
+	}
+
+	private function clearImportCsvSession($import_id)
+	{
+		$key = 'pj_import_csv_' . (int) $import_id;
+		if (isset($_SESSION[$key])) {
+			unset($_SESSION[$key]);
+		}
+	}
+
+	/**
+	 * Parse CSV once per import run (stored in session) — avoids re-reading the file every batch.
+	 */
+	private function loadImportCsvData($import_id, $csv_path)
+	{
+		$key = 'pj_import_csv_' . (int) $import_id;
+		if (isset($_SESSION[$key]) && is_array($_SESSION[$key]['rows'])) {
+			return $_SESSION[$key];
+		}
+
+		$handle = fopen($csv_path, 'r');
+		if (!$handle) {
+			return null;
+		}
+
+		$delimiter = ';';
+		$header = fgetcsv($handle, 0, $delimiter);
+		if ($header === false || count($header) < 2) {
+			rewind($handle);
+			$delimiter = ',';
+			$header = fgetcsv($handle, 0, $delimiter);
+		}
+
+		$rows = array();
+		$models = array();
+		while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+			if (count($row) !== count($header)) {
+				continue;
+			}
+			$assoc = array_combine($header, $row);
+			$rows[] = $assoc;
+			if (!empty($assoc['model'])) {
+				$models[] = $assoc['model'];
+			}
+		}
+		fclose($handle);
+
+		$data = array(
+			'rows'   => $rows,
+			'models' => array_values(array_unique($models)),
+		);
+		$_SESSION[$key] = $data;
+		return $data;
+	}
 
 	private function writeLog($message)
 	{
@@ -153,7 +238,10 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		$this->checkLogin();
 
-		$limit  = 30;
+		@set_time_limit(300);
+		@ini_set('memory_limit', '512M');
+
+		$limit  = $this->getImportSyncBatchLimit();
 		$offset = $this->_post->check('offset') ? (int)$this->_post->toInt('offset') : 0;
 		$import_id = $this->_get->check('id') ? (int)$this->_get->toInt('id') : 0;
 
@@ -262,19 +350,13 @@ class pjAdminProductImportHistory extends pjAdmin
 
 			//$this->writeLog("NO MORE ROWS TO PROCESS");
 
-			pjAppController::jsonResponse([
-				'status'    => 'DONE',
-				'offset'    => $offset,
-				'total'     => $total_rows,
-				'processed' => $total_rows,
-				'batch'     => 0,
-				'url'       => $_SERVER['REQUEST_URI']
-			]);
+			pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $total_rows, $total_rows, 0));
 		}
 
 		/* START SYNC */
 
 		if ($offset == 0) {
+			self::$importImageGalleryCache = array();
 
 			//$this->writeLog("SYNC STARTED");
 
@@ -389,14 +471,7 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		if ($next_offset < $total_rows) {
 
-			pjAppController::jsonResponse([
-				'status'    => 'OK',
-				'offset'    => $next_offset,
-				'total'     => $total_rows,
-				'processed' => min($next_offset, $total_rows),
-				'batch'     => count($rows),
-				'url'       => $_SERVER['REQUEST_URI']
-			]);
+			pjAppController::jsonResponse($this->importSyncProgressPayload('OK', $offset, $next_offset, $total_rows, count($rows)));
 		}
 
 		/* =========================
@@ -509,15 +584,9 @@ class pjAdminProductImportHistory extends pjAdmin
 			]);
 
 		$this->clearTempImages();
+		self::$importImageGalleryCache = array();
 
-		pjAppController::jsonResponse([
-			'status'    => 'DONE',
-			'offset'    => $next_offset,
-			'total'     => $total_rows,
-			'processed' => $total_rows,
-			'batch'     => count($rows),
-			'url'       => $_SERVER['REQUEST_URI']
-		]);
+		pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $next_offset, $total_rows, count($rows)));
 	}
 	public function pjActionDeleteImportRow()
 	{
@@ -1238,7 +1307,10 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		$this->checkLogin();
 
-		$limit  = 30;
+		@set_time_limit(300);
+		@ini_set('memory_limit', '512M');
+
+		$limit  = $this->getImportSyncBatchLimit();
 		$offset = $this->_post->check('offset') ? (int)$this->_post->toInt('offset') : 0;
 		$file_id = $this->_post->check('file_id') ? (int)$this->_post->toInt('file_id') : 0;
 
@@ -1290,6 +1362,8 @@ class pjAdminProductImportHistory extends pjAdmin
     		========================= */
 
 		if ($offset == 0) {
+			self::$importImageGalleryCache = array();
+			$this->clearImportCsvSession($file_id);
 
 			//$this->writeLog("SYNC STARTED");
 
@@ -1306,51 +1380,17 @@ class pjAdminProductImportHistory extends pjAdmin
 				));
 		}
 
-		/* =========================
-		READ CSV
-				========================= */
-
-		//$this->writeLog("READING CSV FILE");
-
-		$handle = fopen($csv_path, "r");
-
-		if (!$handle) {
+		$csv_bundle = $this->loadImportCsvData($file_id, $csv_path);
+		if ($csv_bundle === null) {
 			pjAppController::jsonResponse(array(
 				'status' => 'ERR',
 				'text'   => 'Unable to open CSV file'
 			));
 		}
 
-		$header = fgetcsv($handle);
-
-		$csv_data = [];
-
-		while (($row = fgetcsv($handle)) !== false) {
-			$csv_data[] = array_combine($header, $row);
-		}
-
-		fclose($handle);
-
+		$csv_data = $csv_bundle['rows'];
+		$csv_models = $csv_bundle['models'];
 		$total_rows = count($csv_data);
-		/* =========================
-		COLLECT CSV MODELS
-			========================= */
-
-		$csv_models = [];
-
-		foreach ($csv_data as $row) {
-			if (!empty($row['model'])) {
-				$csv_models[] = $row['model'];
-			}
-		}
-
-		//$this->writeLog("CSV MODELS FOUND: " . implode(",", $csv_models));
-		//$this->writeLog("TOTAL CSV ROWS: " . $total_rows);
-
-		/* =========================
-       GET BATCH ROWS
-   		 	========================= */
-
 		$rows = array_slice($csv_data, $offset, $limit);
 
 		$company_id = $_SESSION[$this->defaultCompany]['id'];
@@ -1435,11 +1475,7 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		if ($next_offset < $total_rows) {
 
-			pjAppController::jsonResponse(array(
-				'status' => 'OK',
-				'offset' => $next_offset,
-				'total'  => $total_rows
-			));
+			pjAppController::jsonResponse($this->importSyncProgressPayload('OK', $offset, $next_offset, $total_rows, count($rows)));
 		}
 
 		/* =========================
@@ -1500,11 +1536,10 @@ class pjAdminProductImportHistory extends pjAdmin
 		CLEANUP TEMP IMAGES
 			========================= */
 		$this->clearTempImages();
-		pjAppController::jsonResponse(array(
-			'status' => 'DONE',
-			'offset' => $next_offset,
-			'total'  => $total_rows
-		));
+		$this->clearImportCsvSession($file_id);
+		self::$importImageGalleryCache = array();
+
+		pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $next_offset, $total_rows, count($rows)));
 	}
 	private function clearTempImages()
 	{
@@ -1676,6 +1711,13 @@ class pjAdminProductImportHistory extends pjAdmin
 		}
 
 		$images = explode(',', $data['image']);
+		$first_url = trim($images[0]);
+		if ($first_url !== '') {
+			$cache_key = (int) $product_id . '|' . $first_url;
+			if (isset(self::$importImageGalleryCache[$cache_key])) {
+				return self::$importImageGalleryCache[$cache_key];
+			}
+		}
 
 		$GalleryModel = pjGalleryModel::factory();
 		static $processed_products = array();
@@ -1801,6 +1843,10 @@ class pjAdminProductImportHistory extends pjAdmin
 				->getInsertId();
 
 			//$this->writeLog("GALLERY INSERT ID: " . $insert_id);
+
+			if ($insert_id && $first_url !== '') {
+				self::$importImageGalleryCache[(int) $product_id . '|' . $first_url] = $insert_id;
+			}
 
 			return $insert_id;
 		}

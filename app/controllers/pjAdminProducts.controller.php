@@ -984,20 +984,203 @@ class pjAdminProducts extends pjAdmin
 	{
 		$this->checkLogin();
 
-		if ($record = $this->_post->toArray('record')) {
-			$arr = pjProductModel::factory()
-				->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left outer')
-				->select("t1.*, t2.content as product_name, (SELECT COALESCE(SUM(`qty`), 0) FROM `" . pjStockModel::factory()->getTable() . "` WHERE `product_id` = `t1`.`id` LIMIT 1) AS `in_stock`")
-				->whereIn('t1.id', $record)
-				->findAll()->getData();
-			$csv = new pjCSV();
-			$csv
-				->setHeader(true)
-				->setName("Products-" . time() . ".csv")
-				->process($arr)
-				->download();
+		$record = $this->_post->toArray('record');
+		if (!empty($record)) {
+			$arr = $this->buildProductExportRows($record);
+			if (!empty($arr)) {
+				$csv = new pjCSV();
+				$csv
+					->setHeader(true)
+					->setName("Products-" . time() . ".csv")
+					->process($arr)
+					->download();
+			}
 		}
 		exit;
+	}
+
+	/**
+	 * One CSV row per stock variant (matches import / flat-file columns).
+	 */
+	private function buildProductExportRows(array $productIds)
+	{
+		$productIds = array_filter(array_map('intval', $productIds));
+		if (empty($productIds)) {
+			return array();
+		}
+
+		$locale_id = (int) $this->getLocaleId();
+		$company_id = isset($_SESSION[$this->defaultCompany]['id']) ? (int) $_SESSION[$this->defaultCompany]['id'] : 0;
+
+		$rows = pjStockModel::factory()
+			->select("
+				t1.id AS stock_id,
+				t1.product_id,
+				t1.article_number,
+				t1.article_name,
+				t1.ean,
+				t1.qty,
+				t1.price,
+				t1.status AS stock_status,
+				t2.sku,
+				t2.model,
+				t2.model_name,
+				t2.status AS product_status,
+				t2.is_featured,
+				t2.is_digital,
+				t3.small_path AS image,
+				t4.content AS name_en,
+				t5.content AS short_desc_en,
+				t6.content AS full_description_en
+			")
+			->join('pjProduct', 't2.id = t1.product_id', 'inner')
+			->join('pjGallery', 't3.id = t1.image_id', 'left')
+			->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t2.id AND t4.field='name' AND t4.locale='$locale_id'", 'left outer')
+			->join('pjMultiLang', "t5.model='pjProduct' AND t5.foreign_id=t2.id AND t5.field='short_desc' AND t5.locale='$locale_id'", 'left outer')
+			->join('pjMultiLang', "t6.model='pjProduct' AND t6.foreign_id=t2.id AND t6.field='full_desc' AND t6.locale='$locale_id'", 'left outer')
+			->whereIn('t2.id', $productIds)
+			->orderBy('t2.id ASC, t1.id ASC');
+
+		if ($company_id > 0) {
+			$rows->where('t1.company_id', $company_id);
+		}
+
+		$data = $rows->findAll()->getData();
+		$export = array();
+		$exportedProductIds = array();
+
+		foreach ($data as $row) {
+			$exportedProductIds[] = (int) $row['product_id'];
+			$product_id = (int) $row['product_id'];
+			$stock_id = (int) $row['stock_id'];
+
+			$brand = pjProductBrandModel::factory()
+				->select('t3.content AS brand_name')
+				->join('pjBrand', 't2.id=t1.brand_id', 'left')
+				->join('pjMultiLang', "t3.model='pjBrand' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'", 'left outer')
+				->where('t1.product_id', $product_id)
+				->limit(1)
+				->findAll()
+				->getData();
+
+			$category = pjProductCategoryModel::factory()
+				->select('t3.content AS category_name')
+				->join('pjCategory', 't2.id=t1.category_id', 'left')
+				->join('pjMultiLang', "t3.model='pjCategory' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'", 'left outer')
+				->where('t1.product_id', $product_id)
+				->limit(1)
+				->findAll()
+				->getData();
+
+			$attrs = pjStockAttributeModel::factory()
+				->select('t3.content')
+				->join('pjAttribute', 't2.id=t1.attribute_id', 'left')
+				->join('pjMultiLang', "t3.model='pjAttribute' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'", 'left outer')
+				->where('t1.stock_id', $stock_id)
+				->findAll()
+				->getData();
+
+			$size = '';
+			$color = '';
+			foreach ($attrs as $attr) {
+				if ($size === '') {
+					$size = $attr['content'];
+				} else {
+					$color = $attr['content'];
+				}
+			}
+
+			$image = $row['image'];
+			if (!empty($image) && strpos($image, 'http') !== 0) {
+				$image = PJ_INSTALL_URL . ltrim($image, '/');
+			}
+
+			$export[] = array(
+				'product_id' => $product_id,
+				'stock_id' => $stock_id,
+				'model' => $row['model'],
+				'model_name' => $row['model_name'],
+				'sku' => $row['sku'],
+				'status' => (int) $row['product_status'],
+				'stock_status' => ($row['stock_status'] === 'T' || $row['stock_status'] === 1 || $row['stock_status'] === '1') ? 1 : 0,
+				'is_featured' => (int) $row['is_featured'],
+				'is_digital' => (int) $row['is_digital'],
+				'brand' => !empty($brand) ? $brand[0]['brand_name'] : '',
+				'category' => !empty($category) ? $category[0]['category_name'] : '',
+				'article_number' => $row['article_number'],
+				'article_name' => $row['article_name'],
+				'ean' => $row['ean'],
+				'qty' => $row['qty'],
+				'price' => $row['price'],
+				'size' => $size,
+				'color' => $color,
+				'name_en' => $row['name_en'],
+				'short_desc_en' => $row['short_desc_en'],
+				'full_description_en' => $row['full_description_en'],
+				'image' => $image,
+			);
+		}
+
+		$missingProductIds = array_diff($productIds, array_unique($exportedProductIds));
+		if (!empty($missingProductIds)) {
+			$productsOnly = pjProductModel::factory()
+				->select('t1.id AS product_id, t1.sku, t1.model, t1.model_name, t1.status AS product_status, t1.is_featured, t1.is_digital, t2.content AS name_en, t3.content AS short_desc_en, t4.content AS full_description_en')
+				->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.field='name' AND t2.locale='$locale_id'", 'left outer')
+				->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t1.id AND t3.field='short_desc' AND t3.locale='$locale_id'", 'left outer')
+				->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t1.id AND t4.field='full_desc' AND t4.locale='$locale_id'", 'left outer')
+				->whereIn('t1.id', $missingProductIds)
+				->findAll()
+				->getData();
+
+			foreach ($productsOnly as $product) {
+				$product_id = (int) $product['product_id'];
+
+				$brand = pjProductBrandModel::factory()
+					->select('t3.content AS brand_name')
+					->join('pjBrand', 't2.id=t1.brand_id', 'left')
+					->join('pjMultiLang', "t3.model='pjBrand' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'", 'left outer')
+					->where('t1.product_id', $product_id)
+					->limit(1)
+					->findAll()
+					->getData();
+
+				$category = pjProductCategoryModel::factory()
+					->select('t3.content AS category_name')
+					->join('pjCategory', 't2.id=t1.category_id', 'left')
+					->join('pjMultiLang', "t3.model='pjCategory' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'", 'left outer')
+					->where('t1.product_id', $product_id)
+					->limit(1)
+					->findAll()
+					->getData();
+
+				$export[] = array(
+					'product_id' => $product_id,
+					'stock_id' => '',
+					'model' => $product['model'],
+					'model_name' => $product['model_name'],
+					'sku' => $product['sku'],
+					'status' => (int) $product['product_status'],
+					'stock_status' => '',
+					'is_featured' => (int) $product['is_featured'],
+					'is_digital' => (int) $product['is_digital'],
+					'brand' => !empty($brand) ? $brand[0]['brand_name'] : '',
+					'category' => !empty($category) ? $category[0]['category_name'] : '',
+					'article_number' => '',
+					'article_name' => '',
+					'ean' => '',
+					'qty' => '',
+					'price' => '',
+					'size' => '',
+					'color' => '',
+					'name_en' => $product['name_en'],
+					'short_desc_en' => $product['short_desc_en'],
+					'full_description_en' => $product['full_description_en'],
+					'image' => '',
+				);
+			}
+		}
+
+		return $export;
 	}
 
 	public function pjActionExtraCopy()

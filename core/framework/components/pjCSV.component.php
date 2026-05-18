@@ -90,7 +90,14 @@ class pjCSV
  * @access private
  * @example php://output, php://memory, php://temp
  */
-	private $io_stream = 'php://temp/maxmemory:0';
+	private $io_stream = 'php://memory';
+/**
+ * Real temp file path when not using php:// memory/temp wrapper
+ *
+ * @var string|null
+ * @access private
+ */
+	private $temp_file = null;
 /**
  * Constructor - automatically called when you create a new instance of a class with new
  *
@@ -109,6 +116,10 @@ class pjCSV
 		if (is_resource($this->fp) || $this->fp instanceof GdImage)
 		{
 			fclose($this->fp);
+		}
+		if (!empty($this->temp_file) && is_file($this->temp_file))
+		{
+			@unlink($this->temp_file);
 		}
 	}
 /**
@@ -161,9 +172,10 @@ class pjCSV
  */
 	public function process($data=array())
 	{
-		if (!$this->fp = @fopen($this->io_stream, 'wb'))
+		$this->fp = $this->openWritableStream();
+		if (!$this->fp)
 		{
-			throw new Exception("Can't open $this->io_stream", 100);
+			throw new Exception("Can't open CSV output stream", 100);
 		}
 		
 		$i = 0;
@@ -185,17 +197,89 @@ class pjCSV
 				{
 					$str .= $this->delimiter;
 				}
-				$str .= $this->enclose . preg_replace('/'.$this->enclose.'/', $this->escape . $this->enclose, $value) . $this->enclose;
+				$cell = $value === null ? '' : (string) $value;
+				$str .= $this->enclose . preg_replace('/'.$this->enclose.'/', $this->escape . $this->enclose, $cell) . $this->enclose;
 				$ii++;
 			}
 			$i++;
 			
-			fwrite($this->fp, $str);
+			if (@fwrite($this->fp, $str) === false)
+			{
+				throw new Exception("Can't write CSV output stream", 101);
+			}
 		}
 		
 		rewind($this->fp);
 		
 		return $this;
+	}
+
+/**
+ * Resolve a writable stream for CSV generation (XAMPP-safe).
+ *
+ * @access private
+ * @return resource|false
+ */
+	private function openWritableStream()
+	{
+		$candidates = array();
+
+		if (!empty($this->io_stream) && $this->io_stream !== 'php://temp/maxmemory:0')
+		{
+			$candidates[] = $this->io_stream;
+		}
+
+		$candidates[] = 'php://memory';
+		$candidates[] = 'php://temp';
+
+		if (defined('ROOT_PATH') && defined('PJ_UPLOAD_PATH'))
+		{
+			$dir = ROOT_PATH . PJ_UPLOAD_PATH . 'tmp/';
+			if (!is_dir($dir))
+			{
+				@mkdir($dir, 0777, true);
+			}
+			if (is_dir($dir) && is_writable($dir))
+			{
+				$candidates[] = $dir . 'export_' . uniqid('', true) . '.csv';
+			}
+		}
+
+		$sysTmp = sys_get_temp_dir();
+		if (!empty($sysTmp) && is_dir($sysTmp) && is_writable($sysTmp))
+		{
+			$candidates[] = rtrim($sysTmp, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'pj_export_' . uniqid('', true) . '.csv';
+		}
+
+		$seen = array();
+		foreach ($candidates as $target)
+		{
+			if (isset($seen[$target]))
+			{
+				continue;
+			}
+			$seen[$target] = true;
+
+			$fp = @fopen($target, 'wb+');
+			if ($fp === false)
+			{
+				continue;
+			}
+
+			$this->io_stream = $target;
+			if (strpos($target, 'php://') !== 0)
+			{
+				$this->temp_file = $target;
+			}
+			else
+			{
+				$this->temp_file = null;
+			}
+
+			return $fp;
+		}
+
+		return false;
 	}
 /**
  * Write data to a file

@@ -130,6 +130,15 @@ var jQuery = jQuery || $.noConflict();
 			$("#pjImportSyncProgressModal").modal("show");
 		}
 
+		var pjSyncProgressTicker = { value: 0, timer: null, total: 0 };
+
+		function pjStopSyncProgressTicker() {
+			if (pjSyncProgressTicker.timer) {
+				clearInterval(pjSyncProgressTicker.timer);
+				pjSyncProgressTicker.timer = null;
+			}
+		}
+
 		function pjUpdateSyncProgressModal(processed, total, batchSize, indeterminate) {
 			var pct = 0;
 			if (total > 0 && !indeterminate) {
@@ -144,7 +153,7 @@ var jQuery = jQuery || $.noConflict();
 				? ((typeof myLabel.import_sync_preparing !== "undefined" && myLabel.import_sync_preparing) ? myLabel.import_sync_preparing : "Preparing…")
 				: ((typeof myLabel.import_sync_status !== "undefined" && myLabel.import_sync_status)
 					? myLabel.import_sync_status.replace("{processed}", processed).replace("{total}", total)
-					: ("Processed " + processed + " of " + total + " rows"));
+					: ("Row " + processed + " of " + total));
 			$("#pjImportSyncStatusLine").text(statusLine);
 			var detail = "";
 			if (batchSize > 0) {
@@ -153,9 +162,63 @@ var jQuery = jQuery || $.noConflict();
 					: ("Last batch: " + batchSize + " row(s)"));
 			}
 			$("#pjImportSyncDetailLine").text(detail);
+			pjSyncProgressTicker.value = processed;
+			pjSyncProgressTicker.total = total;
+		}
+
+		/** Animate counter 1,2,3… instead of jumping 0 → 30 → 60 */
+		function pjAnimateSyncProgress(fromRow, toRow, total, batchSize) {
+			pjStopSyncProgressTicker();
+			if (!total || toRow <= 0) {
+				pjUpdateSyncProgressModal(0, total, batchSize, true);
+				return;
+			}
+			var start = Math.max(0, parseInt(fromRow, 10) || 0);
+			var end = Math.min(parseInt(toRow, 10) || 0, total);
+			if (end <= start) {
+				pjUpdateSyncProgressModal(end, total, batchSize, false);
+				return;
+			}
+			var steps = end - start;
+			var delay = Math.max(12, Math.min(40, Math.floor(1200 / steps)));
+			var current = start;
+			pjUpdateSyncProgressModal(current, total, batchSize, false);
+			pjSyncProgressTicker.timer = setInterval(function () {
+				current += 1;
+				if (current >= end) {
+					current = end;
+					pjStopSyncProgressTicker();
+				}
+				pjUpdateSyncProgressModal(current, total, batchSize, false);
+			}, delay);
+		}
+
+		function pjHandleSyncProgressResponse(data) {
+			var total = parseInt(data.total, 10) || 0;
+			var processed = typeof data.processed !== "undefined" && data.processed !== null
+				? parseInt(data.processed, 10)
+				: Math.min(parseInt(data.offset, 10) || 0, total);
+			var batch = parseInt(data.batch, 10) || 0;
+			var fromRow = typeof data.processed_from !== "undefined"
+				? parseInt(data.processed_from, 10)
+				: Math.max(1, processed - batch + 1);
+			var toRow = typeof data.processed_to !== "undefined"
+				? parseInt(data.processed_to, 10)
+				: processed;
+
+			if (total > 0) {
+				if (data.status === "DONE") {
+					pjStopSyncProgressTicker();
+					pjUpdateSyncProgressModal(total, total, batch, false);
+				} else {
+					pjAnimateSyncProgress(fromRow, toRow, total, batch);
+				}
+			}
+			return { total: total, processed: processed, batch: batch };
 		}
 
 		function pjHideSyncProgressModal() {
+			pjStopSyncProgressTicker();
 			if (!$("#pjImportSyncProgressModal").length) {
 				return;
 			}
@@ -194,18 +257,7 @@ var jQuery = jQuery || $.noConflict();
 						return;
 					}
 
-					/* refresh datagrid */
-					refreshImportGrid();
-
-					var total = parseInt(data.total, 10) || 0;
-					var processed = typeof data.processed !== "undefined" && data.processed !== null
-						? parseInt(data.processed, 10)
-						: Math.min(parseInt(data.offset, 10) || 0, total);
-					var batch = parseInt(data.batch, 10) || 0;
-
-					if (total > 0) {
-						pjUpdateSyncProgressModal(processed, total, batch, false);
-					}
+					pjHandleSyncProgressResponse(data);
 
 					if (data.status === "OK") {
 
@@ -214,7 +266,7 @@ var jQuery = jQuery || $.noConflict();
 
 					else if (data.status === "DONE") {
 
-						pjUpdateSyncProgressModal(total, total, batch, false);
+						refreshImportGrid();
 
 						setTimeout(function () {
 
@@ -299,17 +351,7 @@ var jQuery = jQuery || $.noConflict();
 						return;
 					}
 
-					refreshImportGrid();
-
-					var total = parseInt(data.total, 10) || 0;
-					var processed = typeof data.processed !== "undefined" && data.processed !== null
-						? parseInt(data.processed, 10)
-						: Math.min(parseInt(data.offset, 10) || 0, total);
-					var batch = parseInt(data.batch, 10) || 0;
-
-					if (total > 0) {
-						pjUpdateSyncProgressModal(processed, total, batch, false);
-					}
+					pjHandleSyncProgressResponse(data);
 
 					if (data.status === "OK") {
 
@@ -318,7 +360,7 @@ var jQuery = jQuery || $.noConflict();
 
 					else if (data.status === "DONE") {
 
-						pjUpdateSyncProgressModal(total, total, batch, false);
+						refreshImportGrid();
 
 						setTimeout(function () {
 

@@ -94,6 +94,24 @@ class pjBaseAppController extends pjController
         header('HTTP/1.1 403 Forbidden');
         $this->setTemplate('pjBase', 'pjBase:elements/403');
     }
+
+    /**
+     * Login, forgot password, reset, captcha — use pjActionBaseLogin only (no app admin skin).
+     */
+    protected function isAuthScreen()
+    {
+        return in_array($this->_get->toString('action'), array(
+            'pjActionLogin',
+            'pjActionForgot',
+            'pjActionReset',
+            'pjActionCaptcha',
+            'pjActionCheckCaptcha',
+            'pjActionCheckReCaptcha',
+            'pjActionCheckLoginEmail',
+            'pjActionResendPassword',
+            'pjActionMessages',
+        ), true);
+    }
     
     protected function loadSetFields($force=FALSE, $locale_id=NULL, $fields=NULL)
     {
@@ -343,19 +361,23 @@ class pjBaseAppController extends pjController
             $script_option_arr = pjOptionModel::factory()->getPairs($this->getForeignId());
             $this->option_arr = array_merge($base_option_arr, $script_option_arr);
 
-            try {
-                if (class_exists('pjAdminSetup')) {
-                    $this->option_arr['_has_demo_data'] = pjAdminSetup::hasDemoData();
-                } else {
-                    $demoCheck = pjProductModel::factory()
-                        ->where("t1.sku LIKE 'DEMO-%'")
-                        ->limit(1)
-                        ->findAll()
-                        ->getData();
-                    $this->option_arr['_has_demo_data'] = !empty($demoCheck);
+            $this->option_arr['_show_demo_data_ui'] = false;
+            $this->option_arr['_has_demo_data'] = false;
+            if (!empty($this->option_arr['_show_demo_data_ui'])) {
+                try {
+                    if (class_exists('pjAdminSetup')) {
+                        $this->option_arr['_has_demo_data'] = pjAdminSetup::hasDemoData();
+                    } else {
+                        $demoCheck = pjProductModel::factory()
+                            ->where("t1.sku LIKE 'DEMO-%'")
+                            ->limit(1)
+                            ->findAll()
+                            ->getData();
+                        $this->option_arr['_has_demo_data'] = !empty($demoCheck);
+                    }
+                } catch (Exception $e) {
+                    $this->option_arr['_has_demo_data'] = false;
                 }
-            } catch (Exception $e) {
-                $this->option_arr['_has_demo_data'] = false;
             }
 
             $this->set('option_arr', $this->option_arr);
@@ -418,16 +440,18 @@ class pjBaseAppController extends pjController
             $this->appendCss('themes/'.$this->option_arr['o_base_theme'].'.css', $this->getConstant('pjBase', 'PLUGIN_CSS_PATH'));
             $this->appendJs('inspinia.js', $this->getConstant('pjBase', 'PLUGIN_JS_PATH'));
 
-            if (!empty($this->option_arr['_has_demo_data'])) {
+            if (!empty($this->option_arr['_show_demo_data_ui']) && !empty($this->option_arr['_has_demo_data'])) {
                 $this->appendJs('pjAdminSetup.js');
             }
 
             /* App admin skin (checkbox radius, forms, grid) — must load after plugin custom.css
-               so pjBase* controllers (not only pjAppController children) get the same UI. */
+               so pjBase* controllers (not only pjAppController children) get the same UI.
+               Skip on auth screens so login matches standard pjActionBaseLogin (green panel, logo). */
             $controllerName = $this->_get->toString('controller');
             if (
                 defined('PJ_CSS_PATH')
                 && !in_array($controllerName, array('pjFront', 'pjFrontEnd', 'pjFrontPublic', 'pjInstaller'))
+                && !$this->isAuthScreen()
             ) {
                 $this->appendCss('admin.css', PJ_CSS_PATH);
                 $this->appendCss('admin-datagrid-listings.css', PJ_CSS_PATH);

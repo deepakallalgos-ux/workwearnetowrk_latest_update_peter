@@ -112,7 +112,7 @@ class pjUpload
     			if (function_exists('finfo_open') && function_exists('finfo_file') && function_exists('finfo_close'))
     			{
     			    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    			    if ($finfo !== FALSE && is_resource($finfo))
+    			    if ($finfo !== FALSE && (is_resource($finfo) || is_object($finfo)))
     			    {
     			        $mime_type = finfo_file($finfo, $file['tmp_name']);
     			        finfo_close($finfo);
