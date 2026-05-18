@@ -61,6 +61,9 @@ class pjFrontCart extends pjFront
 		$this->setAjax(true);
 
 		if ($this->isXHR()) {
+			if (pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 105, 'text' => __('system_105', true)));
+			}
 			if ($this->_post->check('qty')) {
 				$post = $this->_post->raw();
 				// echo "<pre>"; print_r($post); die;
@@ -182,6 +185,9 @@ class pjFrontCart extends pjFront
 			$arr = pjOrderModel::factory()->select('t1.*, t2.client_name, t2.email, t2.phone')
 				->join('pjClient', 't2.id=t1.client_id', 'left outer')
 				->find($this->_get->toInt('order_id'))->getData();
+			if (empty($arr) || !is_array($arr)) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => ''));
+			}
 			if (pjObject::getPlugin('pjPayments') !== NULL) {
 				$pjPlugin = pjPayments::getPluginName($arr['payment_method']);
 				if (pjObject::getPlugin($pjPlugin) !== NULL) {
@@ -191,9 +197,9 @@ class pjFrontCart extends pjFront
 						'id'			=> $arr['id'],
 						'foreign_id'	=> $this->getForeignId(),
 						'uuid'		  => $arr['uuid'],
-						'name'		  => @$client['client_name'],
-						'email'		 => @$client['email'],
-						'phone'		 => @$client['phone'],
+						'name'		  => isset($arr['client_name']) ? $arr['client_name'] : '',
+						'email'		 => isset($arr['email']) ? $arr['email'] : '',
+						'phone'		 => isset($arr['phone']) ? $arr['phone'] : '',
 						'amount'		=> $arr['total'],
 						'cancel_hash'   => sha1($arr['uuid'] . strtotime($arr['created']) . PJ_SALT),
 						'currency_code' => $this->option_arr['o_currency'],
@@ -207,7 +213,10 @@ class pjFrontCart extends pjFront
 						->where('t1.field', 'o_bank_account')
 						->limit(1)
 						->findAll()->getDataIndex(0);
-					$this->set('bank_account', $bank_account['content']);
+					$bank_account_text = (is_array($bank_account) && isset($bank_account['content']))
+						? $bank_account['content']
+						: (isset($this->option_arr['o_bank_account']) ? $this->option_arr['o_bank_account'] : '');
+					$this->set('bank_account', $bank_account_text);
 				}
 			}
 			$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
@@ -223,6 +232,9 @@ class pjFrontCart extends pjFront
 		$company_id = $_SESSION[$this->defaultCompany]['id'];
 		$_SESSION[$this->defaultForm]['company_id'] =  $company_id;
 		if ($this->isXHR()) {
+			if (pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
+				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 115, 'text' => __('system_115', true)));
+			}
 			if (!$this->_post->check('sc_preview') || !isset($_SESSION[$this->defaultForm]) || empty($_SESSION[$this->defaultForm])) {
 				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 109, 'text' => __('system_109', true)));
 			}
@@ -304,6 +316,10 @@ class pjFrontCart extends pjFront
 			$data['locale_id'] = $this->getLocaleId();
 
 			$data = array_merge($_SESSION[$this->defaultForm], $data);
+
+			if (pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_payments') && empty($data['payment_method'])) {
+				$data['payment_method'] = 'bank';
+			}
 
 			if (isset($data['payment_method']) && $data['payment_method'] != 'creditcard') {
 				unset($data['cc_type']);

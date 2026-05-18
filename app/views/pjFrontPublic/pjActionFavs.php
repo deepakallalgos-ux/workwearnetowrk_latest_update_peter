@@ -183,7 +183,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 						</div></div>
 						<div class="scTable1TdTotal"><div class="scTable1Td">
 						<?php
-						if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+						if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 						{
 							if ((int) $product['status'] === 1)
 							{

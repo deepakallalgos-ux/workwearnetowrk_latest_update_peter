@@ -75,7 +75,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 						{
 							?>
 							<div class="scProductItemButtons">
-								<?php if ((int) $tpl['option_arr']['o_disable_orders'] === 0) : ?>
+								<?php if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders')) : ?>
 								<form action="" method="post" class="scSelectorBuyNowForm" style="display: inline; vertical-align: top">
 									<input type="hidden" name="product_id" value="<?php echo $product['id']; ?>" />
 									<input type="hidden" name="is_digital" value="<?php echo (int) $product['is_digital']; ?>" />
@@ -131,7 +131,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 							</div>
 							<?php
 						} else {
-							if ((int) $tpl['option_arr']['o_disable_orders'] === 0)
+							if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_orders'))
 							{
 								?><div class="scProductItemOutOfStock"><span class="scProductOutOfStock"><?php __('front_out_of_stock'); ?></span></div><?php
 							}

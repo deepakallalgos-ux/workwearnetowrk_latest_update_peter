@@ -1651,6 +1651,22 @@ class pjUtil extends pjToolkit
 	}
 
 	const ADMIN_SIDEBAR_LOGO_OPTION = 'o_admin_sidebar_logo';
+	const SIDEBAR_LOGO_ERR_SESSION = 'pj_sidebar_logo_upload_error';
+
+	public static function isOptionEnumYes($optionArr, $key)
+	{
+		if (!is_array($optionArr) || !isset($optionArr[$key])) {
+			return false;
+		}
+
+		$val = $optionArr[$key];
+		if (is_string($val) && strpos($val, '::') !== false) {
+			$parts = explode('::', $val);
+			$val = end($parts);
+		}
+
+		return $val === 'Yes' || $val === '1' || $val === 1;
+	}
 
 	public static function ensureAdminSidebarLogoOption($foreignId = 1)
 	{
@@ -1723,7 +1739,230 @@ class pjUtil extends pjToolkit
 			return null;
 		}
 
-		return PJ_INSTALL_URL . ltrim($path, '/');
+		$url = PJ_INSTALL_URL . ltrim(str_replace('\\', '/', $path), '/');
+		$mtime = @filemtime($fullPath);
+		if ($mtime) {
+			$url .= (strpos($url, '?') === false ? '?' : '&') . 'v=' . $mtime;
+		}
+
+		return $url;
+	}
+
+	public static function getAdminSidebarLogoUploadDir()
+	{
+		return PJ_INSTALL_PATH . PJ_UPLOAD_PATH . 'admin/';
+	}
+
+	public static function ensureAdminSidebarLogoUploadDir()
+	{
+		$uploadRoot = PJ_INSTALL_PATH . PJ_UPLOAD_PATH;
+		$uploadDir = self::getAdminSidebarLogoUploadDir();
+
+		if (!is_dir($uploadRoot)) {
+			@mkdir($uploadRoot, 0777, true);
+			@chmod($uploadRoot, 0777);
+		}
+
+		if (!is_dir($uploadDir)) {
+			@mkdir($uploadDir, 0777, true);
+		}
+
+		if (is_dir($uploadDir) && !is_writable($uploadDir)) {
+			@chmod($uploadDir, 0777);
+		}
+
+		return is_dir($uploadDir) && self::isAdminSidebarLogoUploadDirWritable($uploadDir);
+	}
+
+	public static function isAdminSidebarLogoUploadDirWritable($uploadDir = null)
+	{
+		if ($uploadDir === null) {
+			$uploadDir = self::getAdminSidebarLogoUploadDir();
+		}
+
+		if (!is_dir($uploadDir)) {
+			return false;
+		}
+
+		if (is_writable($uploadDir)) {
+			return true;
+		}
+
+		$testFile = rtrim($uploadDir, '/\\') . '/.write-test-' . uniqid('', true);
+		$written = @file_put_contents($testFile, '1');
+		if ($written !== false) {
+			@unlink($testFile);
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function deleteAdminSidebarLogoFiles()
+	{
+		$uploadDir = self::getAdminSidebarLogoUploadDir();
+		foreach (glob($uploadDir . 'sidebar-logo.*') as $oldFile) {
+			if (is_file($oldFile)) {
+				@unlink($oldFile);
+			}
+		}
+	}
+
+	public static function saveAdminSidebarLogoOption($relativePath, $foreignId = 1)
+	{
+		self::ensureAdminSidebarLogoOption($foreignId);
+
+		$foreignId = (int) $foreignId;
+		$key = self::ADMIN_SIDEBAR_LOGO_OPTION;
+
+		$pjOptionModel = pjBaseOptionModel::factory();
+		$exists = (int) $pjOptionModel
+			->reset()
+			->where('t1.foreign_id', $foreignId)
+			->where('t1.key', $key)
+			->findCount()
+			->getData();
+
+		if ($exists > 0) {
+			$pjOptionModel
+				->reset()
+				->where('foreign_id', $foreignId)
+				->where('`key`', $key)
+				->limit(1)
+				->modifyAll(array('value' => $relativePath));
+		} else {
+			$pjOptionModel
+				->reset()
+				->setAttributes(array(
+					'foreign_id' => $foreignId,
+					'key' => $key,
+					'tab_id' => 2,
+					'value' => $relativePath,
+					'label' => '',
+					'type' => 'string',
+					'order' => 0,
+					'is_visible' => 1,
+				))
+				->insert();
+		}
+
+		$registry = pjRegistry::getInstance();
+		if ($registry->is('options')) {
+			$options = $registry->get('options');
+			if (is_array($options)) {
+				$options[$key] = $relativePath;
+				$registry->set('options', $options);
+			}
+		}
+	}
+
+	public static function validateAdminSidebarLogoFile($file)
+	{
+		if (!is_array($file)) {
+			return 'Invalid upload data.';
+		}
+
+		$errorCode = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
+		if ($errorCode !== UPLOAD_ERR_OK) {
+			switch ($errorCode) {
+				case UPLOAD_ERR_INI_SIZE:
+				case UPLOAD_ERR_FORM_SIZE:
+					return 'File is too large. Increase upload_max_filesize in PHP settings.';
+				case UPLOAD_ERR_PARTIAL:
+					return 'The file was only partially uploaded. Please try again.';
+				case UPLOAD_ERR_NO_FILE:
+					return 'Please choose a file before uploading.';
+				default:
+					return 'Upload failed (error code ' . $errorCode . ').';
+			}
+		}
+
+		if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+			return 'Invalid or missing uploaded file.';
+		}
+
+		$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		$allowed = array('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg');
+		if (!in_array($ext, $allowed, true)) {
+			return 'File type not allowed. Use PNG, JPG, GIF, WebP, or SVG.';
+		}
+
+		if ($ext === 'svg') {
+			$head = @file_get_contents($file['tmp_name'], false, null, 0, 2048);
+			if ($head === false || !preg_match('/<svg|xmlns\s*=\s*["\']http/i', $head)) {
+				return 'Invalid SVG file.';
+			}
+			return null;
+		}
+
+		if (@getimagesize($file['tmp_name']) === false) {
+			return 'The file is not a valid image.';
+		}
+
+		return null;
+	}
+
+	public static function redirectAdminSidebarLogoUploadError($message)
+	{
+		$_SESSION[self::SIDEBAR_LOGO_ERR_SESSION] = $message;
+		pjUtil::redirect($_SERVER['PHP_SELF'] . '?controller=pjBaseOptions&action=pjActionVisual&err=logo_upload');
+	}
+
+	public static function redirectAdminSidebarLogoVisual($successCode = 'PBS02')
+	{
+		pjUtil::redirect($_SERVER['PHP_SELF'] . '?controller=pjBaseOptions&action=pjActionVisual&err=' . $successCode);
+	}
+
+	public static function handleAdminSidebarLogoUpload($foreignId = 1)
+	{
+		if (!pjAppController::isPost()) {
+			self::redirectAdminSidebarLogoUploadError('Invalid request. Please use the upload form.');
+		}
+
+		if (empty($_FILES['sidebar_logo'])) {
+			self::redirectAdminSidebarLogoUploadError('No file was received.');
+		}
+
+		$file = $_FILES['sidebar_logo'];
+		$validationError = self::validateAdminSidebarLogoFile($file);
+		if ($validationError !== null) {
+			self::redirectAdminSidebarLogoUploadError($validationError);
+		}
+
+		if (!self::ensureAdminSidebarLogoUploadDir()) {
+			self::redirectAdminSidebarLogoUploadError(
+				'Upload folder is not writable. On the server, set permissions on app/web/upload/admin/ to 755 or 777 (e.g. chmod 777 app/web/upload/admin).'
+			);
+		}
+
+		$uploadDir = self::getAdminSidebarLogoUploadDir();
+
+		$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		$fileName = 'sidebar-logo.' . $ext;
+		$absolutePath = $uploadDir . $fileName;
+
+		self::deleteAdminSidebarLogoFiles();
+
+		if (!move_uploaded_file($file['tmp_name'], $absolutePath)) {
+			self::redirectAdminSidebarLogoUploadError('Could not save the uploaded file. Check folder permissions.');
+		}
+
+		$relativePath = PJ_UPLOAD_PATH . 'admin/' . $fileName;
+		self::saveAdminSidebarLogoOption($relativePath, $foreignId);
+
+		unset($_SESSION[self::SIDEBAR_LOGO_ERR_SESSION]);
+		self::redirectAdminSidebarLogoVisual('PBS02');
+	}
+
+	public static function handleAdminSidebarLogoRemove($foreignId = 1)
+	{
+		if (!pjAppController::isPost()) {
+			self::redirectAdminSidebarLogoVisual('PBS02');
+		}
+
+		self::deleteAdminSidebarLogoFiles();
+		self::saveAdminSidebarLogoOption('', $foreignId);
+		self::redirectAdminSidebarLogoVisual('PBS02');
 	}
 }
 ?>

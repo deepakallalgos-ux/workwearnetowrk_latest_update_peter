@@ -289,7 +289,7 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 						<?php endif; ?>
 						
 						<?php
-						if ((int) $tpl['option_arr']['o_disable_payments'] !== 1)
+						if (!pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_disable_payments'))
 						{
 							?>
 							<div class="scPaperHeading scPaperHeadingTop"><?php __('order_payment_details'); ?></div>
