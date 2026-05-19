@@ -74,13 +74,19 @@
 								<?php
 							} 
 							?>
+							<?php
+							$captcha_mode = isset($tpl['option_arr']['o_captcha_mode_front']) ? $tpl['option_arr']['o_captcha_mode_front'] : 'string';
+							$captcha_maxlength = in_array($captcha_mode, array('addition', 'subtraction', 'random_math'), true)
+								? 3
+								: (isset($tpl['option_arr']['o_captcha_length_front']) ? (int) $tpl['option_arr']['o_captcha_length_front'] : 6);
+							?>
 							<div class="col-sm-6">
 								<div class="form-group required">
 							    	<label class="control-label"><?php __('bf_captcha'); ?></label>
 									<div class="row">
 										
 									  	<div class="col-xs-6">
-										    <input type="text" name="captcha" class="form-control" maxlength="6" data-err="<?php echo $validate['captcha'];?>" data-captcha="<?php echo $validate['captcha_wrong'];?>">
+										    <input type="text" name="captcha" class="form-control" maxlength="<?php echo $captcha_maxlength; ?>" inputmode="numeric" autocomplete="off" data-err="<?php echo $validate['captcha'];?>" data-captcha="<?php echo $validate['captcha_wrong'];?>">
 									  	</div>
 									  	<div class="col-xs-6">
 									    	<img src="<?php echo PJ_INSTALL_URL; ?>index.php?controller=pjFront&amp;action=pjActionCaptcha&amp;rand=<?php echo rand(1,99999); ?><?php echo $controller->_get->check('session_id') && $controller->_get->toString('session_id') != '' ? '&session_id=' . pjSanitize::clean($controller->_get->toString('session_id')) : NULL;?>" alt="Captcha" style="cursor: pointer;" class="scCaptcha scSelectorCaptcha" />

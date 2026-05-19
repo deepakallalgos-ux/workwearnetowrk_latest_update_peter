@@ -97,12 +97,8 @@ var jQuery = jQuery || $.noConflict();
 			if ($("#pjImportSyncProgressModal").length) {
 				return;
 			}
-			var title = (typeof myLabel.import_sync_modal_title !== "undefined" && myLabel.import_sync_modal_title)
-				? myLabel.import_sync_modal_title
-				: "Sync in progress";
-			var sub = (typeof myLabel.import_sync_modal_sub !== "undefined" && myLabel.import_sync_modal_sub)
-				? myLabel.import_sync_modal_sub
-				: "Rows are processed in batches. You can keep this window open until it finishes.";
+			var title = myLabel.import_sync_modal_title || "";
+			var sub = myLabel.import_sync_modal_sub || "";
 			$("body").append(
 				'<div class="modal fade" id="pjImportSyncProgressModal" tabindex="-1" role="dialog" data-backdrop="false" data-keyboard="false">' +
 					'<div class="modal-dialog" role="document">' +
@@ -150,16 +146,12 @@ var jQuery = jQuery || $.noConflict();
 			var $bar = $("#pjImportSyncProgressBar");
 			$bar.css("width", pct + "%").text(pct + "%");
 			var statusLine = indeterminate || !total
-				? ((typeof myLabel.import_sync_preparing !== "undefined" && myLabel.import_sync_preparing) ? myLabel.import_sync_preparing : "Preparing…")
-				: ((typeof myLabel.import_sync_status !== "undefined" && myLabel.import_sync_status)
-					? myLabel.import_sync_status.replace("{processed}", processed).replace("{total}", total)
-					: ("Row " + processed + " of " + total));
+				? (myLabel.import_sync_preparing || "")
+				: (myLabel.import_sync_progress_row || "").replace("{processed}", processed).replace("{total}", total);
 			$("#pjImportSyncStatusLine").text(statusLine);
 			var detail = "";
 			if (batchSize > 0) {
-				detail = ((typeof myLabel.import_sync_last_batch !== "undefined" && myLabel.import_sync_last_batch)
-					? myLabel.import_sync_last_batch.replace("{batch}", batchSize)
-					: ("Last batch: " + batchSize + " row(s)"));
+				detail = (myLabel.import_sync_last_batch || "").replace("{batch}", batchSize);
 			}
 			$("#pjImportSyncDetailLine").text(detail);
 			pjSyncProgressTicker.value = processed;
@@ -238,19 +230,19 @@ var jQuery = jQuery || $.noConflict();
 				pjShowSyncProgressModal();
 			}
 
-			$.post(
-				syncBaseUrl,
-				{
-					offset: offset
-				},
-				function (data) {
-					console.log(data);
+			$.ajax({
+				url: syncBaseUrl,
+				type: "POST",
+				data: { offset: offset },
+				dataType: "json",
+				timeout: 300000
+			}).done(function (data) {
 					if (!data || !data.status) {
 						console.error("Invalid response");
 						pjHideSyncProgressModal();
 						swal({
 							title: myLabel.import_error_title,
-							text: "Invalid response from server.",
+							text: myLabel.import_invalid_response,
 							type: "warning",
 							confirmButtonColor: "#d9534f"
 						});
@@ -306,12 +298,12 @@ var jQuery = jQuery || $.noConflict();
 
 					}
 
-				},
-				"json"
-			).fail(function (xhr) {
+			}).fail(function (xhr, textStatus) {
 				pjHideSyncProgressModal();
-				var msg = myLabel.import_server_error || "Request failed";
-				if (xhr.responseJSON && xhr.responseJSON.text) {
+				var msg = myLabel.import_server_error || myLabel.import_request_failed;
+				if (textStatus === "timeout") {
+					msg = myLabel.import_sync_timeout;
+				} else if (xhr.responseJSON && xhr.responseJSON.text) {
 					msg = xhr.responseJSON.text;
 				} else if (xhr.responseText) {
 					msg = xhr.responseText;
@@ -344,7 +336,7 @@ var jQuery = jQuery || $.noConflict();
 						pjHideSyncProgressModal();
 						swal({
 							title: myLabel.import_error_title,
-							text: "Invalid response from server.",
+							text: myLabel.import_invalid_response,
 							type: "warning",
 							confirmButtonColor: "#d9534f"
 						});
@@ -392,7 +384,7 @@ var jQuery = jQuery || $.noConflict();
 				"json"
 			).fail(function (xhr) {
 				pjHideSyncProgressModal();
-				var msg = myLabel.import_server_error || "Request failed";
+				var msg = myLabel.import_server_error || myLabel.import_request_failed;
 				if (xhr.responseJSON && xhr.responseJSON.text) {
 					msg = xhr.responseJSON.text;
 				} else if (xhr.responseText) {
@@ -549,8 +541,10 @@ var jQuery = jQuery || $.noConflict();
 
 		}
 		function formatImage(val) {
-			if (!val) return '';
-			return '<img src="' + val + '" width="70">';
+			return pjGridImage.thumb(val, true);
+		}
+		function formatModelImage(val) {
+			return pjGridImage.thumb(val, true);
 		}
 
 		var unchecked_rows = [];
@@ -580,7 +574,7 @@ var jQuery = jQuery || $.noConflict();
 			/* ACTION BUTTON */
 
 
-			$actions.push({ text: myLabel.import_sync_selected, url: "index.php?controller=pjAdminProductImportHistory&action=pjActionSyncSelectedRows&id=" + import_id, render: true, confirmation: "Are you sure you want to sync selected products?" });
+			$actions.push({ text: myLabel.import_sync_selected, url: "index.php?controller=pjAdminProductImportHistory&action=pjActionSyncSelectedRows&id=" + import_id, render: true, confirmation: myLabel.import_sync_selected_confirm });
 			/* ENABLE CHECKBOX SELECT */
 			if ($actions.length > 0) {
 				$select = {
@@ -596,7 +590,8 @@ var jQuery = jQuery || $.noConflict();
 
 				columns: [
 
-					{ text: myLabel.import_image, type: "text", sortable: false, editable: true, renderer: formatImage },
+					{ text: myLabel.import_image, type: "text", sortable: false, editable: true, width: 70, cellClass: "col-product-image", renderer: formatImage },
+					{ text: myLabel.import_model_image, type: "text", sortable: false, editable: true, width: 70, cellClass: "col-product-image", renderer: formatModelImage },
 
 					// { text: myLabel.import_status, type: "text", sortable: true, editable: true },
 					{ text: myLabel.import_status, type: "toggle", sortable: true, editable: true, positiveClass: "pj-toggle-on", negativeClass: "pj-toggle-off", positiveLabel: myLabel.active, positiveValue: "1", negativeLabel: myLabel.inactive, negativeValue: "0" },
@@ -617,13 +612,19 @@ var jQuery = jQuery || $.noConflict();
 
 					{ text: myLabel.import_article_name, type: "text", sortable: true, editable: true },
 
+					{ text: myLabel.import_material, type: "text", sortable: true, editable: true },
+
 					{ text: myLabel.import_ean, type: "text", sortable: true, editable: true },
+
+					{ text: myLabel.import_safety_standard, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_size, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_color, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_stock, type: "text", sortable: true, editable: true },
+
+					{ text: myLabel.import_buying_price, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_price, type: "text", sortable: true, editable: true },
 
@@ -647,6 +648,7 @@ var jQuery = jQuery || $.noConflict();
 				fields: [
 
 					'image',
+					'model_image',
 					'status',
 					'model',
 					'model_name',
@@ -656,10 +658,13 @@ var jQuery = jQuery || $.noConflict();
 					'category',
 					'article_number',
 					'article_name',
+					'material',
 					'ean',
+					'safety_standard',
 					'size',
 					'color',
 					'qty',
+					'buying_price',
 					'price',
 					'name_en',
 					'short_desc_en',
@@ -753,8 +758,8 @@ var jQuery = jQuery || $.noConflict();
 			if (total_rows === 0 || unchecked_rows.length === total_rows) {
 
 				swal({
-					title: "No rows selected",
-					text: "Please select at least one product to sync.",
+					title: myLabel.import_no_rows_selected_title,
+					text: myLabel.import_no_rows_selected_text,
 					type: "warning",
 					confirmButtonColor: "#d9534f"
 				});

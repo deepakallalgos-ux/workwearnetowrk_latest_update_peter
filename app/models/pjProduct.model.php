@@ -21,7 +21,10 @@ class pjProductModel extends pjAppModel
 		array('name' => 'digital_name', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'digital_expire', 'type' => 'time', 'default' => ':NULL'),
 		array('name' => 'is_featured', 'type' => 'tinyint', 'default' => 0),
-		array('name' => 'is_digital', 'type' => 'tinyint', 'default' => 0)
+		array('name' => 'is_digital', 'type' => 'tinyint', 'default' => 0),
+		array('name' => 'model_image_id', 'type' => 'int', 'default' => ':NULL'),
+		array('name' => 'material', 'type' => 'text', 'default' => ':NULL'),
+		array('name' => 'safety_standard', 'type' => 'text', 'default' => ':NULL')
 	);
 	
 	protected $i18n = array('name', 'short_desc', 'full_desc');

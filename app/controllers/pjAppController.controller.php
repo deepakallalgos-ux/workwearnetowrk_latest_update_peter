@@ -5,6 +5,12 @@ if (!defined("ROOT_PATH")) {
 }
 class pjAppController extends pjBaseAppController
 {
+	/** Product Photos tab + stock variant images */
+	const GALLERY_MODEL_PRODUCT = 'pjProduct';
+
+	/** Listing/model image only — never shown in product photo gallery */
+	const GALLERY_MODEL_MODEL_IMAGE = 'pjProductModelImage';
+
 	public $models = array();
 
 	public function pjActionCheckInstall()

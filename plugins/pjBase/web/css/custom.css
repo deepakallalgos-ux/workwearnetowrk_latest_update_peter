@@ -41,7 +41,8 @@
 
 .navbar-form-custom { width: 230px; }
 
-.navbar-default .nav > .nav-header { padding: 27px 25px 25px; text-align: center; }
+.navbar-default .nav > .nav-header { padding: 7px ; text-align: center; }
+/* .navbar-default .nav > .nav-header { padding: 27px 25px 25px; text-align: center; } */
 .navbar-default .nav > li > .navbar-brand { background: url(../img/logo.png) no-repeat center center; width: 85px; height: 76px; display: block; font-size: 0; line-height: 0; text-indent: -4000px; padding: 0; float: none; margin: 0 auto 15px; background-size: cover; }
 .navbar-default .nav > li > .navbar-brand:hover { background-color: transparent; }
 .navbar-default .nav > .active > a { color: #fff; }

@@ -158,7 +158,7 @@
 					<!-- /.m-b-lg -->
 				</div>
 				
-				<div id="grid"></div>
+				<div id="grid" class="pj-products-list-grid"></div>
             </div>
         </div>
     </div><!-- /.col-lg-12 -->
@@ -178,6 +178,8 @@ if ($controller->_get->check('is_active_out'))
 }
 ?>
 var myLabel = myLabel || {};
+myLabel.installUrl = "<?php echo PJ_INSTALL_URL; ?>";
+myLabel.placeholderImage = "<?php echo PJ_INSTALL_URL . PJ_IMG_PATH; ?>frontend/80x106.png";
 myLabel.image = <?php x__encode('product_image'); ?>;
 myLabel.name = <?php x__encode('lblName'); ?>;
 myLabel.sku = <?php x__encode('product_sku'); ?>;

@@ -117,14 +117,14 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		}
 		function formatImage(val, obj) {
 			var src = val ? val : myLabel.no_img;
-			return ['<a href="index.php?controller=pjGallerySet&action=pjActionUpdate&id=', obj.id ,'"><img src="', src, '" style="width: 100px" /></a>'].join("");
+			return ['<a href="index.php?controller=pjGallerySet&action=pjActionUpdate&id=', obj.id, '" class="s-Pic"><img src="', src, '" alt="" class="s-Img" /></a>'].join("");
 		}
 		if ($("#grid").length > 0 && datagrid) {
 			var gridOpts = {
 				buttons: [{type: "edit", url: "index.php?controller=pjGallerySet&action=pjActionUpdate&id={:id}"},
 				          {type: "delete", url: "index.php?controller=pjGallerySet&action=pjActionDeleteGallery&id={:id}", beforeShow: onBeforeShow}
 				          ],
-				columns: [{text: myLabel.thumb, type: "text", width: 100, sortable: false, editable: false, renderer: formatImage},
+				columns: [{text: myLabel.thumb, type: "text", width: 70, sortable: false, editable: false, renderer: formatImage, cellClass: 'col-product-image'},
 				          {text: myLabel.name, type: "text", sortable: true, editable: true, width: 340, editableWidth: 280},
 				          {text: myLabel.photos, type: "text", sortable: true, editable: false, width: 70, align: 'center'},
 				          {text: myLabel.status, type: "select", sortable: true, editable: true, options: [

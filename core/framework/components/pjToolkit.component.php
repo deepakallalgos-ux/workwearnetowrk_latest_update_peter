@@ -225,11 +225,11 @@ class pjToolkit
 			} else {
 				if (!is_array($text))
 				{
-					return htmlspecialchars($text, ENT_QUOTES);
+					return htmlspecialchars($text ?? '', ENT_QUOTES);
 				} else {
 					foreach ($text as $k => $v)
 					{
-						$text[$k] = htmlspecialchars($v, ENT_QUOTES);
+						$text[$k] = htmlspecialchars($v ?? '', ENT_QUOTES);
 					}
 					return $text;
 				}
@@ -237,7 +237,7 @@ class pjToolkit
 		}
 		if (!is_array($text))
 		{
-			echo !$escape ? $text : htmlspecialchars($text, ENT_QUOTES);
+			echo !$escape ? ($text ?? '') : htmlspecialchars($text ?? '', ENT_QUOTES);
 		} else {
 			if (!$escape)
 			{
@@ -245,7 +245,7 @@ class pjToolkit
 			} else {
 				foreach ($text as $k => $v)
 				{
-					$text[$k] = htmlspecialchars($v, ENT_QUOTES);
+					$text[$k] = htmlspecialchars($v ?? '', ENT_QUOTES);
 				}
 				return $text;
 			}

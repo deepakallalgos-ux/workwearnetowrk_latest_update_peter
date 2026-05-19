@@ -28,7 +28,7 @@
 				?>
 				<tr>
 					<td class="sc-order-line-thumb">
-						<img src="<?php echo pjSanitize::html($thumb_src); ?>" alt="<?php echo pjSanitize::html($item['name']); ?>" class="sc-order-line-thumb__img" width="48" height="48" loading="lazy" />
+						<img src="<?php echo pjSanitize::html($thumb_src); ?>" alt="<?php echo pjSanitize::html($item['name']); ?>" class="sc-order-line-thumb__img s-Img" loading="lazy" />
 					</td>
 					<td><a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminProducts&amp;action=pjActionUpdate&amp;id=<?php echo $item['product_id']; ?>"><?php echo pjSanitize::html($item['name']); ?></a>
 					<?php

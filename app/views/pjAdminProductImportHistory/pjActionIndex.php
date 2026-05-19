@@ -20,32 +20,34 @@ if (!empty($_REQUEST['id'])) {
 	}
 ?>
 	<style>
-		#grid_product_history table {
-			min-width: 1200px;
+		#grid_product_history .table-responsive,
+		#grid_product_history .table-responsive-secondary {
+			overflow-x: auto !important;
+			overflow-y: visible !important;
+			max-width: 100%;
+			-webkit-overflow-scrolling: touch;
 		}
 
-		#grid_product_history .table-responsive {
-			overflow-x: auto;
-			overflow-y: hidden;
-		}
-
 		#grid_product_history table {
+			min-width: 2800px;
 			white-space: nowrap;
 		}
 
-		#grid_product_history th,
-		#grid_product_history td {
+		#grid_product_history thead th {
+			vertical-align: middle;
 			white-space: nowrap;
+			padding: 8px 10px;
 		}
 
-		#grid_product_history img {
-			width: 100px;
-			height: auto;
+		#grid_product_history tbody td {
+			vertical-align: middle;
+			padding: 8px 10px;
 		}
 
-		#grid_product_history td {
-			white-space: normal !important;
+		#grid_product_history td.pj-dg-editable {
+			white-space: normal;
 			word-break: break-word;
+			max-width: 220px;
 		}
 	</style>
 	<div class="row wrapper border-bottom white-bg page-heading">
@@ -133,7 +135,7 @@ if (!empty($_REQUEST['id'])) {
 						<div class="col-md-6">
 							<a href="index.php?controller=pjAdminProductImportHistory&action=pjActionDownloadSampleCsv"
 								class="btn btn-success">
-								<i class="fa fa-download"></i> Download Sample CSV
+								<i class="fa fa-download"></i> <?php __('import_btn_download_sample', false, true); ?>
 							</a>
 
 						</div>
@@ -151,6 +153,8 @@ if (!empty($_REQUEST['id'])) {
 
 <script type="text/javascript">
 	var myLabel = myLabel || {};
+	myLabel.installUrl = "<?php echo PJ_INSTALL_URL; ?>";
+	myLabel.placeholderImage = "<?php echo PJ_INSTALL_URL . PJ_IMG_PATH; ?>frontend/80x106.png";
 	myLabel.import_table_file = <?php x__encode('import_table_file'); ?>;
 	myLabel.import_table_uploaded_at = <?php x__encode('import_table_uploaded_at'); ?>;
 	myLabel.import_table_status = <?php x__encode('import_table_status'); ?>;
@@ -185,9 +189,11 @@ if (!empty($_REQUEST['id'])) {
 	myLabel.import_view_file = <?php x__encode('import_view_file'); ?>;
 	myLabel.import_csv_success = <?php x__encode('import_csv_success'); ?>;
 	myLabel.import_invalid_csv = <?php x__encode('import_invalid_csv'); ?>;
-	myLabel.import_sync_count = <?php x__encode('import_sync_count'); ?>;
-	myLabel.import_view_file = <?php x__encode('import_view_file'); ?>;
 	myLabel.import_image = <?php x__encode('import_image'); ?>;
+	myLabel.import_model_image = <?php x__encode('import_model_image'); ?>;
+	myLabel.import_material = <?php x__encode('import_material'); ?>;
+	myLabel.import_safety_standard = <?php x__encode('import_safety_standard'); ?>;
+	myLabel.import_buying_price = <?php x__encode('import_buying_price'); ?>;
 	myLabel.import_model = <?php x__encode('import_model'); ?>;
 	myLabel.import_model_name = <?php x__encode('import_model_name'); ?>;
 	myLabel.import_sku = <?php x__encode('import_sku'); ?>;
@@ -208,7 +214,18 @@ if (!empty($_REQUEST['id'])) {
 	myLabel.import_row_status = <?php x__encode('import_row_status'); ?>;
 	myLabel.import_sync_status = <?php x__encode('import_sync_status'); ?>;
 	myLabel.import_created_at = <?php x__encode('import_created_at'); ?>;
-	myLabel.import_sync = <?php x__encode('import_sync'); ?>;
+	myLabel.import_sync_modal_title = <?php x__encode('import_sync_modal_title'); ?>;
+	myLabel.import_sync_modal_sub = <?php x__encode('import_sync_modal_sub'); ?>;
+	myLabel.import_sync_preparing = <?php x__encode('import_sync_preparing'); ?>;
+	myLabel.import_sync_progress_row = <?php x__encode('import_sync_progress_row'); ?>;
+	myLabel.import_sync_last_batch = <?php x__encode('import_sync_last_batch'); ?>;
+	myLabel.import_invalid_response = <?php x__encode('import_invalid_response'); ?>;
+	myLabel.import_sync_timeout = <?php x__encode('import_sync_timeout'); ?>;
+	myLabel.import_sync_selected_confirm = <?php x__encode('import_sync_selected_confirm'); ?>;
+	myLabel.import_no_rows_selected_title = <?php x__encode('import_no_rows_selected_title'); ?>;
+	myLabel.import_no_rows_selected_text = <?php x__encode('import_no_rows_selected_text'); ?>;
+	myLabel.import_error_generic = <?php x__encode('import_error_generic'); ?>;
+	myLabel.import_request_failed = <?php x__encode('import_request_failed'); ?>;
 	myLabel.status = <?php x__encode('lblStatus'); ?>;
 	myLabel.active = "<?php echo $product_statuses[1]; ?>";
 	myLabel.inactive = "<?php echo $product_statuses[2]; ?>";

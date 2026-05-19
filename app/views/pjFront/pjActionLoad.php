@@ -104,7 +104,9 @@ var pjQ = pjQ || {},
 		currencysign: "<?php echo pjCurrency::getCurrencySign($tpl['option_arr']['o_currency'], false); ?>",
 		layout: <?php echo $controller->_get->check('layout') && in_array($controller->_get->toInt('layout'), $controller->getLayoutRange()) ? $controller->_get->toInt('layout') : (int) $tpl['option_arr']['o_layout']; ?>,
 		theme: "<?php echo $theme; ?>",
-		cid: <?php echo $controller->_get->check('category_id') && $controller->_get->toInt('category_id') > 0 ? $controller->_get->toInt('category_id') : 0; ?>
+		cid: <?php echo $controller->_get->check('category_id') && $controller->_get->toInt('category_id') > 0 ? $controller->_get->toInt('category_id') : 0; ?>,
+		captchaMode: "<?php echo pjSanitize::html(isset($tpl['option_arr']['o_captcha_mode_front']) ? $tpl['option_arr']['o_captcha_mode_front'] : 'string'); ?>",
+		captchaLength: <?php echo isset($tpl['option_arr']['o_captcha_length_front']) ? (int) $tpl['option_arr']['o_captcha_length_front'] : 6; ?>
 	};
 	<?php
 	$dm = new pjDependencyManager(PJ_INSTALL_PATH, PJ_THIRD_PARTY_PATH);

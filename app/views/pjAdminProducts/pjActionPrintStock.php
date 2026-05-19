@@ -12,7 +12,7 @@
 	foreach ($tpl['arr'] as $item)
 	{
 		?><tr>
-			<td><img src="<?php echo PJ_INSTALL_URL . $item['pic']; ?>" alt="" class="stock_pic" /></td>
+			<td><img src="<?php echo PJ_INSTALL_URL . $item['pic']; ?>" alt="" class="stock_pic s-Img" /></td>
 			<td><?php
 			echo pjSanitize::html($item['name']);
 			if (!empty($item['stock_attr']))

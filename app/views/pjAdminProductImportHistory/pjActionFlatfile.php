@@ -48,7 +48,7 @@
 					<div class="col-md-6">
 						<a href="index.php?controller=pjAdminProductImportHistory&action=pjActionDownloadSampleCsv"
 							class="btn btn-success">
-							<i class="fa fa-download"></i> Download Sample CSV
+							<i class="fa fa-download"></i> <?php __('import_btn_download_sample', false, true); ?>
 						</a>
 
 					</div>
@@ -90,4 +90,13 @@
 	myLabel.import_file_upload_failed = <?php x__encode('import_file_upload_failed'); ?>;
 	myLabel.import_upload_error_title = <?php x__encode('import_upload_error_title'); ?>;
 	myLabel.import_upload_success = <?php x__encode('import_upload_success'); ?>;
+	myLabel.import_sync_modal_title = <?php x__encode('import_sync_modal_title'); ?>;
+	myLabel.import_sync_modal_sub = <?php x__encode('import_sync_modal_sub'); ?>;
+	myLabel.import_sync_preparing = <?php x__encode('import_sync_preparing'); ?>;
+	myLabel.import_sync_progress_row = <?php x__encode('import_sync_progress_row'); ?>;
+	myLabel.import_sync_last_batch = <?php x__encode('import_sync_last_batch'); ?>;
+	myLabel.import_invalid_response = <?php x__encode('import_invalid_response'); ?>;
+	myLabel.import_sync_timeout = <?php x__encode('import_sync_timeout'); ?>;
+	myLabel.import_error_generic = <?php x__encode('import_error_generic'); ?>;
+	myLabel.import_request_failed = <?php x__encode('import_request_failed'); ?>;
 </script>

@@ -806,15 +806,12 @@ class pjAdminProducts extends pjAdmin
 
 			$data = $pjProductModel
 				->select(sprintf("t1.*, t2.content AS name,
-					(SELECT `small_path` FROM `%1\$s`
-						WHERE `foreign_id` = `t1`.`id`
-						ORDER BY `sort` ASC
-						LIMIT 1) AS `pic`,
+					%s,
 					(SELECT COALESCE(SUM(`qty`), 0) FROM `%2\$s` WHERE `product_id` = `t1`.`id` LIMIT 1) AS `total_stock`,
 					(SELECT MIN(`price`) FROM `%2\$s` WHERE `product_id` = `t1`.`id` LIMIT 1) AS `min_price`,
 					(SELECT COUNT(`id`) FROM `%2\$s` WHERE `product_id` = `t1`.`id` LIMIT 1) AS `cnt_stock`,
 					(SELECT COUNT(DISTINCT `order_id`) FROM `%3\$s` WHERE `product_id` = `t1`.`id` LIMIT 1) AS `cnt_orders`
-				", pjGalleryModel::factory()->getTable(), pjStockModel::factory()->getTable(), pjOrderStockModel::factory()->getTable()))
+				", $this->sqlProductListPicSubquery(pjGalleryModel::factory()->getTable()), pjStockModel::factory()->getTable(), pjOrderStockModel::factory()->getTable()))
 				->orderBy("$column $direction")->limit($rowCount, $offset)->findAll()->getData();
 
 			foreach ($data as $k => $v) {
@@ -822,6 +819,9 @@ class pjAdminProducts extends pjAdmin
 				$data[$k]['min_price_format'] = pjCurrency::formatPrice($v['min_price']);
 				if ($v['cnt_stock'] > 1) {
 					$data[$k]['min_price_format'] = __('front_price_from', true) . " " . $data[$k]['min_price_format'];
+				}
+				if (!empty($v['pic']) && strpos($v['pic'], 'http') !== 0) {
+					$data[$k]['pic'] = PJ_INSTALL_URL . ltrim($v['pic'], '/');
 				}
 			}
 
@@ -1012,8 +1012,10 @@ class pjAdminProducts extends pjAdmin
 		$locale_id = (int) $this->getLocaleId();
 		$company_id = isset($_SESSION[$this->defaultCompany]['id']) ? (int) $_SESSION[$this->defaultCompany]['id'] : 0;
 
+		$galleryTable = pjGalleryModel::factory()->getTable();
+
 		$rows = pjStockModel::factory()
-			->select("
+			->select(sprintf("
 				t1.id AS stock_id,
 				t1.product_id,
 				t1.article_number,
@@ -1021,18 +1023,23 @@ class pjAdminProducts extends pjAdmin
 				t1.ean,
 				t1.qty,
 				t1.price,
+				t1.buying_price,
 				t1.status AS stock_status,
 				t2.sku,
 				t2.model,
 				t2.model_name,
+				t2.material,
+				t2.safety_standard,
 				t2.status AS product_status,
 				t2.is_featured,
 				t2.is_digital,
-				t3.small_path AS image,
+				t2.model_image_id,
+				%s AS image,
+				%s AS model_image,
 				t4.content AS name_en,
 				t5.content AS short_desc_en,
 				t6.content AS full_description_en
-			")
+			", $this->sqlFlatfileStockImagePath(), $this->sqlFlatfileModelImagePath($galleryTable)))
 			->join('pjProduct', 't2.id = t1.product_id', 'inner')
 			->join('pjGallery', 't3.id = t1.image_id', 'left')
 			->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t2.id AND t4.field='name' AND t4.locale='$locale_id'", 'left outer')
@@ -1094,6 +1101,10 @@ class pjAdminProducts extends pjAdmin
 			if (!empty($image) && strpos($image, 'http') !== 0) {
 				$image = PJ_INSTALL_URL . ltrim($image, '/');
 			}
+			$model_image = !empty($row['model_image']) ? $row['model_image'] : '';
+			if (!empty($model_image) && strpos($model_image, 'http') !== 0) {
+				$model_image = PJ_INSTALL_URL . ltrim($model_image, '/');
+			}
 
 			$export[] = array(
 				'product_id' => $product_id,
@@ -1109,15 +1120,19 @@ class pjAdminProducts extends pjAdmin
 				'category' => !empty($category) ? $category[0]['category_name'] : '',
 				'article_number' => $row['article_number'],
 				'article_name' => $row['article_name'],
+				'material' => $row['material'],
 				'ean' => $row['ean'],
-				'qty' => $row['qty'],
-				'price' => $row['price'],
+				'safety_standard' => $row['safety_standard'],
 				'size' => $size,
 				'color' => $color,
+				'qty' => $row['qty'],
+				'buying_price' => $row['buying_price'],
+				'price' => $row['price'],
 				'name_en' => $row['name_en'],
 				'short_desc_en' => $row['short_desc_en'],
 				'full_description_en' => $row['full_description_en'],
 				'image' => $image,
+				'model_image' => $model_image,
 			);
 		}
 
@@ -1567,6 +1582,119 @@ class pjAdminProducts extends pjAdmin
 		$this->appendJs('jquery.datagrid.js', PJ_FRAMEWORK_LIBS_PATH . 'pj/js/');
 		$this->appendJs('pjAdminProducts.js');
 	}
+
+	/**
+	 * Flatfile/export: product listing (model) image — dedicated gallery type only.
+	 */
+	private function sqlFlatfileModelImagePath($galleryTable)
+	{
+		return sprintf(
+			"(SELECT `small_path` FROM `%1\$s` WHERE `id` = `t2`.`model_image_id` AND `model` = '%2\$s' LIMIT 1) AS `model_image`",
+			$galleryTable,
+			pjAppController::GALLERY_MODEL_MODEL_IMAGE
+		);
+	}
+
+	/**
+	 * Flatfile/export: stock variant image — product photos only, never the model/listing row.
+	 */
+	private function sqlFlatfileStockImagePath()
+	{
+		return sprintf(
+			"(CASE
+				WHEN `t1`.`image_id` > 0
+					AND (`t2`.`model_image_id` IS NULL OR `t1`.`image_id` != `t2`.`model_image_id`)
+					AND `t3`.`model` = '%1\$s'
+				THEN `t3`.`small_path`
+				ELSE NULL
+			END) AS `image`",
+			pjAppController::GALLERY_MODEL_PRODUCT
+		);
+	}
+
+	private function getModelImageSmallPath($gallery_id)
+	{
+		$gallery_id = (int) $gallery_id;
+		if ($gallery_id <= 0) {
+			return '';
+		}
+
+		$row = pjGalleryModel::factory()->find($gallery_id)->getData();
+		if (empty($row['small_path']) || $row['model'] !== pjAppController::GALLERY_MODEL_MODEL_IMAGE) {
+			return '';
+		}
+
+		return $row['small_path'];
+	}
+
+	private function getModelImageGalleryRows($product_id)
+	{
+		$product_id = (int) $product_id;
+		if ($product_id <= 0) {
+			return array();
+		}
+
+		return pjGalleryModel::factory()
+			->where('t1.foreign_id', $product_id)
+			->where('t1.model', pjAppController::GALLERY_MODEL_MODEL_IMAGE)
+			->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')
+			->findAll()
+			->getData();
+	}
+
+	private function deleteModelImageFiles(array $arr)
+	{
+		foreach (array('small_path', 'medium_path', 'large_path', 'source_path') as $file) {
+			if (!empty($arr[$file])) {
+				$path = PJ_INSTALL_PATH . $arr[$file];
+				if (is_file($path)) {
+					@unlink($path);
+				}
+			}
+		}
+	}
+
+	private function setProductModelImageId($product_id, $gallery_id)
+	{
+		pjProductModel::factory()
+			->reset()
+			->where('id', (int) $product_id)
+			->limit(1)
+			->modifyAll(array(
+				'model_image_id' => (int) $gallery_id > 0 ? (int) $gallery_id : ':NULL',
+			));
+	}
+
+	/**
+	 * Admin product list thumbnail: first product/stock photo, never the model/listing image.
+	 */
+	private function sqlProductListPicSubquery($galleryTable)
+	{
+		$stockTable = pjStockModel::factory()->getTable();
+		$productModel = pjAppController::GALLERY_MODEL_PRODUCT;
+
+		return sprintf(
+			"(SELECT COALESCE(
+				(SELECT `small_path` FROM `%1\$s`
+					WHERE `foreign_id` = `t1`.`id`
+					AND `model` = '%2\$s'
+					AND (`t1`.`model_image_id` IS NULL OR `id` != `t1`.`model_image_id`)
+					ORDER BY ISNULL(`sort`), `sort` ASC, `id` ASC
+					LIMIT 1),
+				(SELECT `g`.`small_path` FROM `%3\$s` AS `s`
+					INNER JOIN `%1\$s` AS `g` ON `g`.`id` = `s`.`image_id`
+					WHERE `s`.`product_id` = `t1`.`id`
+					AND `g`.`model` = '%2\$s'
+					AND (`t1`.`model_image_id` IS NULL OR `g`.`id` != `t1`.`model_image_id`)
+					ORDER BY `s`.`id` ASC
+					LIMIT 1)
+			)) AS `pic`",
+			$galleryTable,
+			$productModel,
+			$stockTable
+		);
+	}
+
 	public function pjActionProductsFlatFileIndex()
 	{
 		$this->checkLogin();
@@ -1602,9 +1730,10 @@ class pjAdminProducts extends pjAdmin
 		// print_r($default_company_id['id']);
 		// echo "</pre>"; die;
 		$locale_id = $this->getLocaleId();
+		$galleryTable = pjGalleryModel::factory()->getTable();
 
 		$model = pjStockModel::factory()
-			->select("
+			->select(sprintf("
             t1.id,
             t1.product_id,
             t1.article_number,
@@ -1612,15 +1741,20 @@ class pjAdminProducts extends pjAdmin
             t1.ean,
             t1.qty,
             t1.price,
+            t1.buying_price,
             t2.model,
             t2.model_name,
             t2.sku,
+            t2.material,
+            t2.safety_standard,
+            t2.model_image_id,
             t1.status,
-            t3.small_path AS image,
+            %s,
+            %s,
             t4.content AS name_en,
             t5.content AS short_desc_en,
             t6.content AS full_description_en
-        ")
+        ", $this->sqlFlatfileStockImagePath(), $this->sqlFlatfileModelImagePath($galleryTable)))
 			->join('pjProduct', 't2.id = t1.product_id', 'inner')
 			->join('pjGallery', 't3.id = t1.image_id', 'left')
 
@@ -1640,7 +1774,8 @@ class pjAdminProducts extends pjAdmin
 				'pjMultiLang',
 				"t6.model='pjProduct' AND t6.foreign_id=t2.id AND t6.field='full_desc' AND t6.locale='$locale_id'",
 				'left outer'
-			)->where('t1.company_id', $default_company_id['id']);
+			)
+			->where('t1.company_id', $default_company_id['id']);
 
 		/* SORTING */
 		/* SEARCH */
@@ -1670,6 +1805,27 @@ class pjAdminProducts extends pjAdmin
 			$direction = $this->_get->toString('direction');
 		}
 
+		$sortColumns = array(
+			'id' => 't1.id',
+			'product_id' => 't1.product_id',
+			'article_number' => 't1.article_number',
+			'article_name' => 't1.article_name',
+			'ean' => 't1.ean',
+			'qty' => 't1.qty',
+			'price' => 't1.price',
+			'buying_price' => 't1.buying_price',
+			'model' => 't2.model',
+			'model_name' => 't2.model_name',
+			'sku' => 't2.sku',
+			'material' => 't2.material',
+			'safety_standard' => 't2.safety_standard',
+			'status' => 't1.status',
+			'name_en' => 't4.content',
+			'short_desc_en' => 't5.content',
+			'full_description_en' => 't6.content',
+		);
+		$orderColumn = isset($sortColumns[$column]) ? $sortColumns[$column] : 't1.id';
+
 		/* PAGINATION */
 
 		$rowCount = $this->_get->toInt('rowCount');
@@ -1693,7 +1849,7 @@ class pjAdminProducts extends pjAdmin
 		/* DATA */
 
 		$data = $model
-			->orderBy("$column $direction")
+			->orderBy("$orderColumn $direction")
 			->limit($rowCount, $offset)
 			->findAll()
 			->getData();
@@ -1765,6 +1921,22 @@ class pjAdminProducts extends pjAdmin
 			$data[$k]['sync_status'] = 'synced';
 			// ✅ CONVERT DB STATUS (T/F) → UI (1/0)
 			$data[$k]['status'] = ($row['status'] == 'T') ? '1' : '0';
+
+			if (!empty($row['image']) && strpos($row['image'], 'http') !== 0) {
+				$data[$k]['image'] = PJ_INSTALL_URL . ltrim($row['image'], '/');
+			} else {
+				$data[$k]['image'] = !empty($row['image']) ? $row['image'] : '';
+			}
+
+			if (!empty($row['model_image']) && strpos($row['model_image'], 'http') !== 0) {
+				$data[$k]['model_image'] = PJ_INSTALL_URL . ltrim($row['model_image'], '/');
+			} else {
+				$data[$k]['model_image'] = !empty($row['model_image']) ? $row['model_image'] : '';
+			}
+
+			if ($data[$k]['buying_price'] === null || $data[$k]['buying_price'] === '') {
+				$data[$k]['buying_price'] = '';
+			}
 		}
 		$pages = ceil($total / $rowCount);
 
@@ -2024,6 +2196,7 @@ class pjAdminProducts extends pjAdmin
 			'ean',
 			'qty',
 			'price',
+			'buying_price',
 			'status'
 		];
 
@@ -2031,7 +2204,9 @@ class pjAdminProducts extends pjAdmin
 		$product_fields = [
 			'sku',
 			'model',
-			'model_name'
+			'model_name',
+			'material',
+			'safety_standard'
 		];
 
 		/* MULTILANG FIELDS */
@@ -2329,11 +2504,13 @@ class pjAdminProducts extends pjAdmin
 			$stock_ean            = $this->_post->toArray('stock_ean');
 			$stock_qty            = $this->_post->toArray('stock_qty');
 			$stock_price          = $this->_post->toArray('stock_price');
+			$stock_buying_price   = $this->_post->toArray('stock_buying_price');
 			$stock_image_id          = $this->_post->toArray('stock_image_id');
 			$status_arr           = $this->_post->toArray('status');
 
 			/* ---------------- PRODUCT UPDATE ---------------- */
 
+			$model_image_id = $this->resolveModelImageGalleryId($product_id, $this->_post->toInt('model_image_id'));
 			$pjProductModel
 				->reset()
 				->where('id', $product_id)
@@ -2341,7 +2518,10 @@ class pjAdminProducts extends pjAdmin
 				->modifyAll([
 					'sku'        => $this->_post->toString('sku'),
 					'model'      => $this->_post->toString('model'),
-					'model_name' => $this->_post->toString('model_name')
+					'model_name' => $this->_post->toString('model_name'),
+					'material' => $this->_post->toString('material'),
+					'safety_standard' => $this->_post->toString('safety_standard'),
+					'model_image_id' => $model_image_id > 0 ? $model_image_id : ':NULL',
 				]);
 
 			/* ---------------- MULTILANG UPDATE ---------------- */
@@ -2369,6 +2549,7 @@ class pjAdminProducts extends pjAdmin
 			}
 			/* ---------------- STOCK UPDATE ---------------- */
 
+			$buying_price = isset($stock_buying_price[$stock_id]) && $stock_buying_price[$stock_id] !== '' ? (float) $stock_buying_price[$stock_id] : ':NULL';
 			$pjStockModel
 				->reset()
 				->where('id', $stock_id)
@@ -2379,6 +2560,7 @@ class pjAdminProducts extends pjAdmin
 					'ean'            => $stock_ean[$stock_id] ?? null,
 					'qty'            => $stock_qty[$stock_id] ?? 0,
 					'price'          => $stock_price[$stock_id] ?? 0,
+					'buying_price'   => $buying_price,
 					'image_id'          => $stock_image_id[$stock_id] ?? 0,
 					'status'         => $status_arr[$stock_id] ?? 'T'
 				]);
@@ -2581,6 +2763,12 @@ class pjAdminProducts extends pjAdmin
 				->findAll()
 				->getDataPair('category_id', 'category_id')
 		);
+
+		$model_image_path = $this->getModelImageSmallPath(!empty($product['model_image_id']) ? $product['model_image_id'] : 0);
+		if ($model_image_path !== '') {
+			$this->set('model_image_path', $model_image_path);
+		}
+		$this->set('model_image_arr', $this->getModelImageGalleryRows($product['id']));
 
 		$this->set('arr', $product);
 		$this->set('stock_arr', $stock_arr);
@@ -2838,6 +3026,7 @@ class pjAdminProducts extends pjAdmin
 			if ($stock_qty_arr = $this->_post->toArray('stock_qty')) {
 
 				$stock_price_arr = $this->_post->toArray('stock_price');
+				$stock_buying_price_arr = $this->_post->toArray('stock_buying_price');
 				$stock_image_id_arr = $this->_post->toArray('stock_image_id');
 				$stock_attribute_arr = $this->_post->toArray('stock_attribute');
 				$stock_article_name_arr = $this->_post->toArray('stock_article_name');
@@ -2892,6 +3081,7 @@ class pjAdminProducts extends pjAdmin
 							!in_array($i_arr[$k], $sa_arr)
 						) {
 
+							$buying_price = isset($stock_buying_price_arr[$k]) && $stock_buying_price_arr[$k] !== '' ? (float) $stock_buying_price_arr[$k] : null;
 							$stock_id = $pjStockModel
 								->reset()
 								->set('company_id', $default_company_id)
@@ -2902,6 +3092,7 @@ class pjAdminProducts extends pjAdmin
 								->set('ean', isset($stock_ean_arr[$k]) ? $stock_ean_arr[$k] : NULL)
 								->set('qty', $stock_qty_arr[$k])
 								->set('price', $stock_price_arr[$k])
+								->set('buying_price', $buying_price)
 								->set('status', $status)
 								->insert()
 								->getInsertId();
@@ -2932,6 +3123,7 @@ class pjAdminProducts extends pjAdmin
 
 						$before = $pjStockModel->reset()->find($k)->getData();
 
+						$buying_price = isset($stock_buying_price_arr[$k]) && $stock_buying_price_arr[$k] !== '' ? (float) $stock_buying_price_arr[$k] : ':NULL';
 						if (
 							$pjStockModel
 							->reset()
@@ -2943,6 +3135,7 @@ class pjAdminProducts extends pjAdmin
 								'ean' => isset($stock_ean_arr[$k]) ? $stock_ean_arr[$k] : NULL,
 								'qty' => $stock_qty_arr[$k],
 								'price' => $stock_price_arr[$k],
+								'buying_price' => $buying_price,
 								'status' => $status
 							))
 							->getAffectedRows() == 1
@@ -3246,6 +3439,12 @@ class pjAdminProducts extends pjAdmin
 				$arr = $arr[0];
 			}
 
+			$model_image_path = $this->getModelImageSmallPath(!empty($arr['model_image_id']) ? $arr['model_image_id'] : 0);
+			if ($model_image_path !== '') {
+				$this->set('model_image_path', $model_image_path);
+			}
+			$this->set('model_image_arr', $this->getModelImageGalleryRows($arr['id']));
+
 			if (count($arr) === 0) {
 				pjUtil::redirect(sprintf("%s?controller=pjAdminProducts&action=pjActionIndex&err=%s", $_SERVER['PHP_SELF'], 'AP08'));
 			}
@@ -3307,14 +3506,17 @@ class pjAdminProducts extends pjAdmin
 
 			$this->setLocalesData();
 
-			$gallery_arr = pjGalleryModel::factory()
+			$galleryQuery = pjGalleryModel::factory()
 				->where('t1.foreign_id', $this->_get->toInt('id'))
+				->where('t1.model', pjAppController::GALLERY_MODEL_PRODUCT);
+			if (!empty($arr['model_image_id'])) {
+				$galleryQuery->where('t1.id !=', (int) $arr['model_image_id']);
+			}
+			$gallery_arr = $galleryQuery
 				->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')
 				->findAll()
 				->getData();
 			$this->set('gallery_arr', $gallery_arr);
-
-			pjGalleryModel::factory()->where('foreign_id', $this->_get->toInt('id'))->modifyAll(array('model' => 'pjProduct'));
 
 			$this->set('has_update', pjAuth::factory('pjAdminProducts', 'pjActionUpdate')->hasAccess());
 
@@ -3349,18 +3551,238 @@ class pjAdminProducts extends pjAdmin
 		return $arr;
 	}
 
+	public function pjActionUploadModelImage()
+	{
+		$this->setAjax(true);
+
+		if (!$this->isXHR() || !$this->isLoged()) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_access_denied', true)));
+		}
+
+		$product_id = $this->_post->check('product_id') ? (int) $this->_post->toInt('product_id') : 0;
+		if ($product_id <= 0) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_not_found', true)));
+		}
+
+		if (empty($_FILES['model_image']) || (int) $_FILES['model_image']['error'] !== UPLOAD_ERR_OK) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_choose_file', true)));
+		}
+
+		$file = $_FILES['model_image'];
+		$Image = new pjImage();
+		$Image->setAllowedTypes(array('image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/pjpeg', 'image/webp'));
+
+		if (!$Image->load($file)) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => $Image->getError() ? $Image->getError() : __('product_model_image_invalid_file', true)));
+		}
+
+		if ($Image->getImageSize() === false) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_corrupted', true)));
+		}
+
+		$hash = md5(uniqid(rand(), true));
+		$source_path = PJ_UPLOAD_PATH . 'source/' . $product_id . '_model_' . $hash . '.' . $Image->getExtension();
+
+		if (!$Image->save($source_path)) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_save_failed', true)));
+		}
+
+		$image_info = getimagesize(PJ_INSTALL_PATH . $source_path);
+		$data_insert = array(
+			'foreign_id'    => $product_id,
+			'model'         => pjAppController::GALLERY_MODEL_MODEL_IMAGE,
+			'mime_type'     => $image_info['mime'],
+			'source_path'   => $source_path,
+			'source_size'   => filesize(PJ_INSTALL_PATH . $source_path),
+			'source_width'  => $image_info[0],
+			'source_height' => $image_info[1],
+			'name'          => $file['name'],
+			'sort'          => 0,
+			'created'       => date('Y-m-d H:i:s'),
+		);
+
+		$data_insert = array_merge($data_insert, $this->pjActionBuildFromSource($Image, $data_insert));
+
+		$insert_id = pjGalleryModel::factory()
+			->reset()
+			->setAttributes($data_insert)
+			->insert()
+			->getInsertId();
+
+		if (!$insert_id) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_gallery_failed', true)));
+		}
+
+		pjProductModel::factory()
+			->reset()
+			->where('id', $product_id)
+			->limit(1)
+			->modifyAll(array('model_image_id' => (int) $insert_id));
+
+		pjAppController::jsonResponse(array(
+			'status'     => 'OK',
+			'id'         => (int) $insert_id,
+			'small_path' => !empty($data_insert['small_path']) ? PJ_INSTALL_URL . $data_insert['small_path'] : '',
+		));
+	}
+
+	public function pjActionDeleteModelImage()
+	{
+		$this->setAjax(true);
+
+		if (!$this->isXHR() || !$this->isLoged()) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_access_denied', true)));
+		}
+
+		$product_id = $this->_post->check('product_id') ? (int) $this->_post->toInt('product_id') : 0;
+		$gallery_id = $this->_post->check('id') ? (int) $this->_post->toInt('id') : 0;
+
+		if ($product_id <= 0 || $gallery_id <= 0) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_not_found', true)));
+		}
+
+		$row = pjGalleryModel::factory()->find($gallery_id)->getData();
+		if (
+			empty($row)
+			|| (int) $row['foreign_id'] !== $product_id
+			|| $row['model'] !== pjAppController::GALLERY_MODEL_MODEL_IMAGE
+		) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'text' => __('product_model_image_not_found', true)));
+		}
+
+		$this->deleteModelImageFiles($row);
+		pjGalleryModel::factory()->reset()->set('id', $gallery_id)->erase();
+
+		$product = pjProductModel::factory()->find($product_id)->getData();
+		$new_model_image_id = !empty($product['model_image_id']) ? (int) $product['model_image_id'] : 0;
+
+		if ($new_model_image_id === $gallery_id) {
+			$remaining = $this->getModelImageGalleryRows($product_id);
+			$new_model_image_id = !empty($remaining) ? (int) $remaining[0]['id'] : 0;
+			$this->setProductModelImageId($product_id, $new_model_image_id);
+		}
+
+		pjAppController::jsonResponse(array(
+			'status'          => 'OK',
+			'model_image_id'  => $new_model_image_id,
+		));
+	}
+
+	public function pjActionLoadModelImageGrid()
+	{
+		$this->setAjax(true);
+
+		if (!$this->isXHR() || !$this->isLoged()) {
+			return;
+		}
+
+		$product_id = $this->_get->check('product_id') ? (int) $this->_get->toInt('product_id') : 0;
+		if ($product_id <= 0) {
+			return;
+		}
+
+		$model_image_id = $this->_get->check('model_image_id') ? (int) $this->_get->toInt('model_image_id') : 0;
+		if ($model_image_id <= 0) {
+			$product = pjProductModel::factory()->find($product_id)->getData();
+			$model_image_id = !empty($product['model_image_id']) ? (int) $product['model_image_id'] : 0;
+		}
+
+		$this->set('arr', array('id' => $product_id));
+		$this->set('model_image_id', $model_image_id);
+		$this->set('model_image_arr', $this->getModelImageGalleryRows($product_id));
+	}
+
+	/**
+	 * Ensure model_image_id references a dedicated listing image, not a product photo row.
+	 */
+	private function resolveModelImageGalleryId($product_id, $gallery_id)
+	{
+		$gallery_id = (int) $gallery_id;
+		if ($gallery_id <= 0) {
+			return 0;
+		}
+
+		$row = pjGalleryModel::factory()->find($gallery_id)->getData();
+		if (empty($row) || (int) $row['foreign_id'] !== (int) $product_id) {
+			return 0;
+		}
+
+		if ($row['model'] === pjAppController::GALLERY_MODEL_MODEL_IMAGE) {
+			return $gallery_id;
+		}
+
+		return $this->cloneGalleryRowAsModelImage($product_id, $row);
+	}
+
+	private function cloneGalleryRowAsModelImage($product_id, array $source)
+	{
+		$Image = new pjImage();
+		$source_full = !empty($source['source_path']) ? PJ_INSTALL_PATH . $source['source_path'] : '';
+
+		if ($source_full === '' || !is_file($source_full) || !$Image->loadImage($source_full)) {
+			return 0;
+		}
+
+		$hash = md5(uniqid(rand(), true));
+		$source_path = PJ_UPLOAD_PATH . 'source/' . (int) $product_id . '_model_' . $hash . '.' . $Image->getExtension();
+
+		if (!$Image->saveImage(PJ_INSTALL_PATH . $source_path)) {
+			return 0;
+		}
+
+		$image_info = getimagesize(PJ_INSTALL_PATH . $source_path);
+		$data_insert = array(
+			'foreign_id'    => (int) $product_id,
+			'model'         => pjAppController::GALLERY_MODEL_MODEL_IMAGE,
+			'mime_type'     => $image_info['mime'],
+			'source_path'   => $source_path,
+			'source_size'   => filesize(PJ_INSTALL_PATH . $source_path),
+			'source_width'  => $image_info[0],
+			'source_height' => $image_info[1],
+			'name'          => !empty($source['name']) ? $source['name'] : basename($source_path),
+			'sort'          => 0,
+			'created'       => date('Y-m-d H:i:s'),
+		);
+
+		$data_insert = array_merge($data_insert, $this->pjActionBuildFromSource($Image, $data_insert));
+
+		$insert_id = pjGalleryModel::factory()
+			->reset()
+			->setAttributes($data_insert)
+			->insert()
+			->getInsertId();
+
+		return $insert_id ? (int) $insert_id : 0;
+	}
+
 	public function pjActionLoadImages()
 	{
 		$this->setAjax(true);
 
 		if ($this->isXHR() && $this->isLoged()) {
 			$arr = array();
+			$picker = $this->_get->check('picker') ? $this->_get->toString('picker') : 'stock';
+			$gallery_model = ($picker === 'model')
+				? pjAppController::GALLERY_MODEL_MODEL_IMAGE
+				: pjAppController::GALLERY_MODEL_PRODUCT;
+
 			if ($this->_get->check('product_id') && $this->_get->toInt('product_id') > 0) {
-				$arr = pjGalleryModel::factory()->where('t1.foreign_id', $this->_get->toInt('product_id'))->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')->findAll()->getData();
+				$arr = pjGalleryModel::factory()
+					->where('t1.foreign_id', $this->_get->toInt('product_id'))
+					->where('t1.model', $gallery_model)
+					->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')
+					->findAll()
+					->getData();
 			} elseif ($this->_get->check('hash') && $this->_get->toString('hash') != '') {
-				$arr = pjGalleryModel::factory()->where('t1.hash', $this->_get->toString('hash'))->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')->findAll()->getData();
+				$arr = pjGalleryModel::factory()
+					->where('t1.hash', $this->_get->toString('hash'))
+					->where('t1.model', $gallery_model)
+					->orderBy('ISNULL(t1.sort), t1.sort ASC, t1.id ASC')
+					->findAll()
+					->getData();
 			}
 
+			$this->set('picker', $picker);
 			$this->set('arr', $arr);
 		}
 	}

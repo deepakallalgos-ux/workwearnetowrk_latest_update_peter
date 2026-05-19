@@ -46,10 +46,16 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 							<input type="text" name="url" class="scText<?php echo (int) $tpl['option_arr']['o_bf_c_url'] === 3 ? ' required' : NULL; ?>" placeholder="<?php __('front_placeholder_url', false, true); ?>" value="<?php echo $controller->_post->check('url') ? pjSanitize::html($controller->_post->toString('url')) : NULL; ?>" data-err="<?php echo $validate['url'];?>" />
 						</p>
 						<?php endif; ?>
+						<?php
+						$captcha_mode = isset($tpl['option_arr']['o_captcha_mode_front']) ? $tpl['option_arr']['o_captcha_mode_front'] : 'string';
+						$captcha_maxlength = in_array($captcha_mode, array('addition', 'subtraction', 'random_math'), true)
+							? 3
+							: (isset($tpl['option_arr']['o_captcha_length_front']) ? (int) $tpl['option_arr']['o_captcha_length_front'] : 6);
+						?>
 						<p class="scPaperChain">
 							<label class="scTitle"><?php __('bf_captcha'); ?></label>
 							<img src="<?php echo PJ_INSTALL_URL; ?>index.php?controller=pjFront&amp;action=pjActionCaptcha&amp;rand=<?php echo rand(1,99999); ?>" alt="Captcha" class="scCaptcha scSelectorCaptcha" />
-							<input type="text" name="captcha" class="scText scW100" maxlength="6" data-err="<?php echo $validate['captcha'];?>" data-captcha="<?php echo $validate['captcha_wrong'];?>"/>
+							<input type="text" name="captcha" class="scText scW100" maxlength="<?php echo $captcha_maxlength; ?>" inputmode="numeric" autocomplete="off" data-err="<?php echo $validate['captcha'];?>" data-captcha="<?php echo $validate['captcha_wrong'];?>"/>
 						</p>
 						<div class="scClearLeft scNotice scSelectorNoticeMsg" style="display: none"></div>
 					</div>

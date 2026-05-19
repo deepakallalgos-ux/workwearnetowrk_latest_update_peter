@@ -352,8 +352,6 @@
 /* Compact */
 body[data-table-density="compact"] .pj-grid .table > thead > tr > th { padding: 6px 10px; font-size: 11px; }
 body[data-table-density="compact"] .pj-grid .table > tbody > tr > td { padding: 4px 10px; font-size: 12px; }
-body[data-table-density="compact"] .pj-grid .s-Img,
-body[data-table-density="compact"] .pj-grid img.s-Img { width: 36px; height: 36px; max-height: 36px; max-width: 36px; }
 /* Compact + default: hide address and carrier lines in grid (full detail on order page) */
 .pj-grid [data-shipping-type] small:has(.fa-map-marker),
 .pj-grid [data-shipping-type] small:has(.fa-truck) { display: none; }
@@ -370,9 +368,23 @@ body[data-table-density="spacious"] .pj-grid .table > tbody > tr > td { padding:
     word-break: break-word;
 }
 
-/* ---------- Images in grid ---------- */
-.pj-grid .s-Img,
-.pj-grid img.s-Img {
+/* ---------- Product/stock thumbnails (Peter s-Img style) ---------- */
+.pj-grid th.pj-col-import-img,
+.pj-grid td.pj-col-import-img,
+.pj-grid th.col-product-image,
+.pj-grid td.col-product-image {
+    width: 100px !important;
+    min-width: 100px;
+    max-width: 100px;
+    text-align: center;
+    vertical-align: middle;
+    padding-left: 10px;
+    padding-right: 14px;
+}
+.s-Img,
+img.s-Img,
+.stock-image img:not(.pj-model-image-thumb),
+.in-stock:not(.pj-model-image-thumb) {
     border-radius: 8px;
     border: 1px solid var(--wj-border);
     width: 50px;
@@ -385,22 +397,25 @@ body[data-table-density="spacious"] .pj-grid .table > tbody > tr > td { padding:
     vertical-align: middle;
     transition: transform var(--wj-transition), box-shadow var(--wj-transition);
 }
-.pj-grid .s-Img:hover,
-.pj-grid img.s-Img:hover {
+a:hover .s-Img,
+a:hover img.s-Img {
     transform: scale(1.08);
     box-shadow: var(--wj-shadow-hover);
 }
-/* Products list (#grid): fixed widths for image and name columns.
-   `.col-product-image` / `.col-product-name` come from `cellClass` in jquery.datagrid.js.
-   `!important` overrides table-layout redistribution.
-   14px gap between image and name (same as `.s-Stock-cell` on stock screen). */
-.pj-grid .table > thead > tr > th.col-product-image,
-.pj-grid .table > tbody > tr > td.col-product-image {
-    width: 100px !important;
-    max-width: 100px !important;
-    padding-left: 10px;
-    padding-right: 14px;
+body[data-table-density="compact"] .s-Img,
+body[data-table-density="compact"] img.s-Img {
+    width: 36px;
+    height: 36px;
+    max-height: 36px;
+    max-width: 36px;
 }
+/* Stock list: thumbnail beside product name */
+.pj-grid .s-Pic {
+    display: inline-block;
+    float: left;
+    margin: 0 10px 0 0;
+}
+/* Products list (#grid): fixed width for name column. */
 .pj-grid .table > thead > tr > th.col-product-name,
 .pj-grid .table > tbody > tr > td.col-product-name {
     width: 320px !important;

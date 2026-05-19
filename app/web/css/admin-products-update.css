@@ -139,3 +139,48 @@
     right: 0;
     z-index: 2000;
 }
+
+/* Model image tab (separate from Photos gallery) */
+#frmUpdateProduct.sc-product-update #product-model-image .pj-model-image-grid-wrap {
+    padding: 12px;
+    background: #f9f9f9;
+    border: 1px dashed var(--wj-border, #ddd);
+    border-radius: 6px;
+    min-height: 80px;
+}
+
+#frmUpdateProduct.sc-product-update #product-model-image .pj-model-image-item {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0 10px 12px 0;
+    text-align: center;
+}
+
+#frmUpdateProduct.sc-product-update #product-model-image .pj-model-image-delete {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    line-height: 20px;
+    border-radius: 50%;
+    opacity: 0.92;
+}
+
+#frmUpdateProduct.sc-product-update #product-model-image .pj-model-image-grid .s-Img {
+    width: 88px;
+    height: 88px;
+    max-width: 88px;
+    max-height: 88px;
+}
+
+#frmUpdateProduct.sc-product-update #product-model-image .pj-model-image-active-badge {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+}
