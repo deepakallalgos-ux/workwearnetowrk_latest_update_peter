@@ -30,6 +30,7 @@
 				<th><?php __('product_article_number'); ?></th>
 				<th><?php __('product_ean'); ?></th>
 				<th><?php __('product_stock_qty'); ?></th>
+				<th><?php __('product_stock_buying_price'); ?></th>
 				<th><?php __('product_stock_price'); ?></th>
 				<?php
 				if (count($tpl['attr_arr']) > 0) {
@@ -49,7 +50,7 @@
 						<td>
 							<?php
 							if (!empty($stock['small_path'])) {
-							?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btnImageStock" rel="<?php echo $stock['image_id']; ?>"><img src="<?php echo PJ_INSTALL_URL . $stock['small_path']; ?>" alt="" class="in-stock" /></a><?php
+							?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btnImageStock s-Pic" rel="<?php echo $stock['image_id']; ?>"><img src="<?php echo PJ_INSTALL_URL . $stock['small_path']; ?>" alt="" class="in-stock s-Img" /></a><?php
 																																																									} else {
 																																																										?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary btn-outline btn-sm btnImageStock"><?php __('product_stock_choose_image'); ?></a><?php
 																																																																																															}
@@ -111,6 +112,14 @@
 						</td>
 						<td>
 							<div class="form-group"><input type="text" name="stock_qty[<?php echo $stock['id'] ?>]" class="form-control <?php echo (int) $tpl['arr']['is_digital'] === 1 ? null : ' required'; ?> digits pjScQuantity" value="<?php echo $stock['qty']; ?>" data-msg-required="<?php __('pj_field_required', false, true); ?>" data-msg-digits="<?php __('pj_field_digits'); ?>" /></div>
+						</td>
+						<td>
+							<div class="form-group">
+								<div class="input-group">
+									<input type="text" name="stock_buying_price[<?php echo $stock['id']; ?>]" value="<?php echo isset($stock['buying_price']) ? $stock['buying_price'] : ''; ?>" class="form-control number" data-msg-number="<?php __('pj_field_number'); ?>" />
+									<span class="input-group-addon"><?php echo pjCurrency::getCurrencySign($tpl['option_arr']['o_currency']); ?></span>
+								</div>
+							</div>
 						</td>
 						<td>
 							<div class="form-group">
@@ -197,6 +206,14 @@
 					<td>
 						<div class="form-group">
 							<input type="text" name="stock_qty[<?php echo $index; ?>]" class="form-control <?php echo (int) $tpl['arr']['is_digital'] === 1 ? null : ' required'; ?> digits pjScQuantity" data-msg-required="<?php __('pj_field_required', false, true); ?>" data-msg-digits="<?php __('pj_field_digits'); ?>" />
+						</div>
+					</td>
+					<td>
+						<div class="form-group">
+							<div class="input-group">
+								<input type="text" name="stock_buying_price[<?php echo $index; ?>]" class="form-control number" data-msg-number="<?php __('pj_field_number'); ?>" />
+								<span class="input-group-addon"><?php echo pjCurrency::getCurrencySign($tpl['option_arr']['o_currency']); ?></span>
+							</div>
 						</div>
 					</td>
 					<td>

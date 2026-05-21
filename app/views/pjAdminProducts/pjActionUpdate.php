@@ -44,18 +44,23 @@
     				break;
     		}
     	}
+    	$product_tabs = array('details', 'digital', 'attr', 'photos', 'model_image', 'stock', 'extras', 'similar', 'history');
     	$active_tab = $controller->_get->check('tab') ? $controller->_get->toString('tab') : 'details';
+    	if (!in_array($active_tab, $product_tabs, true)) {
+    		$active_tab = 'details';
+    	}
     	?>
     	<form action="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminProducts&amp;action=pjActionUpdate" method="post" id="frmUpdateProduct" class="frmProduct sc-product-update" enctype="multipart/form-data">
 			<input type="hidden" name="product_update" value="1" />
 			<input type="hidden" name="id" value="<?php echo $tpl['arr']['id']?>" />
-			<input type="hidden" name="tab" value="<?php echo $controller->_get->check('tab') ? $controller->_get->toString('tab') : 'details'; ?>" />
+			<input type="hidden" name="tab" value="<?php echo pjSanitize::html($active_tab); ?>" />
 			<div class="tabs-container tabs-product-info m-b-lg">
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation" class="<?php echo $active_tab == 'details' ? 'active' : NULL;?>"><a class="tab-product-details" href="#product-details" aria-controls="product-details" role="tab" data-toggle="tab" data-tab="details"><?php __('product_details'); ?></a></li>
                     <li role="presentation" class="<?php echo $active_tab == 'digital' ? 'active' : NULL;?>"><a class="tab-product-digital" href="#product-digital" aria-controls="product-digital" role="tab" data-toggle="tab" data-tab="digital"><?php __('product_digital'); ?></a></li>
-                    <li role="presentation" class="pjProductAttr <?php echo (int) $tpl['arr']['is_digital'] === 1 ? 'disabled' : '';?> <?php echo $active_tab == 'attr' ? 'active' : NULL;?>"><a class="tab-product-attr" href="#product-attr" aria-controls="product-attr" role="tab" data-toggle="tab"><?php __('product_attr'); ?></a></li>
+                    <li role="presentation" class="pjProductAttr <?php echo (int) $tpl['arr']['is_digital'] === 1 ? 'disabled' : '';?> <?php echo $active_tab == 'attr' ? 'active' : NULL;?>"><a class="tab-product-attr" href="#product-attr" aria-controls="product-attr" role="tab" data-toggle="tab" data-tab="attr"><?php __('product_attr'); ?></a></li>
                     <li role="presentation" class="<?php echo $active_tab == 'photos' ? 'active' : NULL;?>"><a class="tab-product-photos" href="#product-photos" aria-controls="product-photos" role="tab" data-toggle="tab" data-tab="photos"><?php __('product_photos'); ?></a></li>
+                    <li role="presentation" class="<?php echo $active_tab == 'model_image' ? 'active' : NULL;?>"><a class="tab-product-model-image" href="#product-model-image" aria-controls="product-model-image" role="tab" data-toggle="tab" data-tab="model_image"><?php __('product_model_image_tab'); ?></a></li>
                     <li role="presentation" class="<?php echo $active_tab == 'stock' ? 'active' : NULL;?>"><a class="tab-product-stock" href="#product-stock" aria-controls="product-stock" role="tab" data-toggle="tab" data-tab="stock"><?php __('product_stock'); ?></a></li>
                     <li role="presentation" class="<?php echo $active_tab == 'extras' ? 'active' : NULL;?>"><a class="tab-product-extras" href="#product-extras" aria-controls="product-extras" role="tab" data-toggle="tab" data-tab="extras"><?php __('product_extras'); ?></a></li>
                     <li role="presentation" class="<?php echo $active_tab == 'similar' ? 'active' : NULL;?>"><a class="tab-product-similar" href="#product-similar" aria-controls="product-similar" role="tab" data-toggle="tab" data-tab="similar"><?php __('product_similar'); ?></a></li>
@@ -175,6 +180,14 @@
 		                            }
 		                            ?>
 		                            <div class="form-group">
+		                            	<label class="control-label"><?php __('product_material'); ?></label>
+		                            	<input type="text" name="material" class="form-control" value="<?php echo pjSanitize::html(@$tpl['arr']['material']); ?>" />
+		                            </div>
+		                            <div class="form-group">
+		                            	<label class="control-label"><?php __('product_safety_standard'); ?></label>
+		                            	<input type="text" name="safety_standard" class="form-control" value="<?php echo pjSanitize::html(@$tpl['arr']['safety_standard']); ?>" />
+		                            </div>
+			                            <div class="form-group">
 										<label class="control-label"><?php __('product_is_featured'); ?></label>
 									
 										<div class="switch">
@@ -353,6 +366,13 @@
                             </div><!-- /.adm-card -->
                         </div>
                   	</div>
+
+                  	<div role="tabpanel" class="tab-pane <?php echo $active_tab == 'model_image' ? 'active' : NULL;?>" id="product-model-image">
+                        <div class="panel-body">
+                            <div class="alert alert-success"><?php echo @$info['product_model_image_body']; ?></div>
+                            <?php include_once dirname(__FILE__) . '/elements/model_image_tab.php'; ?>
+                        </div>
+                  	</div>
                   	
                   	<div role="tabpanel" class="tab-pane <?php echo $active_tab == 'stock' ? 'active' : NULL;?>" id="product-stock">
                         <div class="panel-body">
@@ -521,6 +541,8 @@ myLabel.delete_selected = <?php x__encode('delete_selected'); ?>;
 myLabel.delete_confirmation = <?php x__encode('delete_confirmation'); ?>;
 
 myLabel.has_update = <?php echo (int) $tpl['has_update']; ?>;
+myLabel.productModelImageUploadFailed = <?php x__encode('productModelImageUploadFailed'); ?>;
+myLabel.productModelImageUploadFailedText = <?php x__encode('productModelImageUploadFailedText'); ?>;
 
 var myGallery = myGallery || {};
 myGallery.foreign_id = <?php echo $tpl['arr']['id']; ?>;

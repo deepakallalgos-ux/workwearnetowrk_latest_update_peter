@@ -558,12 +558,16 @@ class pjFrontPublic extends pjFront
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 129, 'text' => __('system_129', true)));
 					}
 
-					if (0 != $pjClientModel->where('t1.email', $this->_post->toString('email'))->findCount()->getData()) {
+					$emailCheckModel = pjClientModel::factory();
+					if (isset($company_id) && (int) $company_id > 0) {
+						$emailCheckModel->where('t1.company_id', $company_id);
+					}
+					if (0 != $emailCheckModel->where('t1.email', $this->_post->toString('email'))->findCount()->getData()) {
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 130, 'text' => __('system_130', true)));
 					}
 					$data = $this->_post->raw();
 					$data['company_id'] = $company_id;
-					$client_id = $pjClientModel->setAttributes($data)->insert()->getInsertId();
+					$client_id = pjClientModel::factory()->reset()->setAttributes($data)->insert()->getInsertId();
 					if ($client_id === FALSE || (int) $client_id <= 0) {
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 131, 'text' => __('system_131', true)));
 					}
@@ -692,10 +696,11 @@ class pjFrontPublic extends pjFront
 				if (!empty($arr)) {
 					if ($arr['status'] != 2) {
 
-						$arr['gallery_arr'] = $pjGalleryModel
+						$galleryQuery = $pjGalleryModel
 							->select('t1.small_path, t1.medium_path, t1.large_path, t1.alt')
 							->where('t1.foreign_id', $arr['id'])
-							// ->where('t1.company_id', $company_id)
+							->where('t1.model', pjAppController::GALLERY_MODEL_PRODUCT);
+						$arr['gallery_arr'] = $galleryQuery
 							->orderBy('t1.sort ASC')
 							->findAll()
 							->getData();
@@ -1249,11 +1254,24 @@ class pjFrontPublic extends pjFront
 					}
 					$image_arr = pjGalleryModel::factory()
 						->whereIn('t1.foreign_id', $product_ids_arr)
+						->where('t1.model', pjAppController::GALLERY_MODEL_PRODUCT)
 						->orderBy('t1.sort ASC')
 						->findAll()
 						->getData();
 					foreach ($image_arr as $val) {
 						$product_image_arr[$val['foreign_id']][] = $val;
+					}
+					foreach ($product_arr as $val) {
+						if (!empty($val['model_image_id'])) {
+							$model_image = pjGalleryModel::factory()
+								->where('t1.id', (int) $val['model_image_id'])
+								->where('t1.model', pjAppController::GALLERY_MODEL_MODEL_IMAGE)
+								->findAll()
+								->getData();
+							if (!empty($model_image)) {
+								$product_image_arr[$val['id']] = array($model_image[0]);
+							}
+						}
 					}
 
 					// Do not change col_name, direction

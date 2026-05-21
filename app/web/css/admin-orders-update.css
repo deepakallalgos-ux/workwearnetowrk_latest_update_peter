@@ -99,14 +99,8 @@
 }
 
 #frmUpdateOrder.sc-order-update #boxStockProducts #fdProductList .sc-order-line-thumb__img {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid var(--wj-border, #e8e4ef);
     display: block;
     margin: 0 auto;
-    background: #f8f9fa;
 }
 
 /* ----- Section titles (client / shipping h3) ----- */

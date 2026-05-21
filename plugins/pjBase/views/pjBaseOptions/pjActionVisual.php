@@ -12,11 +12,6 @@
 <div class="wrapper wrapper-content animated fadeInRight">
 	<?php
 	pjUtil::ensureAdminSidebarLogoOption();
-	$sidebarLogoPartial = PJ_VIEWS_PATH . 'pjAdminBranding/elements/sidebar_logo_upload.php';
-	if (is_file($sidebarLogoPartial))
-	{
-		include $sidebarLogoPartial;
-	}
 
 	$error_code = $controller->_get->toString('err');
 	if (!empty($error_code))
@@ -27,32 +22,61 @@
 		{
 			case in_array($error_code, array('PBS02')):
 				?>
-				<div class="alert alert-success">
-					<i class="fa fa-check m-r-xs"></i>
-					<strong><?php echo @$titles[$error_code]; ?></strong>
-					<?php echo @$bodies[$error_code]?>
-				</div>
-				<?php 
-				break;
-			case $error_code === 'logo_upload':
-				?>
-				<div class="alert alert-danger">
-					<i class="fa fa-exclamation-triangle m-r-xs"></i>
-					<strong>Upload failed</strong>
-					Please upload a valid image file (PNG, JPG, GIF, WebP, or SVG).
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="alert alert-success m-b-md">
+							<i class="fa fa-check m-r-xs"></i>
+							<strong><?php echo @$titles[$error_code]; ?></strong>
+							<?php echo @$bodies[$error_code]?>
+						</div>
+					</div>
 				</div>
 				<?php
 				break;
-			case in_array($error_code, array('')):	
+			case in_array($error_code, array('logo_upload')):
+				$logoUploadDetail = '';
+				if (!empty($_SESSION[pjUtil::SIDEBAR_LOGO_ERR_SESSION])) {
+					$logoUploadDetail = $_SESSION[pjUtil::SIDEBAR_LOGO_ERR_SESSION];
+					unset($_SESSION[pjUtil::SIDEBAR_LOGO_ERR_SESSION]);
+				}
 				?>
-				<div class="alert alert-danger">
-					<i class="fa fa-exclamation-triangle m-r-xs"></i>
-					<strong><?php echo @$titles[$error_code]; ?></strong>
-					<?php echo @$bodies[$error_code]?>
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="alert alert-danger m-b-md">
+							<i class="fa fa-exclamation-triangle m-r-xs"></i>
+							<strong><?php echo !empty($titles[$error_code]) ? $titles[$error_code] : 'Logo upload failed'; ?></strong>
+							<?php
+							if (!empty($logoUploadDetail)) {
+								echo '<br><span class="m-t-xs" style="display:inline-block;">' . htmlspecialchars($logoUploadDetail, ENT_QUOTES, 'UTF-8') . '</span>';
+							} elseif (!empty($bodies[$error_code])) {
+								echo $bodies[$error_code];
+							}
+							?>
+						</div>
+					</div>
+				</div>
+				<?php
+				break;
+			case in_array($error_code, array('')):
+				?>
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="alert alert-danger m-b-md">
+							<i class="fa fa-exclamation-triangle m-r-xs"></i>
+							<strong><?php echo @$titles[$error_code]; ?></strong>
+							<?php echo @$bodies[$error_code]?>
+						</div>
+					</div>
 				</div>
 				<?php
 				break;
 		}
+	}
+
+	$sidebarLogoPartial = PJ_VIEWS_PATH . 'pjAdminBranding/elements/sidebar_logo_upload.php';
+	if (is_file($sidebarLogoPartial))
+	{
+		include $sidebarLogoPartial;
 	}
 	?>
 	<div class="row">
@@ -142,4 +166,9 @@
 
 <script type="text/javascript">
 var myLabel = myLabel || {};
+myLabel.admin_sidebar_logo_remove_title = <?php x__encode('lbl_admin_sidebar_logo_remove_title'); ?>;
+myLabel.admin_sidebar_logo_remove_text = <?php x__encode('lbl_admin_sidebar_logo_remove_text'); ?>;
+myLabel.admin_sidebar_logo_remove_confirm = <?php x__encode('lbl_admin_sidebar_logo_remove_confirm'); ?>;
+myLabel.admin_sidebar_logo_remove_fallback = <?php x__encode('lbl_admin_sidebar_logo_remove_fallback'); ?>;
+myLabel.btn_cancel = <?php x__encode('plugin_base_btn_cancel'); ?>;
 </script>

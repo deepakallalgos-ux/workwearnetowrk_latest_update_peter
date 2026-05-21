@@ -1,30 +1,56 @@
 <style>
-	#grid_flat_file table {
-		min-width: 1200px;
+	/* Wide flatfile table: force horizontal scroll (custom.css sets overflow:visible on .table-responsive-secondary) */
+	.pj-flatfile-ibox,
+	.pj-flatfile-ibox .ibox-content {
+		overflow: visible;
 	}
 
-	#grid_flat_file .table-responsive {
+	#grid_flat_file.datagrid-scroll,
+	#grid_flat_file .table-responsive,
+	#grid_flat_file .table-responsive-secondary {
+		overflow-x: auto !important;
+		overflow-y: visible !important;
+		width: 100%;
+		max-width: 100%;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	#grid_flat_file .ibox-content {
 		overflow-x: auto;
-		overflow-y: hidden;
 	}
 
 	#grid_flat_file table {
+		min-width: 3200px;
+		width: max-content;
 		white-space: nowrap;
 	}
 
-	#grid_flat_file th,
-	#grid_flat_file td {
+	#grid_flat_file .table > thead > tr > th:not(.col-product-image),
+	#grid_flat_file .table > tbody > tr > td:not(.col-product-image) {
+		min-width: 110px;
+	}
+
+	.pj-flatfile-scroll-hint {
+		margin: 0 0 12px;
+		color: #676a6c;
+		font-size: 13px;
+	}
+
+	#grid_flat_file thead th {
+		vertical-align: middle;
 		white-space: nowrap;
+		padding: 8px 10px;
 	}
 
-	#grid_flat_file img {
-		width: 100px;
-		height: auto;
+	#grid_flat_file tbody td {
+		vertical-align: middle;
+		padding: 8px 10px;
 	}
 
-	#grid_flat_file td {
-		white-space: normal !important;
+	#grid_flat_file td.pj-dg-editable {
+		white-space: normal;
 		word-break: break-word;
+		max-width: 220px;
 	}
 </style>
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -70,7 +96,7 @@
 			}
 		}
 		?>
-		<div class="ibox float-e-margins">
+		<div class="ibox float-e-margins pj-flatfile-ibox">
 			<div class="ibox-content">
 				<div class="row m-b-md">
 					<?php if ($tpl['has_create']) { ?>
@@ -171,7 +197,8 @@
 					<!-- /.m-b-lg -->
 				</div>
 
-				<div id="grid_flat_file"></div>
+				<p class="pj-flatfile-scroll-hint"><i class="fa fa-arrows-h m-r-xs"></i> Scroll horizontally to view all columns (model, SKU, brand, material, prices, descriptions, etc.).</p>
+				<div id="grid_flat_file" class="datagrid-scroll"></div>
 			</div>
 		</div>
 	</div><!-- /.col-lg-12 -->
@@ -191,6 +218,8 @@
 	}
 	?>
 	var myLabel = myLabel || {};
+	myLabel.installUrl = "<?php echo PJ_INSTALL_URL; ?>";
+	myLabel.placeholderImage = "<?php echo PJ_INSTALL_URL . PJ_IMG_PATH; ?>frontend/80x106.png";
 	myLabel.image = <?php x__encode('product_image'); ?>;
 	myLabel.name = <?php x__encode('lblName'); ?>;
 	myLabel.sku = <?php x__encode('product_sku'); ?>;
@@ -201,6 +230,7 @@
 	myLabel.inactive = "<?php echo $product_statuses[2]; ?>";
 	myLabel.delete_selected = <?php x__encode('delete_selected'); ?>;
 	myLabel.delete_confirmation = <?php x__encode('delete_confirmation'); ?>;
+	myLabel.exported = <?php x__encode('lblExport'); ?>;
 
 	myLabel.has_create = <?php echo (int) $tpl['has_create']; ?>;
 	myLabel.has_update = <?php echo (int) $tpl['has_update']; ?>;
@@ -243,6 +273,10 @@
 	myLabel.import_sync_count = <?php x__encode('import_sync_count'); ?>;
 	myLabel.import_view_file = <?php x__encode('import_view_file'); ?>;
 	myLabel.import_image = <?php x__encode('import_image'); ?>;
+	myLabel.import_model_image = <?php x__encode('import_model_image'); ?>;
+	myLabel.import_material = <?php x__encode('import_material'); ?>;
+	myLabel.import_safety_standard = <?php x__encode('import_safety_standard'); ?>;
+	myLabel.import_buying_price = <?php x__encode('import_buying_price'); ?>;
 	myLabel.import_model = <?php x__encode('import_model'); ?>;
 	myLabel.import_model_name = <?php x__encode('import_model_name'); ?>;
 	myLabel.import_sku = <?php x__encode('import_sku'); ?>;

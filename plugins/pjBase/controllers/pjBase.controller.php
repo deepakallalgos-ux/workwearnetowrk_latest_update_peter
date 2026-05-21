@@ -181,7 +181,7 @@ class pjBase extends pjBaseAppController
 	
 	public function pjActionLogin()
 	{
-	    $this->setLayout('pjActionAdminLogin');
+	    $this->setLayout('pjActionBaseLogin');
 	    
 	    if(self::isPost() && $this->_post->toInt('login_user') == 1)
 	    {
@@ -292,7 +292,7 @@ class pjBase extends pjBaseAppController
 
 	public function pjActionForgot()
 	{
-	    $this->setLayout('pjActionAdminLogin');
+	    $this->setLayout('pjActionBaseLogin');
 
 	    if(self::isPost() && $this->_post->toInt('forgot_user') == 1)
 	    {
@@ -328,7 +328,7 @@ class pjBase extends pjBaseAppController
 	
 	public function pjActionReset()
 	{
-		$this->setLayout('pjActionAdminLogin');
+		$this->setLayout('pjActionBaseLogin');
 		
 		if ($this->_get->has('err'))
 		{

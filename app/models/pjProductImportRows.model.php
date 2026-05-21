@@ -44,6 +44,10 @@ class pjProductImportRowsModel extends pjAppModel
         array('name' => 'full_description_en', 'type' => 'text', 'default' => ':NULL'),
 
         array('name' => 'image', 'type' => 'text', 'default' => ':NULL'),
+        array('name' => 'model_image', 'type' => 'text', 'default' => ':NULL'),
+        array('name' => 'material', 'type' => 'text', 'default' => ':NULL'),
+        array('name' => 'safety_standard', 'type' => 'text', 'default' => ':NULL'),
+        array('name' => 'buying_price', 'type' => 'decimal', 'default' => ':NULL'),
 
         array('name' => 'row_status', 'type' => 'varchar', 'default' => 'active'),
         array('name' => 'sync_status', 'type' => 'varchar', 'default' => 'pending'),

@@ -1131,40 +1131,96 @@
     align-items: center;
 }
 
-/* Admin sidebar custom logo (Visual branding upload) */
-.navbar-default .nav > li > .admin-sidebar-logo-link {
-    background: none !important;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    text-indent: 0;
-    line-height: normal;
-    padding: 0;
-    float: none;
-    margin: 0 auto 15px;
+/* Admin sidebar custom logo (Visual branding) — override pjBase/custom.css .navbar-brand */
+.navbar-default.navbar-static-side .nav-header.nav-header--has-logo,
+.navbar-default .nav > li.nav-header.nav-header--has-logo {
+    padding: 18px 14px 16px !important;
+    text-align: center;
+}
+
+.navbar-default.navbar-static-side .nav-header--has-logo .admin-sidebar-logo-wrap,
+.navbar-default .nav > li.nav-header--has-logo .admin-sidebar-logo-wrap {
     display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+    line-height: 0;
 }
 
-.navbar-default .nav > li > .admin-sidebar-logo-link:hover,
-.navbar-default .nav > li > .admin-sidebar-logo-link:focus {
+.navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-link.navbar-brand,
+.navbar-default .nav > li.nav-header > .admin-sidebar-logo-link.navbar-brand {
+    background: none !important;
+    background-image: none !important;
+    width: 100% !important;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    min-width: 0;
+    text-indent: 0 !important;
+    font-size: inherit;
+    line-height: 0;
+    padding: 0 !important;
+    float: none;
+    margin: 0 auto !important;
+    display: block;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-link.navbar-brand:hover,
+.navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-link.navbar-brand:focus,
+.navbar-default .nav > li.nav-header > .admin-sidebar-logo-link.navbar-brand:hover,
+.navbar-default .nav > li.nav-header > .admin-sidebar-logo-link.navbar-brand:focus {
     background-color: transparent !important;
+    background-image: none !important;
 }
 
-.admin-sidebar-logo-img,
+.navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-img,
+.navbar-default .nav > li.nav-header .admin-sidebar-logo-img,
 .admin-sidebar-logo-preview .admin-sidebar-logo-img {
     display: block;
+    width: 100%;
     max-width: 200px;
-    max-height: 72px;
-    width: auto;
     height: auto;
+    max-height: 72px;
+    object-fit: contain;
+    object-position: center center;
     margin: 0 auto;
 }
 
-body.mini-navbar .admin-sidebar-logo-img {
-    max-width: 48px;
-    max-height: 40px;
+.admin-sidebar-logo-preview {
+    display: inline-block;
+    max-width: 220px;
+    width: 100%;
+    padding: 12px 10px;
+    background: linear-gradient(135deg, #052a0f 0%, #0a5114 100%);
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
-body.mini-navbar .navbar-default .nav > li > .admin-sidebar-logo-link {
-    margin: 0 auto 10px;
+.admin-sidebar-logo-preview .admin-sidebar-logo-img {
+    max-height: 72px;
+}
+
+body.mini-navbar .navbar-default.navbar-static-side .nav-header.nav-header--has-logo,
+body.mini-navbar .navbar-default .nav > li.nav-header.nav-header--has-logo {
+    padding: 12px 8px 14px !important;
+}
+
+body.mini-navbar .navbar-default.navbar-static-side .nav-header--has-logo .admin-sidebar-logo-wrap,
+body.mini-navbar .navbar-default .nav > li.nav-header--has-logo .admin-sidebar-logo-wrap {
+    max-width: 52px;
+}
+
+body.mini-navbar .navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-link.navbar-brand,
+body.mini-navbar .navbar-default .nav > li.nav-header > .admin-sidebar-logo-link.navbar-brand {
+    width: 100% !important;
+    max-width: 52px;
+    margin: 0 auto !important;
+}
+
+body.mini-navbar .navbar-default.navbar-static-side .nav-header .admin-sidebar-logo-img,
+body.mini-navbar .navbar-default .nav > li.nav-header .admin-sidebar-logo-img {
+    max-width: 52px;
+    max-height: 48px;
 }

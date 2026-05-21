@@ -56,13 +56,9 @@ span.pj-button-down {
 	display: inline-block;
 	margin: 0 5px 5px 0;
 }
-.stock-image img,
-.in-stock{
-	padding: 1px;
-	border: solid 1px #ccc;
-}
+/* Product/stock thumbs: see admin-datagrid-listings.css (.s-Img) */
 .stock-image img.current{
-	border: solid 1px #003399;
+	border: solid 1px #003399 !important;
 }
 #product-similar .ibox-content{padding: 0; border: none;}
 .autocompleter {

@@ -74,19 +74,6 @@ $bodies = __('error_bodies', true);
     </div><!-- /.col-lg-12 -->
 </div>
 <style type="text/css">
-.s-Pic{
-	display: inline-block;
-	float: left;
-	margin: 0 10px 0 0;
-}
-.s-Img{
-	background-color: #fff;
-	border: solid 1px #ccc;
-	max-height: 75px;
-	max-width: 75px;
-	padding: 1px;
-	vertical-align: middle;
-}
 .s-Name{
 	color: #306dab;
 	display: block;

@@ -431,4 +431,26 @@ class pjBaseOptions extends pjBase
 		// }
 		self::jsonResponse(array('status' => 'ERR', 'code' => 104, 'text' => __('plugin_base_email_text_ARRAY_8', true)));
 	}
+
+	public function pjActionUploadSidebarLogo()
+	{
+		if (!pjAuth::factory()->hasAccess()) {
+			$this->sendForbidden();
+			exit;
+		}
+
+		pjUtil::ensureAdminSidebarLogoOption($this->getForeignId());
+		pjUtil::handleAdminSidebarLogoUpload($this->getForeignId());
+	}
+
+	public function pjActionRemoveSidebarLogo()
+	{
+		if (!pjAuth::factory()->hasAccess()) {
+			$this->sendForbidden();
+			exit;
+		}
+
+		pjUtil::ensureAdminSidebarLogoOption($this->getForeignId());
+		pjUtil::handleAdminSidebarLogoRemove($this->getForeignId());
+	}
 }

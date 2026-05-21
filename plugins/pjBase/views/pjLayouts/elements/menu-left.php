@@ -27,18 +27,26 @@ $isSystemOptions = $isGeneralOptions || $isBackup || $isLocale || $isSms || $isV
 <nav class="navbar-default navbar-static-side" role="navigation">
     <div class="sidebar-collapse">
         <ul class="nav metismenu" id="side-menu">
-            <li class="nav-header">
+            <?php
+            $adminSidebarLogoUrl = class_exists('pjUtil', false) ? pjUtil::getAdminSidebarLogoUrl($tpl['option_arr']) : null;
+            $hideSidebarLogo = class_exists('pjUtil', false) && pjUtil::isOptionEnumYes($tpl['option_arr'], 'o_hide_phpjabbers_logo');
+            $showCustomSidebarLogo = !empty($adminSidebarLogoUrl) && !$hideSidebarLogo;
+            $showPhpJabbersSidebarLogo = empty($adminSidebarLogoUrl) && !$hideSidebarLogo;
+            $showSidebarTitleBlock = !$showCustomSidebarLogo;
+            ?>
+            <li class="nav-header<?php echo $showCustomSidebarLogo ? ' nav-header--has-logo' : ''; ?>">
             	<?php
-            	$adminSidebarLogoUrl = class_exists('pjUtil', false) ? pjUtil::getAdminSidebarLogoUrl($tpl['option_arr']) : null;
-            	if (!empty($adminSidebarLogoUrl))
+            	if ($showCustomSidebarLogo)
             	{
                 	?>
+                    <div class="admin-sidebar-logo-wrap">
                     <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&amp;action=pjActionIndex" class="navbar-brand admin-sidebar-logo-link">
                         <img src="<?php echo htmlspecialchars($adminSidebarLogoUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars(__('script_name', true), ENT_QUOTES, 'UTF-8'); ?>" class="admin-sidebar-logo-img">
                     </a>
+                    </div>
                     <?php
             	}
-            	elseif ($tpl['option_arr']['o_hide_phpjabbers_logo'] == 'No')
+            	elseif ($showPhpJabbersSidebarLogo)
             	{
                 	?>
                     <a href="https://www.phpjabbers.com" class="navbar-brand" target="_blank">PHPJabbers</a>
@@ -46,22 +54,23 @@ $isSystemOptions = $isGeneralOptions || $isBackup || $isLocale || $isSms || $isV
             	}
                 ?>
 
-                <?php if (empty($adminSidebarLogoUrl)) { ?>
+                <?php if ($showSidebarTitleBlock) { ?>
                 <div class="dropdown profile-element">
                     <strong class="m-t-xs"><?php __('script_name') ?> </strong>
                     <?php
-                    if($tpl['option_arr']['o_hide_phpjabbers_logo'] == 'No')
+                    if ($showPhpJabbersSidebarLogo)
                     {
-                        ?> 
+                        ?>
                         <span class="text-muted text-xs block" style="font-size:12px">by PHPJabbers.com</span>
                         <?php
                     }
-                    ?> 
+                    ?>
                 </div>
                 <?php } ?>
             </li>
             <?php
-            if (!empty($tpl['option_arr']['_has_demo_data'])
+            if (!empty($tpl['option_arr']['_show_demo_data_ui'])
+                && !empty($tpl['option_arr']['_has_demo_data'])
                 && pjAuth::factory('pjAdminSetup', 'pjActionRemoveDemo')->hasAccess()
             ) {
                 ?>

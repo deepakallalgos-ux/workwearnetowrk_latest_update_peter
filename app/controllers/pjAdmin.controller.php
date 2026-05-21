@@ -44,6 +44,8 @@ class pjAdmin extends pjAppController
 		$inherits_arr = array(
 			'pjAdminBranding::pjActionUploadSidebarLogo' => 'pjBaseOptions::pjActionVisual',
 			'pjAdminBranding::pjActionRemoveSidebarLogo' => 'pjBaseOptions::pjActionVisual',
+			'pjBaseOptions::pjActionUploadSidebarLogo' => 'pjBaseOptions::pjActionVisual',
+			'pjBaseOptions::pjActionRemoveSidebarLogo' => 'pjBaseOptions::pjActionVisual',
 			'pjAdminOptions::pjActionUpdateTheme' => 'pjAdminOptions::pjActionPreview',
 			'pjBasePermissions::pjActionResetPermission' => 'pjBasePermissions::pjActionUserPermission',
 			'pjAdminOptions::pjActionDeleteLocation' => 'pjAdminOptions::pjActionShippingTax',
@@ -88,16 +90,6 @@ class pjAdmin extends pjAppController
 		$this->checkLogin();
 		if (!pjAuth::factory()->hasAccess()) {
 			$this->sendForbidden();
-			return;
-		}
-
-		$wizardCompleted = pjOptionModel::factory()
-			->where("t1.`foreign_id` = 1 AND t1.`key` = 'o_setup_wizard_completed'")
-			->limit(1)
-			->findAll()
-			->getData();
-		if (!empty($wizardCompleted) && isset($wizardCompleted[0]['value']) && $wizardCompleted[0]['value'] == '0') {
-			pjUtil::redirect("index.php?controller=pjAdminSetup&action=pjActionWelcome");
 			return;
 		}
 

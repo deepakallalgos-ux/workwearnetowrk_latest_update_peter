@@ -385,6 +385,19 @@ class pjGallery extends pjGalleryAppController
 			{
 				$pjGalleryModel->where('t1.model', $this->_get->toString('model'));
 			}
+
+			/* Product Photos tab: never list the row used as model/listing image (legacy rows may share id). */
+			if ($this->_get->check('model') && $this->_get->toString('model') === pjAppController::GALLERY_MODEL_PRODUCT
+				&& $this->_get->check('foreign_id') && $this->_get->toInt('foreign_id') > 0)
+			{
+				$product = pjProductModel::factory()
+					->select('model_image_id')
+					->find($this->_get->toInt('foreign_id'))
+					->getData();
+				if (!empty($product['model_image_id'])) {
+					$pjGalleryModel->where('t1.id !=', (int) $product['model_image_id']);
+				}
+			}
 			
 			$column = 'sort';
 			$direction = 'ASC';

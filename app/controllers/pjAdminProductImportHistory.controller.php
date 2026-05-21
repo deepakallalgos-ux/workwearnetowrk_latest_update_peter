@@ -5,6 +5,94 @@ if (!defined("ROOT_PATH")) {
 }
 class pjAdminProductImportHistory extends pjAdmin
 {
+	const IMPORT_SYNC_BATCH_SIZE = 15;
+
+	/** @var array product_id|url => gallery id (avoids re-downloading the same image URL) */
+	private static $importImageGalleryCache = array();
+
+	/** @var array product_id => true — model image import once per product per sync run */
+	private static $importModelImageDone = array();
+
+	private function getImportSyncBatchLimit()
+	{
+		$limit = (int) self::IMPORT_SYNC_BATCH_SIZE;
+		if ($this->_post->check('batch_size')) {
+			$requested = (int) $this->_post->toInt('batch_size');
+			if ($requested > 0 && $requested <= 150) {
+				$limit = $requested;
+			}
+		}
+		return $limit;
+	}
+
+	private function importSyncProgressPayload($status, $offset, $next_offset, $total_rows, $batch_count, $extra = array())
+	{
+		$processed = min($next_offset, $total_rows);
+		$payload = array(
+			'status'          => $status,
+			'offset'          => $next_offset,
+			'total'           => $total_rows,
+			'processed'       => $processed,
+			'processed_from'  => $total_rows > 0 ? ($offset + 1) : 0,
+			'processed_to'    => $processed,
+			'batch'           => $batch_count,
+			'url'             => $_SERVER['REQUEST_URI'],
+		);
+		return array_merge($payload, $extra);
+	}
+
+	private function clearImportCsvSession($import_id)
+	{
+		$key = 'pj_import_csv_' . (int) $import_id;
+		if (isset($_SESSION[$key])) {
+			unset($_SESSION[$key]);
+		}
+	}
+
+	/**
+	 * Parse CSV once per import run (stored in session) — avoids re-reading the file every batch.
+	 */
+	private function loadImportCsvData($import_id, $csv_path)
+	{
+		$key = 'pj_import_csv_' . (int) $import_id;
+		if (isset($_SESSION[$key]) && is_array($_SESSION[$key]['rows'])) {
+			return $_SESSION[$key];
+		}
+
+		$handle = fopen($csv_path, 'r');
+		if (!$handle) {
+			return null;
+		}
+
+		$delimiter = ';';
+		$header = fgetcsv($handle, 0, $delimiter);
+		if ($header === false || count($header) < 2) {
+			rewind($handle);
+			$delimiter = ',';
+			$header = fgetcsv($handle, 0, $delimiter);
+		}
+
+		$rows = array();
+		$models = array();
+		while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+			if (count($row) !== count($header)) {
+				continue;
+			}
+			$assoc = array_combine($header, $row);
+			$rows[] = $assoc;
+			if (!empty($assoc['model'])) {
+				$models[] = $assoc['model'];
+			}
+		}
+		fclose($handle);
+
+		$data = array(
+			'rows'   => $rows,
+			'models' => array_values(array_unique($models)),
+		);
+		$_SESSION[$key] = $data;
+		return $data;
+	}
 
 	private function writeLog($message)
 	{
@@ -153,7 +241,13 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		$this->checkLogin();
 
-		$limit  = 30;
+		@set_time_limit(300);
+		@ini_set('memory_limit', '512M');
+		if (function_exists('session_write_close')) {
+			session_write_close();
+		}
+
+		$limit  = $this->getImportSyncBatchLimit();
 		$offset = $this->_post->check('offset') ? (int)$this->_post->toInt('offset') : 0;
 		$import_id = $this->_get->check('id') ? (int)$this->_get->toInt('id') : 0;
 
@@ -262,19 +356,14 @@ class pjAdminProductImportHistory extends pjAdmin
 
 			//$this->writeLog("NO MORE ROWS TO PROCESS");
 
-			pjAppController::jsonResponse([
-				'status'    => 'DONE',
-				'offset'    => $offset,
-				'total'     => $total_rows,
-				'processed' => $total_rows,
-				'batch'     => 0,
-				'url'       => $_SERVER['REQUEST_URI']
-			]);
+			pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $total_rows, $total_rows, 0));
 		}
 
 		/* START SYNC */
 
 		if ($offset == 0) {
+			self::$importImageGalleryCache = array();
+			self::$importModelImageDone = array();
 
 			//$this->writeLog("SYNC STARTED");
 
@@ -334,7 +423,11 @@ class pjAdminProductImportHistory extends pjAdmin
 					$data['full_description_en']
 				);
 
+				$this->updateProductMeta($product_id, $data);
+
 				$img_id = $this->importGalleryImages($product_id, $data);
+
+				$buying_price = isset($data['buying_price']) && $data['buying_price'] !== '' ? $data['buying_price'] : null;
 
 				$this->addStockViaUpdate(
 					$product_id,
@@ -345,6 +438,7 @@ class pjAdminProductImportHistory extends pjAdmin
 					$data['ean'],
 					$data['qty'],
 					$data['price'],
+					$buying_price,
 					$img_id,
 					$status
 				);
@@ -389,14 +483,7 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		if ($next_offset < $total_rows) {
 
-			pjAppController::jsonResponse([
-				'status'    => 'OK',
-				'offset'    => $next_offset,
-				'total'     => $total_rows,
-				'processed' => min($next_offset, $total_rows),
-				'batch'     => count($rows),
-				'url'       => $_SERVER['REQUEST_URI']
-			]);
+			pjAppController::jsonResponse($this->importSyncProgressPayload('OK', $offset, $next_offset, $total_rows, count($rows)));
 		}
 
 		/* =========================
@@ -435,11 +522,15 @@ class pjAdminProductImportHistory extends pjAdmin
 		FINAL CLEANUP
 		========================= */
 
-		$products = pjProductModel::factory()
+		$products_query = pjProductModel::factory()
 			->select("id,model")
-			->where('company_id', $company_id)
-			->findAll()
-			->getData();
+			->where('company_id', $company_id);
+
+		if (!empty($model_list)) {
+			$products_query->whereIn('t1.model', array_unique($model_list));
+		}
+
+		$products = $products_query->findAll()->getData();
 
 		//$this->writeLog("TOTAL PRODUCTS IN SYSTEM: " . count($products));
 
@@ -509,15 +600,10 @@ class pjAdminProductImportHistory extends pjAdmin
 			]);
 
 		$this->clearTempImages();
+		self::$importImageGalleryCache = array();
+		self::$importModelImageDone = array();
 
-		pjAppController::jsonResponse([
-			'status'    => 'DONE',
-			'offset'    => $next_offset,
-			'total'     => $total_rows,
-			'processed' => $total_rows,
-			'batch'     => count($rows),
-			'url'       => $_SERVER['REQUEST_URI']
-		]);
+		pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $next_offset, $total_rows, count($rows)));
 	}
 	public function pjActionDeleteImportRow()
 	{
@@ -576,6 +662,7 @@ class pjAdminProductImportHistory extends pjAdmin
 			return;
 		}
 
+		$csv_delimiter = ';';
 		$handle = fopen($csv_path, 'w');
 
 		/* HEADER */
@@ -588,16 +675,20 @@ class pjAdminProductImportHistory extends pjAdmin
 			'category',
 			'article_number',
 			'article_name',
+			'material',
 			'ean',
+			'safety_standard',
 			'qty',
+			'buying_price',
 			'price',
 			'size',
 			'color',
 			'name_en',
 			'short_desc_en',
 			'full_description_en',
-			'image'
-		));
+			'image',
+			'model_image'
+		), $csv_delimiter);
 
 		foreach ($rows as $r) {
 
@@ -610,16 +701,20 @@ class pjAdminProductImportHistory extends pjAdmin
 				$r['category'],
 				$r['article_number'],
 				$r['article_name'],
+				$r['material'],
 				$r['ean'],
+				$r['safety_standard'],
 				$r['qty'],
+				$r['buying_price'],
 				$r['price'],
 				$r['size'],
 				$r['color'],
 				$r['name_en'],
 				$r['short_desc_en'],
 				$r['full_description_en'],
-				$r['image']
-			));
+				$r['image'],
+				$r['model_image']
+			), $csv_delimiter);
 		}
 
 		fclose($handle);
@@ -657,9 +752,10 @@ class pjAdminProductImportHistory extends pjAdmin
 		}
 
 		/* REQUIRED FIELD VALIDATION */
-		$allow_zero_fields = array('qty', 'price');
+		$allow_zero_fields = array('qty', 'price', 'buying_price');
+		$optional_import_fields = array('model_image', 'material', 'safety_standard', 'buying_price');
 
-		if (!in_array($column, $allow_zero_fields)) {
+		if (!in_array($column, $allow_zero_fields) && !in_array($column, $optional_import_fields)) {
 
 			if ($value === null || trim($value) === '') {
 
@@ -685,17 +781,17 @@ class pjAdminProductImportHistory extends pjAdmin
 			$value = (int)$value;
 		}
 
-		if ($column == 'price') {
+		if ($column == 'price' || $column == 'buying_price') {
 
-			if (!is_numeric($value)) {
+			if ($value !== '' && $value !== null && !is_numeric($value)) {
 				self::jsonResponse(array(
 					'status' => 'ERR',
 					'code'   => 107,
-					'text'   => 'Price must be a number.'
+					'text'   => ucfirst(str_replace('_', ' ', $column)) . ' must be a number.'
 				));
 			}
 
-			$value = (float)$value;
+			$value = $value === '' || $value === null ? null : (float)$value;
 		}
 		/* PRODUCT LEVEL FIELDS */
 		$product_level_fields = array(
@@ -705,6 +801,9 @@ class pjAdminProductImportHistory extends pjAdmin
 			'name_en',
 			'short_desc_en',
 			'full_description_en',
+			'material',
+			'safety_standard',
+			'model_image',
 			// 'status'
 		);
 
@@ -801,16 +900,22 @@ class pjAdminProductImportHistory extends pjAdmin
 			'category',
 			'article_number',
 			'article_name',
+			'material',
 			'ean',
+			'safety_standard',
 			'qty',
+			'buying_price',
 			'price',
 			'size',
 			'color',
 			'name_en',
 			'short_desc_en',
 			'full_description_en',
-			'image'
+			'image',
+			'model_image'
 		];
+
+		$optional_csv_fields = array('model_image', 'material', 'safety_standard', 'buying_price');
 
 		$handle = fopen($file_path, "r");
 
@@ -860,6 +965,10 @@ class pjAdminProductImportHistory extends pjAdmin
 
 			$data = array_combine($header, $row);
 			foreach ($data as $field => $value) {
+
+				if (in_array($field, $optional_csv_fields, true)) {
+					continue;
+				}
 
 				if (trim($value) === '') {
 					pjAppController::jsonResponse([
@@ -988,6 +1097,10 @@ class pjAdminProductImportHistory extends pjAdmin
 				'full_description_en' => $row['full_description_en'],
 
 				'image' => $row['image'],
+				'model_image' => isset($row['model_image']) ? $row['model_image'] : null,
+				'material' => isset($row['material']) ? $row['material'] : null,
+				'safety_standard' => isset($row['safety_standard']) ? $row['safety_standard'] : null,
+				'buying_price' => isset($row['buying_price']) && $row['buying_price'] !== '' ? $row['buying_price'] : null,
 
 				'row_status' => 'active',
 				'sync_status' => 'pending',
@@ -1238,7 +1351,13 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		$this->checkLogin();
 
-		$limit  = 30;
+		@set_time_limit(300);
+		@ini_set('memory_limit', '512M');
+		if (function_exists('session_write_close')) {
+			session_write_close();
+		}
+
+		$limit  = $this->getImportSyncBatchLimit();
 		$offset = $this->_post->check('offset') ? (int)$this->_post->toInt('offset') : 0;
 		$file_id = $this->_post->check('file_id') ? (int)$this->_post->toInt('file_id') : 0;
 
@@ -1290,6 +1409,8 @@ class pjAdminProductImportHistory extends pjAdmin
     		========================= */
 
 		if ($offset == 0) {
+			self::$importImageGalleryCache = array();
+			$this->clearImportCsvSession($file_id);
 
 			//$this->writeLog("SYNC STARTED");
 
@@ -1306,51 +1427,17 @@ class pjAdminProductImportHistory extends pjAdmin
 				));
 		}
 
-		/* =========================
-		READ CSV
-				========================= */
-
-		//$this->writeLog("READING CSV FILE");
-
-		$handle = fopen($csv_path, "r");
-
-		if (!$handle) {
+		$csv_bundle = $this->loadImportCsvData($file_id, $csv_path);
+		if ($csv_bundle === null) {
 			pjAppController::jsonResponse(array(
 				'status' => 'ERR',
 				'text'   => 'Unable to open CSV file'
 			));
 		}
 
-		$header = fgetcsv($handle);
-
-		$csv_data = [];
-
-		while (($row = fgetcsv($handle)) !== false) {
-			$csv_data[] = array_combine($header, $row);
-		}
-
-		fclose($handle);
-
+		$csv_data = $csv_bundle['rows'];
+		$csv_models = $csv_bundle['models'];
 		$total_rows = count($csv_data);
-		/* =========================
-		COLLECT CSV MODELS
-			========================= */
-
-		$csv_models = [];
-
-		foreach ($csv_data as $row) {
-			if (!empty($row['model'])) {
-				$csv_models[] = $row['model'];
-			}
-		}
-
-		//$this->writeLog("CSV MODELS FOUND: " . implode(",", $csv_models));
-		//$this->writeLog("TOTAL CSV ROWS: " . $total_rows);
-
-		/* =========================
-       GET BATCH ROWS
-   		 	========================= */
-
 		$rows = array_slice($csv_data, $offset, $limit);
 
 		$company_id = $_SESSION[$this->defaultCompany]['id'];
@@ -1383,7 +1470,11 @@ class pjAdminProductImportHistory extends pjAdmin
 					$data['full_description_en']
 				);
 
+				$this->updateProductMeta($product_id, $data);
+
 				$img_id = $this->importGalleryImages($product_id, $data);
+
+				$buying_price = isset($data['buying_price']) && $data['buying_price'] !== '' ? $data['buying_price'] : null;
 
 				$this->addStockViaUpdate(
 					$product_id,
@@ -1394,6 +1485,7 @@ class pjAdminProductImportHistory extends pjAdmin
 					$data['ean'],
 					$data['qty'],
 					$data['price'],
+					$buying_price,
 					$img_id,
 					$status
 				);
@@ -1435,11 +1527,7 @@ class pjAdminProductImportHistory extends pjAdmin
 
 		if ($next_offset < $total_rows) {
 
-			pjAppController::jsonResponse(array(
-				'status' => 'OK',
-				'offset' => $next_offset,
-				'total'  => $total_rows
-			));
+			pjAppController::jsonResponse($this->importSyncProgressPayload('OK', $offset, $next_offset, $total_rows, count($rows)));
 		}
 
 		/* =========================
@@ -1500,11 +1588,10 @@ class pjAdminProductImportHistory extends pjAdmin
 		CLEANUP TEMP IMAGES
 			========================= */
 		$this->clearTempImages();
-		pjAppController::jsonResponse(array(
-			'status' => 'DONE',
-			'offset' => $next_offset,
-			'total'  => $total_rows
-		));
+		$this->clearImportCsvSession($file_id);
+		self::$importImageGalleryCache = array();
+
+		pjAppController::jsonResponse($this->importSyncProgressPayload('DONE', $offset, $next_offset, $total_rows, count($rows)));
 	}
 	private function clearTempImages()
 	{
@@ -1525,7 +1612,113 @@ class pjAdminProductImportHistory extends pjAdmin
 		rmdir($tmp_folder);
 	}
 
-	private function addStockViaUpdate($product_id, $size, $color, $article_number, $article_name, $ean, $qty, $price, $img_id, $status)
+	private function updateProductMeta($product_id, $data)
+	{
+		$update = array();
+
+		if (isset($data['material'])) {
+			$update['material'] = $data['material'];
+		}
+		if (isset($data['safety_standard'])) {
+			$update['safety_standard'] = $data['safety_standard'];
+		}
+
+		if (!empty($update)) {
+			pjProductModel::factory()
+				->reset()
+				->where('id', $product_id)
+				->limit(1)
+				->modifyAll($update);
+		}
+
+		if (!empty($data['model_image'])) {
+			$this->importModelImage($product_id, $data['model_image']);
+		}
+	}
+
+	private function importModelImage($product_id, $url)
+	{
+		$url = trim($url);
+		if ($url === '') {
+			return;
+		}
+
+		$product_id = (int) $product_id;
+		if (isset(self::$importModelImageDone[$product_id])) {
+			return;
+		}
+
+		$product = pjProductModel::factory()->find($product_id)->getData();
+		if (empty($product)) {
+			return;
+		}
+
+		/* One model image per product — skip if a dedicated model image already exists */
+		if (!empty($product['model_image_id'])) {
+			$existing = pjGalleryModel::factory()->find($product['model_image_id'])->getData();
+			if (!empty($existing) && $existing['model'] === pjAppController::GALLERY_MODEL_MODEL_IMAGE) {
+				self::$importModelImageDone[$product_id] = true;
+				return;
+			}
+		}
+
+		self::$importModelImageDone[$product_id] = true;
+
+		$GalleryModel = pjGalleryModel::factory();
+		$Image = new pjImage();
+
+		$tmp_file = $this->downloadImage($url, 'csv-model-images');
+		if (!$tmp_file) {
+			return;
+		}
+
+		$full_path = PJ_INSTALL_PATH . $tmp_file;
+		if (!$Image->loadImage($full_path)) {
+			return;
+		}
+
+		$hash = md5(uniqid(rand(), true));
+		$source_path = PJ_UPLOAD_PATH . 'source/' . $product_id . '_model_' . $hash . '.' . $Image->getExtension();
+
+		if (!$Image->saveImage(PJ_INSTALL_PATH . $source_path)) {
+			return;
+		}
+
+		$image_info = getimagesize(PJ_INSTALL_PATH . $source_path);
+		$data_insert = array(
+			'foreign_id'   => $product_id,
+			'model'        => pjAppController::GALLERY_MODEL_MODEL_IMAGE,
+			'mime_type'    => $image_info['mime'],
+			'source_path'  => $source_path,
+			'source_size'  => filesize(PJ_INSTALL_PATH . $source_path),
+			'source_width' => $image_info[0],
+			'source_height' => $image_info[1],
+			'name'         => basename($url),
+			'sort'         => 0,
+			'created'      => date('Y-m-d H:i:s')
+		);
+
+		$data_insert = array_merge(
+			$data_insert,
+			$this->pjActionBuildFromSource($Image, $data_insert)
+		);
+
+		$insert_id = $GalleryModel
+			->reset()
+			->setAttributes($data_insert)
+			->insert()
+			->getInsertId();
+
+		if ($insert_id) {
+			pjProductModel::factory()
+				->reset()
+				->where('id', $product_id)
+				->limit(1)
+				->modifyAll(array('model_image_id' => $insert_id));
+		}
+	}
+
+	private function addStockViaUpdate($product_id, $size, $color, $article_number, $article_name, $ean, $qty, $price, $buying_price, $img_id, $status)
 	{
 		$company_id = $_SESSION[$this->defaultCompany]['id'];
 
@@ -1567,6 +1760,7 @@ class pjAdminProductImportHistory extends pjAdmin
 					'ean' => $ean,
 					'qty' => $qty,
 					'price' => $price,
+					'buying_price' => $buying_price !== null && $buying_price !== '' ? $buying_price : ':NULL',
 					'image_id' => $img_id,
 					'status' => $status
 				]);
@@ -1594,6 +1788,7 @@ class pjAdminProductImportHistory extends pjAdmin
 				->set('ean', $ean)
 				->set('qty', $qty)
 				->set('price', $price)
+				->set('buying_price', $buying_price !== null && $buying_price !== '' ? $buying_price : null)
 				->insert()
 				->getInsertId();
 
@@ -1632,9 +1827,22 @@ class pjAdminProductImportHistory extends pjAdmin
 			return false;
 		}
 
-		$imageData = @file_get_contents($url);
+		$timeout = 12;
+		$context = stream_context_create(array(
+			'http' => array(
+				'timeout' => $timeout,
+				'ignore_errors' => true,
+				'user_agent' => 'WorkwearNetwork-ProductImport/1.0',
+			),
+			'ssl' => array(
+				'verify_peer' => true,
+				'verify_peer_name' => true,
+			),
+		));
 
-		if ($imageData === false) {
+		$imageData = @file_get_contents($url, false, $context);
+
+		if ($imageData === false || $imageData === '') {
 			//$this->writeLog("IMAGE DOWNLOAD FAILED");
 			return false;
 		}
@@ -1667,6 +1875,34 @@ class pjAdminProductImportHistory extends pjAdmin
 		return str_replace(PJ_INSTALL_PATH, '', $localPath);
 	}
 
+	/**
+	 * Reuse an existing gallery row for this product + image file name (across sync batches).
+	 */
+	private function findExistingGalleryImageId($product_id, $image_url)
+	{
+		$image_url = trim($image_url);
+		if ($image_url === '') {
+			return null;
+		}
+
+		$name = basename(parse_url($image_url, PHP_URL_PATH) ?: $image_url);
+		if ($name === '') {
+			return null;
+		}
+
+		$row = pjGalleryModel::factory()
+			->reset()
+			->select('t1.id')
+			->where('t1.foreign_id', (int) $product_id)
+			->where('t1.model', pjAppController::GALLERY_MODEL_PRODUCT)
+			->where('t1.name', $name)
+			->limit(1)
+			->findAll()
+			->getData();
+
+		return !empty($row[0]['id']) ? (int) $row[0]['id'] : null;
+	}
+
 	private function importGalleryImages($product_id, $data)
 	{
 
@@ -1675,55 +1911,23 @@ class pjAdminProductImportHistory extends pjAdmin
 			return null;
 		}
 
+		$product_id = (int) $product_id;
 		$images = explode(',', $data['image']);
-
-		$GalleryModel = pjGalleryModel::factory();
-		static $processed_products = array();
-
-		if (!in_array($product_id, $processed_products)) {
-
-			$pjGalleryModel = pjGalleryModel::factory();
-
-			$image_arr = $pjGalleryModel
-				->reset()
-				->where('foreign_id', $product_id)
-				->where('model', 'pjProduct')
-				->findAll()
-				->getData();
-
-			if (!empty($image_arr)) {
-
-				foreach ($image_arr as $image) {
-
-					@clearstatcache();
-
-					if (!empty($image['small_path']) && is_file(PJ_INSTALL_PATH . $image['small_path'])) {
-						@unlink(PJ_INSTALL_PATH . $image['small_path']);
-					}
-
-					if (!empty($image['medium_path']) && is_file(PJ_INSTALL_PATH . $image['medium_path'])) {
-						@unlink(PJ_INSTALL_PATH . $image['medium_path']);
-					}
-
-					if (!empty($image['large_path']) && is_file(PJ_INSTALL_PATH . $image['large_path'])) {
-						@unlink(PJ_INSTALL_PATH . $image['large_path']);
-					}
-
-					if (!empty($image['source_path']) && is_file(PJ_INSTALL_PATH . $image['source_path'])) {
-						@unlink(PJ_INSTALL_PATH . $image['source_path']);
-					}
-				}
-
-				$pjGalleryModel
-					->reset()
-					->where('foreign_id', $product_id)
-					->where('model', 'pjProduct')
-					->eraseAll();
+		$first_url = trim($images[0]);
+		if ($first_url !== '') {
+			$cache_key = $product_id . '|' . $first_url;
+			if (isset(self::$importImageGalleryCache[$cache_key])) {
+				return self::$importImageGalleryCache[$cache_key];
 			}
 
-			/* MARK PRODUCT AS PROCESSED */
-			$processed_products[] = $product_id;
+			$existing_id = $this->findExistingGalleryImageId($product_id, $first_url);
+			if ($existing_id) {
+				self::$importImageGalleryCache[$cache_key] = $existing_id;
+				return $existing_id;
+			}
 		}
+
+		$GalleryModel = pjGalleryModel::factory();
 		$Image = new pjImage();
 
 		foreach ($images as $img) {
@@ -1801,6 +2005,10 @@ class pjAdminProductImportHistory extends pjAdmin
 				->getInsertId();
 
 			//$this->writeLog("GALLERY INSERT ID: " . $insert_id);
+
+			if ($insert_id && $first_url !== '') {
+				self::$importImageGalleryCache[$product_id . '|' . $first_url] = $insert_id;
+			}
 
 			return $insert_id;
 		}

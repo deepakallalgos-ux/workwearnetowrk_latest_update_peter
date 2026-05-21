@@ -19,7 +19,7 @@ $isScriptClientsController       = in_array($controller_name, array('pjAdminClie
 // Products
 $isScriptProductsController       = in_array($controller_name, array('pjAdminProducts'));
 $isScriptProducts = $isScriptProductsController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
-$isScriptProductsFlatFile = $isScriptProductsController && in_array($action_name, array('pjActionProductsFlatFileIndex'));
+$isScriptProductsFlatFile = $isScriptProductsController && in_array($action_name, array('pjActionProductsFlatFileIndex', 'pjActionUpdateFlatFile'));
 $isScriptProductStock = $isScriptProductsController && in_array($action_name, array('pjActionStock'));
 
 // Categories

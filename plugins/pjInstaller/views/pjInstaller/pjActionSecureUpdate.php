@@ -28,11 +28,11 @@
         <button type="button" class="btn btn-primary btn-execute-all" style="display: none">Execute</button>
 
         <div id="dialogExecuteAll" style="display: none" title="Execute confirmation">Are you sure you want to execute file(s) that are not executed yet?
-            <label class="error" style="display: none"></label>
+            <div class="alert alert-danger update-execute-error" style="display: none; margin-top: 10px;"></div>
         </div>
 
         <div id="dialogExecute" style="display: none" title="Execute confirmation">Are you sure you want to execute selected file?
-            <label class="error" style="display: none"></label>
+            <div class="alert alert-danger update-execute-error" style="display: none; margin-top: 10px;"></div>
         </div>
 
         <div id="dialogNotice" style="display: none" title="System notice"></div>

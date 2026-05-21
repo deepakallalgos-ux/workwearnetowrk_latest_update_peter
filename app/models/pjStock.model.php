@@ -17,6 +17,7 @@ class pjStockModel extends pjAppModel
 		array('name' => 'image_id', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'qty', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'price', 'type' => 'decimal', 'default' => ':NULL'),
+		array('name' => 'buying_price', 'type' => 'decimal', 'default' => ':NULL'),
 		array('name' => 'article_number', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'article_name', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'ean', 'type' => 'varchar', 'default' => ':NULL'),

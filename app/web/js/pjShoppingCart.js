@@ -160,6 +160,25 @@
 		normalizeUrl: function (url) {
 			return String(url || "").replace(/\/$/, "");
 		},
+		getCaptchaValidationRules: function () {
+			var self = this,
+				mode = String(self.options.captchaMode || "string").toLowerCase(),
+				rules = {
+					required: true,
+					remote: self.options.folder + "index.php?controller=pjFront&action=pjActionCheckCaptcha&session_id=" + self.options.session_id
+				};
+
+			if (mode === "string") {
+				var len = parseInt(self.options.captchaLength, 10) || 6;
+				rules.minlength = len;
+				rules.maxlength = len;
+			} else {
+				rules.minlength = 1;
+				rules.maxlength = 3;
+			}
+
+			return rules;
+		},
 		normalizeRoutePath: function (page) {
 			var install, match;
 
@@ -731,12 +750,7 @@
 									email: true
 								},
 								"password": "required",
-								"captcha": {
-									required: true,
-									minlength: 6,
-									maxlength: 6,
-									remote: self.options.folder + "index.php?controller=pjFront&action=pjActionCheckCaptcha&session_id=" + self.options.session_id
-								}
+								"captcha": self.getCaptchaValidationRules.call(self)
 							},
 							messages: {
 								"email": {
@@ -802,12 +816,7 @@
 									email: true
 								},
 								"password": "required",
-								"captcha": {
-									required: true,
-									minlength: 6,
-									maxlength: 6,
-									remote: self.options.folder + "index.php?controller=pjFront&action=pjActionCheckCaptcha&session_id=" + self.options.session_id
-								}
+								"captcha": self.getCaptchaValidationRules.call(self)
 							},
 							messages: {
 								"email": {
@@ -2204,12 +2213,7 @@
 								email: true
 							},
 							"friend_name": "required",
-							"captcha": {
-								required: true,
-								minlength: 6,
-								maxlength: 6,
-								remote: self.options.folder + "index.php?controller=pjFront&action=pjActionCheckCaptcha&session_id=" + self.options.session_id
-							}
+							"captcha": self.getCaptchaValidationRules.call(self)
 						},
 						messages: {
 							"your_email": {

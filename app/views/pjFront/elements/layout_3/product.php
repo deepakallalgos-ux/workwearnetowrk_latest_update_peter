@@ -461,6 +461,16 @@
 				<p class="pjScProductFullDescription"><?php echo !empty($tpl['product_arr']['full_desc']) ? stripslashes($tpl['product_arr']['full_desc']) : ''; ?></p>
 			</div>
 		<?php } ?>
+		<?php if (!empty($tpl['product_arr']['material']) || !empty($tpl['product_arr']['safety_standard'])) { ?>
+			<div class="hidden-xs pjScProductMeta">
+				<?php if (!empty($tpl['product_arr']['material'])) { ?>
+					<p class="pjScProductMaterial"><strong><?php __('front_product_material'); ?>:</strong> <?php echo pjSanitize::html($tpl['product_arr']['material']); ?></p>
+				<?php } ?>
+				<?php if (!empty($tpl['product_arr']['safety_standard'])) { ?>
+					<p class="pjScProductSafetyStandard"><strong><?php __('front_product_safety_standard'); ?>:</strong> <?php echo pjSanitize::html($tpl['product_arr']['safety_standard']); ?></p>
+				<?php } ?>
+			</div>
+		<?php } ?>
 
 		<div class="pjScSeeMoreOnMobile visible-xs">
 			<div class="pjScProductInfo">
@@ -574,6 +584,16 @@
 				<?php if (!empty($tpl['product_arr']['full_desc'])) { ?>
 					<p class="text-uppercase pjScProductDescriptionTitle"><strong><?php __('front_description'); ?></strong></p>
 					<p class="pjScProductFullDescription"><?php echo !empty($tpl['product_arr']['full_desc']) ? stripslashes($tpl['product_arr']['full_desc']) : ''; ?></p>
+				<?php } ?>
+				<?php if (!empty($tpl['product_arr']['material']) || !empty($tpl['product_arr']['safety_standard'])) { ?>
+					<div class="pjScProductMeta">
+						<?php if (!empty($tpl['product_arr']['material'])) { ?>
+							<p class="pjScProductMaterial"><strong><?php __('front_product_material'); ?>:</strong> <?php echo pjSanitize::html($tpl['product_arr']['material']); ?></p>
+						<?php } ?>
+						<?php if (!empty($tpl['product_arr']['safety_standard'])) { ?>
+							<p class="pjScProductSafetyStandard"><strong><?php __('front_product_safety_standard'); ?>:</strong> <?php echo pjSanitize::html($tpl['product_arr']['safety_standard']); ?></p>
+						<?php } ?>
+					</div>
 				<?php } ?>
 			</div>
 		</div>

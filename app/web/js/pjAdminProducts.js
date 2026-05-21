@@ -1,6 +1,5 @@
 var jQuery = jQuery || $.noConflict();
 (function ($, undefined) {
-	console.log("ffff");
 	$(function () {
 		"use strict";
 
@@ -308,18 +307,27 @@ var jQuery = jQuery || $.noConflict();
 		}
 
 		function formatImage(path, obj) {
-			var src = 'app/web/img/frontend/80x106.png';
-			if (path !== null && path.length > 0) {
+			var src = (typeof myLabel !== 'undefined' && myLabel.placeholderImage)
+				? myLabel.placeholderImage
+				: 'app/web/img/frontend/80x106.png';
+			if (path !== null && path !== undefined && String(path).length > 0) {
 				src = path;
 			}
-			return ['<a href="index.php?controller=pjAdminProducts&action=pjActionUpdate&id=', obj.id, '"><img src="', src, '" alt="" class="s-Img" /></a>'].join('');
+			return ['<a href="index.php?controller=pjAdminProducts&action=pjActionUpdate&id=', obj.id, '" class="s-Pic"><img src="', src, '" alt="" class="s-Img" /></a>'].join('');
+		}
+		function formatProductName(val, obj) {
+			var name = obj.name || '';
+			if (myLabel.has_update) {
+				var editUrl = 'index.php?controller=pjAdminProducts&action=pjActionUpdate&id=' + obj.id;
+				return '<div style="text-align:left;"><span class="s-Name"><a href="' + editUrl + '">' + name + '</a></span></div>';
+			}
+			return '<div style="text-align:left;"><span class="s-Name">' + name + '</span></div>';
 		}
 		function formatImageFlatFile(path, obj) {
-			var src = 'app/web/img/frontend/80x106.png';
-			if (path !== null && path.length > 0) {
-				src = path;
-			}
-			return ['<a href="index.php?controller=pjAdminProducts&action=pjActionUpdateFlatFile&id=', obj.id, '"><img src="', src, '" alt="" class="s-Img" /></a>'].join('');
+			return pjGridImage.link(path, 'index.php?controller=pjAdminProducts&action=pjActionUpdateFlatFile&id=' + obj.id, true);
+		}
+		function formatModelImageFlatFile(path) {
+			return pjGridImage.thumb(path, true);
 		}
 
 		function formatMinPrice(price, obj) {
@@ -344,10 +352,12 @@ var jQuery = jQuery || $.noConflict();
 			if (myLabel.has_delete) {
 				$buttons.push({ type: "delete", url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProduct&id={:id}" });
 			}
+			if (myLabel.exported) {
+				$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
+			}
 			if (myLabel.has_delete_bulk) {
 				$actions.push({ text: myLabel.delete_selected, url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProductBulk", render: true, confirmation: myLabel.delete_confirmation });
 			}
-			$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
 			if ($actions.length > 0) {
 				$select = {
 					field: "id",
@@ -357,8 +367,9 @@ var jQuery = jQuery || $.noConflict();
 			}
 			var $grid = $("#grid").datagrid({
 				buttons: $buttons,
-				columns: [{ text: myLabel.image, type: "text", sortable: true, editable: false, renderer: formatImage },
-				{ text: myLabel.name, type: "text", sortable: true, editable: $editable },
+				columns: [
+				{ text: myLabel.image, type: "text", sortable: false, editable: false, renderer: formatImage, width: 70, cellClass: 'col-product-image' },
+				{ text: myLabel.name, type: "text", align: "left", sortable: true, editable: $editable, renderer: formatProductName, width: 320, cellClass: 'col-product-name' },
 				{ text: myLabel.sku, type: "text", sortable: true, editable: $editable },
 				{ text: myLabel.stock, type: "text", sortable: true, editable: false, renderer: formatStock },
 				{ text: myLabel.price, type: "text", sortable: true, editable: false, renderer: formatMinPrice },
@@ -407,10 +418,12 @@ var jQuery = jQuery || $.noConflict();
 			if (myLabel.has_delete) {
 				$buttons.push({ type: "delete", url: "index.php?controller=pjAdminProducts&action=pjActionDeleteStock&id={:id}" });
 			}
+			if (myLabel.exported) {
+				$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
+			}
 			if (myLabel.has_delete_bulk) {
 				$actions.push({ text: myLabel.delete_selected, url: "index.php?controller=pjAdminProducts&action=pjActionDeleteProductBulk", render: true, confirmation: myLabel.delete_confirmation });
 			}
-			$actions.push({ text: myLabel.exported, url: "index.php?controller=pjAdminProducts&action=pjActionExportProduct", ajax: false });
 			if ($actions.length > 0) {
 				$select = {
 					field: "id",
@@ -425,7 +438,8 @@ var jQuery = jQuery || $.noConflict();
 
 				columns: [
 
-					{ text: myLabel.import_image, type: "text", sortable: false, editable: false, renderer: formatImageFlatFile },
+					{ text: myLabel.import_image, type: "text", sortable: false, editable: false, width: 70, cellClass: "col-product-image", renderer: formatImageFlatFile },
+					{ text: myLabel.import_model_image, type: "text", sortable: false, editable: false, width: 70, cellClass: "col-product-image", renderer: formatModelImageFlatFile },
 					{ text: myLabel.import_status, type: "toggle", sortable: true, editable: $editable, positiveClass: "pj-toggle-on", negativeClass: "pj-toggle-off", positiveLabel: myLabel.active, positiveValue: "1", negativeLabel: myLabel.inactive, negativeValue: "0" },
 					{ text: myLabel.import_model, type: "text", sortable: true, editable: true },
 
@@ -441,13 +455,19 @@ var jQuery = jQuery || $.noConflict();
 
 					{ text: myLabel.import_article_name, type: "text", sortable: true, editable: true },
 
+					{ text: myLabel.import_material, type: "text", sortable: true, editable: true },
+
 					{ text: myLabel.import_ean, type: "text", sortable: true, editable: true },
+
+					{ text: myLabel.import_safety_standard, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_size, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_color, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_stock, type: "text", sortable: true, editable: true },
+
+					{ text: myLabel.import_buying_price, type: "text", sortable: true, editable: true },
 
 					{ text: myLabel.import_price, type: "text", sortable: true, editable: true },
 
@@ -470,6 +490,7 @@ var jQuery = jQuery || $.noConflict();
 				fields: [
 
 					'image',
+					'model_image',
 					'status',
 					'model',
 					'model_name',
@@ -478,10 +499,13 @@ var jQuery = jQuery || $.noConflict();
 					'category',
 					'article_number',
 					'article_name',
+					'material',
 					'ean',
+					'safety_standard',
 					'size',
 					'color',
 					'qty',
+					'buying_price',
 					'price',
 					'name_en',
 					'short_desc_en',
@@ -558,17 +582,15 @@ var jQuery = jQuery || $.noConflict();
 						arr.push(parts[0] + ": " + parts[1]);
 					}
 				}
-				if (myLabel.has_update) {
-					return ['<a href="index.php?controller=pjAdminProducts&action=pjActionUpdate&id=', obj.product_id, '&tab=stock" class="s-Pic"><img src="', obj.pic, '" alt="" class="s-Img" /></a>',
-						'<span class="s-Name"><a href="index.php?controller=pjAdminProducts&action=pjActionUpdate&id=', obj.product_id, '&tab=4">', obj.name, '</a></span>',
-						(arr.length > 0 ? ['<span class="s-Attr">(', arr.join(", "), ')</span>'].join('') : '')
-					].join("");
-				} else {
-					return ['<a href="', 'javascript:void(0);" class="s-Pic"><img src="', obj.pic, '" alt="" class="s-Img" /></a>',
-						'<span class="s-Name"><a href="', 'javascript:void(0);">', obj.name, '</a></span>',
-						(arr.length > 0 ? ['<span class="s-Attr">(', arr.join(", "), ')</span>'].join('') : '')
-					].join("");
-				}
+				var src = (obj.pic && String(obj.pic).length > 0) ? obj.pic : ((typeof myLabel !== 'undefined' && myLabel.placeholderImage) ? myLabel.placeholderImage : 'app/web/img/frontend/80x106.png');
+				var stockUrl = 'index.php?controller=pjAdminProducts&action=pjActionUpdate&id=' + obj.product_id + '&tab=stock';
+				var picHtml = myLabel.has_update
+					? '<a href="' + stockUrl + '" class="s-Pic"><img src="' + src + '" alt="" class="s-Img" /></a>'
+					: '<span class="s-Pic"><img src="' + src + '" alt="" class="s-Img" /></span>';
+				return [picHtml,
+					'<span class="s-Name"><a href="' + (myLabel.has_update ? stockUrl : 'javascript:void(0);') + '">', obj.name, '</a></span>',
+					(arr.length > 0 ? ['<span class="s-Attr">(', arr.join(", "), ')</span>'].join('') : '')
+				].join("");
 			}
 
 			function formatPrice(val, obj) {
@@ -772,14 +794,25 @@ var jQuery = jQuery || $.noConflict();
 						$(".digitalPath").show();
 						break;
 				}
-			}).on("click", 'a[data-toggle="tab"]', function (e) {
-				if (e && e.preventDefault) {
-					e.preventDefault();
+			}).on("shown.bs.tab", '#frmUpdateProduct a[data-toggle="tab"]', function (e) {
+				var $a = $(e.target),
+					tab = $a.attr('data-tab'),
+					$form = $a.closest('form');
+				if (!tab) {
+					var hash = $a.attr('href') || '';
+					if (hash.indexOf('#product-') === 0) {
+						tab = hash.replace('#product-', '');
+					}
 				}
-				var $form = $(this).closest('form'),
-					$tab = $(this).attr('data-tab');
-				$form.find('input[name="tab"]').val($tab);
-				return false;
+				if (!tab || !$form.length) {
+					return;
+				}
+				$form.find('input[name="tab"]').val(tab);
+				if (window.history && window.history.replaceState) {
+					var url = new URL(window.location.href);
+					url.searchParams.set('tab', tab);
+					window.history.replaceState(null, '', url.toString());
+				}
 			}).on("click", ".btnDigitalDelete", function (e) {
 				if (e && e.preventDefault) {
 					e.preventDefault();
@@ -927,37 +960,143 @@ var jQuery = jQuery || $.noConflict();
 					});
 					$('#modalCopyExtra').modal('hide');
 				}
+			}).on("change", ".pj-model-image-upload", function () {
+				var $input = $(this),
+					file = this.files && this.files[0],
+					productId = $input.data("product-id") || $(":input[name='id']").val();
+
+				if (!file || !productId) {
+					return;
+				}
+
+				var formData = new FormData();
+				formData.append("model_image", file);
+				formData.append("product_id", productId);
+
+				$input.prop("disabled", true);
+
+				$.ajax({
+					url: "index.php?controller=pjAdminProducts&action=pjActionUploadModelImage",
+					type: "POST",
+					data: formData,
+					processData: false,
+					contentType: false,
+					dataType: "json"
+				}).done(function (data) {
+					if (data && data.status === "OK" && data.id) {
+						pjSelectModelImage(data.id);
+					} else {
+						swal({
+							title: myLabel.productModelImageUploadFailed,
+							text: (data && data.text) ? data.text : myLabel.productModelImageUploadFailedText,
+							type: "error",
+							confirmButtonColor: "#d9534f"
+						});
+					}
+				}).fail(function () {
+					swal({
+						title: myLabel.productModelImageUploadFailed,
+						text: myLabel.productModelImageUploadFailedText,
+						type: "error",
+						confirmButtonColor: "#d9534f"
+					});
+				}).always(function () {
+					$input.val("").prop("disabled", false);
+				});
+			}).on("click", ".pj-model-image-select", function (e) {
+				if (e && e.preventDefault) {
+					e.preventDefault();
+				}
+				pjSelectModelImage($(this).attr("rel"));
+				return false;
+			}).on("click", ".pj-model-image-delete", function (e) {
+				if (e && e.preventDefault) {
+					e.preventDefault();
+				}
+				if (e && e.stopPropagation) {
+					e.stopPropagation();
+				}
+
+				var $item = $(this).closest(".pj-model-image-item"),
+					$field = $(this).closest(".pj-model-image-field"),
+					productId = $field.data("product-id") || $(":input[name='id']").val(),
+					galleryId = $item.data("id");
+
+				if (!productId || !galleryId) {
+					return false;
+				}
+
+				swal({
+					title: "",
+					text: myLabel.delete_confirmation,
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: myLabel.btn_delete,
+					cancelButtonText: myLabel.btn_cancel,
+					closeOnConfirm: true,
+					html: true
+				}, function (isConfirm) {
+					if (isConfirm !== true) {
+						return;
+					}
+					$.post("index.php?controller=pjAdminProducts&action=pjActionDeleteModelImage", {
+						product_id: productId,
+						id: galleryId
+					}, null, "json").done(function (data) {
+						if (data && data.status === "OK") {
+							$field.find("input[name='model_image_id']").val(data.model_image_id || "");
+							pjRefreshModelImageGrid();
+						} else {
+							swal({
+								title: myLabel.productModelImageUploadFailed,
+								text: (data && data.text) ? data.text : myLabel.productModelImageUploadFailedText,
+								type: "error",
+								confirmButtonColor: "#d9534f"
+							});
+						}
+					});
+				});
+
+				return false;
 			}).on("click", ".btnImageStock", function (e) {
 				if (e && e.preventDefault) {
 					e.preventDefault();
 				}
-				// console.log("fffffff");
-				$('#modalImageStock').data("lnk", $(this)).modal('show');
+				$('#modalImageStock').data("lnk", $(this)).data("target", "stock").modal('show');
 				return false;
 			})
-			.on("click", ".stock-image", function (e) {
+			.on("click", "#modalImageStock .stock-image", function (e) {
 				if (e && e.preventDefault) {
 					e.preventDefault();
 				}
 
 				var $this = $(this),
 					id = $this.attr("rel"),
+					target = 'stock',
+					btnClass = 'btnImageStock',
+					inputSelector = "input[name^='stock_image_id']",
 					$a = $("<a>", {
 						"href": "#"
-					}).addClass("btnImageStock").attr("rel", id);
+					}).addClass(btnClass).attr("rel", id);
 
 				$("<img>", {
 					"src": $this.find("img").attr("src")
-				}).addClass("in-stock").appendTo($a);
+				}).addClass("in-stock s-Img").appendTo($a);
 
 				var $input = $('#modalImageStock')
 					.data("lnk")
-					.siblings("div")
-					.find("input[name^='stock_image_id']");
+					.closest('.form-group, td')
+					.find(inputSelector);
+				if (!$input.length) {
+					$input = $('#modalImageStock')
+						.data("lnk")
+						.siblings("div")
+						.find(inputSelector);
+				}
 
 				$input.val(id);
 
-				// ✅ SAFE VALIDATION CHECK (no crash)
 				if (
 					$input.length &&
 					$input.closest("form").length &&
@@ -965,9 +1104,9 @@ var jQuery = jQuery || $.noConflict();
 				) {
 					$input.valid();
 				}
-
 				$('#modalImageStock').data("lnk").replaceWith($a);
-				$('#modalImageStock').modal('hide');
+
+				$('#modalImageStock').removeData("target").modal('hide');
 
 				return false;
 			})
@@ -1021,7 +1160,7 @@ var jQuery = jQuery || $.noConflict();
 
 						$("<img>", {
 							"src": src
-						}).addClass("in-stock").appendTo($a);
+						}).addClass("in-stock s-Img").appendTo($a);
 
 						$btnImage.siblings("span").find("input[name^='stock_image_id']").val(id).valid();
 						$btnImage.replaceWith($a);
@@ -1176,14 +1315,56 @@ var jQuery = jQuery || $.noConflict();
 			});
 		});
 
+		function pjRefreshModelImageGrid() {
+			var $field = $(".pj-model-image-field").first();
+			if (!$field.length) {
+				return;
+			}
+			var productId = $field.data("product-id") || $(":input[name='id']").val(),
+				modelImageId = $field.find("input[name='model_image_id']").val() || 0;
+
+			if (!productId) {
+				return;
+			}
+
+			$.get("index.php?controller=pjAdminProducts&action=pjActionLoadModelImageGrid", {
+				product_id: productId,
+				model_image_id: modelImageId
+			}).done(function (html) {
+				$field.find(".pj-model-image-grid-wrap").html(html);
+			});
+		}
+
+		function pjSelectModelImage(id) {
+			var $field = $(".pj-model-image-field").first();
+			if (!$field.length) {
+				return;
+			}
+			$field.find("input[name='model_image_id']").val(id);
+			pjRefreshModelImageGrid();
+		}
+
 		$('#modalImageStock').on('shown.bs.modal', function (e) {
-			var $lnk = $(this).data("lnk");
+			var $modal = $(this),
+				$lnk = $modal.data("lnk"),
+				$title = $modal.find(".modal-title");
+
+			$title.text($title.data("default-title") || $title.text());
+
 			$.get("index.php?controller=pjAdminProducts&action=pjActionLoadImages", {
 				product_id: $(":input[name='id']").val(),
-				image_id: $lnk.attr("rel")
+				image_id: $lnk.attr("rel"),
+				picker: "stock"
 			}).done(function (data) {
-				$('#modalImageStock').find('.modal-body').html(data);
+				$modal.find('.modal-body').html(data);
 			});
+		});
+
+		$('#modalImageStock').on('show.bs.modal', function () {
+			var $title = $(this).find(".modal-title");
+			if (!$title.data("default-title")) {
+				$title.data("default-title", $title.text());
+			}
 		});
 
 		function getUrlParameter(sParam, sPageURL) {

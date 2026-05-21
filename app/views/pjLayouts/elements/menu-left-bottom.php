@@ -10,27 +10,13 @@ $isScriptPreview = $controller_name == 'pjAdminOptions' && $action_name == 'pjAc
 
 $isScriptInstall = $controller_name == 'pjAdminOptions' && $action_name == 'pjActionInstall';
 
-$isScriptSetup = $controller_name == 'pjAdminSetup' && $action_name == 'pjActionWelcome';
-
-
-
 $hasAccessScriptPreview = pjAuth::factory('pjAdminOptions', 'pjActionPreview')->hasAccess();
 
 $hasAccessScriptInstall = pjAuth::factory('pjAdminOptions', 'pjActionInstall')->hasAccess();
 
-$hasAccessScriptSetup = pjAuth::factory('pjAdminSetup', 'pjActionWelcome')->hasAccess();
-
 ?>
 
-<?php if ($hasAccessScriptSetup): ?>
-
-    <li<?php echo $isScriptSetup ? ' class="active"' : NULL; ?>>
-
-        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSetup&amp;action=pjActionWelcome"><i class="fa fa-magic"></i> <span class="nav-label"><?php __('menuSetupWizard'); ?></span></a>
-
-    </li>
-
-<?php endif; ?>
+<?php /* Setup wizard (demo data) hidden — re-enable when client wants post-install screen again. */ ?>
 
 <?php if ($hasAccessScriptPreview): ?>
 

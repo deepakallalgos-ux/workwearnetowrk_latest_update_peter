@@ -96,6 +96,16 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
                     </div>
 
                     <div class="form-group">
+                        <label><?php __('product_material'); ?></label>
+                        <input name="material" class="form-control" value="<?php echo pjSanitize::html(@$arr['material']); ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label><?php __('product_safety_standard'); ?></label>
+                        <input name="safety_standard" class="form-control" value="<?php echo pjSanitize::html(@$arr['safety_standard']); ?>">
+                    </div>
+
+                    <div class="form-group">
                         <label><?php __('product_article_number'); ?></label>
                         <input name="stock_article_number[<?php echo $stock['id']; ?>]" class="form-control"
                             value="<?php echo $stock['article_number']; ?>">
@@ -117,6 +127,12 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
                         <label><?php __('product_stock_qty'); ?></label>
                         <input name="stock_qty[<?php echo $stock['id']; ?>]" class="form-control"
                             value="<?php echo $stock['qty']; ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label><?php __('product_stock_buying_price'); ?></label>
+                        <input name="stock_buying_price[<?php echo $stock['id']; ?>]" class="form-control"
+                            value="<?php echo isset($stock['buying_price']) ? $stock['buying_price'] : ''; ?>">
                     </div>
 
                     <div class="form-group">
@@ -162,7 +178,7 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
                         <?php if (!empty($stock['small_path'])) { ?>
                             <a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btnImageStock" rel="<?php echo $stock['image_id']; ?>">
                                 <img src="<?php echo PJ_INSTALL_URL . $stock['small_path']; ?>"
-                                    class="in-stock"
+                                    class="in-stock s-Img"
                                     style="max-width:350px;">
                             </a>
                         <?php } else { ?>
@@ -171,10 +187,11 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
                             </a>
                         <?php } ?>
                         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminProducts&action=pjActionUpdate&id=<?php echo $stock['product_id']; ?>&tab=photos"
-                            class="ladda-button btn btn-primary btn-lg btn-phpjabbers-loader"
+                            class="btn btn-primary btn-outline"
                             style="margin-left:10px;">
                             <?php __('lblUploadManageImages') ?>
                         </a>
+                          
                         <div class="boxStockImageId">
                             <div class="form-group">
                                 <input type="hidden"
@@ -183,6 +200,15 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
                                     class="required" />
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-group m-t-md">
+                        <label class="control-label"><?php __('product_model_image_tab'); ?></label>
+                        <p class="text-muted small m-b-sm"><?php __('lblProductModelImageTabLead'); ?></p>
+                        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminProducts&amp;action=pjActionUpdate&amp;id=<?php echo (int) $arr['id']; ?>&amp;tab=model_image"
+                            class="btn btn-primary btn-outline">
+                            <i class="fa fa-user m-r-xs"></i> <?php __('product_model_image_tab'); ?>
+                        </a>
                     </div>
 
                     <div class="modal fade" id="modalImageStock" tabindex="-1" role="dialog" aria-labelledby="myImageStockibutesLabel">
@@ -228,7 +254,7 @@ $category_name = isset($tpl['category_name']) ? $tpl['category_name'] : '';
 
         if (model) {
             model.addEventListener("change", function() {
-                alert("WARNING: If you change the model you break the product family.");
+                alert(<?php echo pjAppController::jsonEncode(__('product_flatfile_model_change_warning', true)); ?>);
             });
         }
 
