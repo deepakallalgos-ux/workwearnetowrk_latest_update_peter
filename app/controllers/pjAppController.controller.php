@@ -1421,6 +1421,137 @@ class pjAppController extends pjBaseAppController
 		return class_exists('pjInvoiceModel', false);
 	}
 
+	/**
+	 * Allowed company IDs for a client (client_companies + legacy clients.company_id).
+	 *
+	 * @param int $client_id
+	 * @return int[]
+	 */
+	public static function getClientAllowedCompanyIds($client_id)
+	{
+		$client_id = (int) $client_id;
+		if ($client_id <= 0) {
+			return array();
+		}
+
+		$ids = pjClientCompanyModel::factory()
+			->where('t1.client_id', $client_id)
+			->findAll()
+			->getDataPair(null, 'company_id');
+
+		$ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids))));
+
+		if (empty($ids)) {
+			$client = pjClientModel::factory()->find($client_id)->getData();
+			if (!empty($client['company_id'])) {
+				$ids = array((int) $client['company_id']);
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Resolve owning company for a product/stock row.
+	 *
+	 * @param int|null $product_id
+	 * @param int|null $stock_id
+	 * @return int
+	 */
+	public static function resolveProductCompanyId($product_id = null, $stock_id = null)
+	{
+		if (!empty($stock_id)) {
+			$stock = pjStockModel::factory()->find((int) $stock_id)->getData();
+			if (!empty($stock['company_id'])) {
+				return (int) $stock['company_id'];
+			}
+			if (!empty($stock['product_id'])) {
+				$product_id = (int) $stock['product_id'];
+			}
+		}
+
+		if (!empty($product_id)) {
+			$product = pjProductModel::factory()->find((int) $product_id)->getData();
+			if (!empty($product['company_id'])) {
+				return (int) $product['company_id'];
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Whether a logged-in client may quote a product from the given company.
+	 *
+	 * @param int      $client_id
+	 * @param int|null $product_id
+	 * @param int|null $stock_id
+	 * @param int[]|null $allowed_ids Optional preloaded allowed list
+	 * @return array{ok:bool,code?:int,label?:string}
+	 */
+	public static function validateClientProductCompany($client_id, $product_id = null, $stock_id = null, $allowed_ids = null)
+	{
+		$allowed = is_array($allowed_ids) ? $allowed_ids : self::getClientAllowedCompanyIds($client_id);
+		if (empty($allowed)) {
+			return array(
+				'ok'    => false,
+				'code'  => 901,
+				'label' => 'front_company_selection_required',
+			);
+		}
+
+		$product_company_id = self::resolveProductCompanyId($product_id, $stock_id);
+		if ($product_company_id > 0 && !in_array($product_company_id, $allowed, true)) {
+			return array(
+				'ok'    => false,
+				'code'  => 902,
+				'label' => 'front_company_not_selected_error',
+			);
+		}
+
+		return array('ok' => true);
+	}
+
+	/**
+	 * Validate every cart line against the client's selected companies.
+	 *
+	 * @param int   $client_id
+	 * @param array $cart_arr Rows from cart component
+	 * @return array{ok:bool,code?:int,label?:string}
+	 */
+	public static function validateClientCartCompanies($client_id, $cart_arr)
+	{
+		$allowed = self::getClientAllowedCompanyIds($client_id);
+		if (empty($allowed)) {
+			return array(
+				'ok'    => false,
+				'code'  => 901,
+				'label' => 'front_company_selection_required',
+			);
+		}
+
+		if (!is_array($cart_arr)) {
+			return array('ok' => true);
+		}
+
+		foreach ($cart_arr as $cart_item) {
+			if ((int) ($cart_item['is_cart'] ?? 0) !== 1) {
+				continue;
+			}
+			$check = self::validateClientProductCompany(
+				$client_id,
+				isset($cart_item['product_id']) ? $cart_item['product_id'] : null,
+				isset($cart_item['stock_id']) ? $cart_item['stock_id'] : null,
+				$allowed
+			);
+			if (!$check['ok']) {
+				return $check;
+			}
+		}
+
+		return array('ok' => true);
+	}
+
 	protected function pjActionEnsureInvoice($order_id)
 	{
 		if (!self::isInvoicePluginAvailable() || (int) $order_id <= 0) {

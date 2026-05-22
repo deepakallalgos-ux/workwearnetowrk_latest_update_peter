@@ -187,14 +187,14 @@ $latest_id = !empty($latest_import) ? (int) $latest_import[0]['latest_id'] : 0;
 
 <?php if ($hasAccessScriptBookingsIndex): ?>
     <li<?php echo $isScriptBookings ? ' class="active"' : NULL; ?>>
-        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminOrders&amp;action=pjActionIndex"><i class="fa fa-list-ul"></i> <span class="nav-label"><?php __('menuOrders'); ?></span></a>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminOrders&amp;action=pjActionIndex"><i class="fa fa-list-ul"></i> <span class="nav-label"><?php __('menuQuotes'); ?></span></a>
     </li>
 <?php endif; ?>
-<?php if ($hasAccessScriptQuotesIndex): ?>
+<!-- <?php if ($hasAccessScriptQuotesIndex): ?>
     <li<?php echo $isScriptQuotes ? ' class="active"' : NULL; ?>>
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminQuotes&amp;action=pjActionIndex"><i class="fa fa-file-text-o"></i> <span class="nav-label"><?php __('menuQuotes'); ?></span></a>
     </li>
-<?php endif; ?>
+<?php endif; ?> -->
 
 <?php if ($hasAccessScriptClientsIndex): ?>
     <li<?php echo $isScriptClientsController ? ' class="active"' : NULL; ?>>

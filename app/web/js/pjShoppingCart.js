@@ -285,12 +285,29 @@
 
 			return false;
 		},
+		// onHashChange: function () {
+		// 	var self = this;
+		// 	var hash = self.getHash.call(self);
+
+		// 	for (var i = 0; i < routes.length; i++) {
+		// 		var match = hash.match(routes[i].pattern);
+		// 		if (match !== null) {
+		// 			pjQ.$(window).trigger(routes[i].eventName, match.slice(1));
+		// 			return true;
+		// 		}
+		// 	}
+
+		// 	pjQ.$(window).trigger("loadProducts");
+		// 	return true;
+		// },
 		onHashChange: function () {
 			var self = this;
 			var hash = self.getHash.call(self);
+			var routePath = String(hash || '').split('?')[0];
 
 			for (var i = 0; i < routes.length; i++) {
-				var match = hash.match(routes[i].pattern);
+				var match = routePath.match(routes[i].pattern);
+
 				if (match !== null) {
 					pjQ.$(window).trigger(routes[i].eventName, match.slice(1));
 					return true;
@@ -589,18 +606,24 @@
 				"session_id": this.options.session_id
 			}).done(function (data) {
 				self.$container.html(data);
+				self.initCompanyMultiselect.call(self);
 
 				if (validate) {
 					if (self.options.layout != '3') {
 						var $form = self.$container.find(".scSelectorProfileForm");
-						$form.validate({
-							rules: {
-								"email": {
-									required: true,
-									email: true
-								},
-								"password": "required"
+						var profileRules = {
+							"email": {
+								required: true,
+								email: true
 							},
+							"password": "required"
+						};
+						if ($form.find(".scSelectorCompanyIds").length) {
+							profileRules["company_ids[]"] = { companyIdsRequired: true };
+						}
+						$form.validate({
+							ignore: ":hidden:not(.select2-hidden-accessible)",
+							rules: profileRules,
 							messages: {
 								"email": {
 									required: $form.find("input[name='email']").attr('data-err'),
@@ -609,13 +632,21 @@
 								"password": $form.find("input[name='password']").attr('data-err'),
 								"client_name": $form.find("input[name='client_name']").attr('data-err'),
 								"phone": $form.find("input[name='phone']").attr('data-err'),
-								"url": $form.find("input[name='url']").attr('data-err')
+								"url": $form.find("input[name='url']").attr('data-err'),
+								"company_ids[]": $form.find(".scSelectorCompanyIds").data("msg-required") || $form.attr("data-company-err") || "Please select at least one company."
 							},
 							onkeyup: false,
 							onclick: false,
 							onfocusout: false,
 							errorClass: "scError",
 							validClass: "scValid",
+							errorPlacement: function (error, element) {
+								if (element.hasClass("scSelectorCompanyIds")) {
+									self.placeCompanyFieldError.call(self, error, element);
+									return;
+								}
+								error.insertAfter(element);
+							},
 							submitHandler: function (form) {
 								self.disableButtons.call(self);
 								var $form = pjQ.$(form);
@@ -646,14 +677,19 @@
 						});
 					} else {
 						var $form = self.$container.find(".scSelectorProfileForm");
-						$form.validate({
-							rules: {
-								"email": {
-									required: true,
-									email: true
-								},
-								"password": "required"
+						var profileRules = {
+							"email": {
+								required: true,
+								email: true
 							},
+							"password": "required"
+						};
+						if ($form.find(".scSelectorCompanyIds").length) {
+							profileRules["company_ids[]"] = { companyIdsRequired: true };
+						}
+						$form.validate({
+							ignore: ":hidden:not(.select2-hidden-accessible)",
+							rules: profileRules,
 							messages: {
 								"email": {
 									required: $form.find("input[name='email']").attr('data-err'),
@@ -662,13 +698,18 @@
 								"password": $form.find("input[name='password']").attr('data-err'),
 								"client_name": $form.find("input[name='client_name']").attr('data-err'),
 								"phone": $form.find("input[name='phone']").attr('data-err'),
-								"url": $form.find("input[name='url']").attr('data-err')
+								"url": $form.find("input[name='url']").attr('data-err'),
+								"company_ids[]": $form.find(".scSelectorCompanyIds").data("msg-required") || $form.attr("data-company-err") || "Please select at least one company."
 							},
 							onkeyup: false,
 							onclick: false,
 							onfocusout: false,
 							errorPlacement: function (error, element) {
 								var $parent = element.parent();
+								if (element.hasClass("scSelectorCompanyIds")) {
+									self.placeCompanyFieldError.call(self, error, element);
+									return;
+								}
 								if (element.attr('name') == 'captcha') {
 									error.insertAfter(element.parent().parent());
 								} else {
@@ -739,19 +780,25 @@
 				"session_id": this.options.session_id
 			}).done(function (data) {
 				self.$container.html(data);
+				self.initCompanyMultiselect.call(self);
 
 				if (validate) {
 					if (self.options.layout != '3') {
 						var $form = self.$container.find(".scSelectorRegisterForm");
-						$form.validate({
-							rules: {
-								"email": {
-									required: true,
-									email: true
-								},
-								"password": "required",
-								"captcha": self.getCaptchaValidationRules.call(self)
+						var registerRules = {
+							"email": {
+								required: true,
+								email: true
 							},
+							"password": "required",
+							"captcha": self.getCaptchaValidationRules.call(self)
+						};
+						if ($form.find(".scSelectorCompanyIds").length) {
+							registerRules["company_ids[]"] = { companyIdsRequired: true };
+						}
+						$form.validate({
+							ignore: ":hidden:not(.select2-hidden-accessible)",
+							rules: registerRules,
 							messages: {
 								"email": {
 									required: $form.find("input[name='email']").attr('data-err'),
@@ -761,6 +808,7 @@
 								"client_name": $form.find("input[name='client_name']").attr('data-err'),
 								"phone": $form.find("input[name='phone']").attr('data-err'),
 								"url": $form.find("input[name='url']").attr('data-err'),
+								"company_ids[]": $form.find(".scSelectorCompanyIds").data("msg-required") || $form.attr("data-company-err") || "Please select at least one company.",
 								"captcha": {
 									required: $form.find("input[name='captcha']").attr('data-err'),
 									remote: $form.find("input[name='captcha']").attr('data-captcha')
@@ -772,6 +820,10 @@
 							errorClass: "scError",
 							validClass: "scValid",
 							errorPlacement: function (error, element) {
+								if (element.hasClass("scSelectorCompanyIds")) {
+									self.placeCompanyFieldError.call(self, error, element);
+									return;
+								}
 								error.insertAfter(element);
 							},
 							submitHandler: function (form) {
@@ -787,7 +839,8 @@
 											.addClass("scNoticeSuccess")
 											.prepend(pjQ.$("<div>").addClass("scNoticeIcon"))
 											.show();
-										$form.find(":input").not(":button, :submit, :reset, :hidden").val("").removeAttr("checked").removeAttr("selected");
+										$form.find(":input").not(":button, :submit, :reset, :hidden, .select2-hidden-accessible").val("").removeAttr("checked").removeAttr("selected");
+										self.clearCompanyMultiselect.call(self, $form);
 										var $captcha = $form.find(".scSelectorCaptcha").eq(0);
 										$captcha.attr("src", $captcha.attr("src").replace(/(&rand=)\d+/g, '\$1' + Math.ceil(Math.random() * 99999)));
 									} else if (data.status == "ERR") {
@@ -809,15 +862,20 @@
 						});
 					} else {
 						var $form = self.$container.find(".scSelectorRegisterForm");
-						$form.validate({
-							rules: {
-								"email": {
-									required: true,
-									email: true
-								},
-								"password": "required",
-								"captcha": self.getCaptchaValidationRules.call(self)
+						var registerRules = {
+							"email": {
+								required: true,
+								email: true
 							},
+							"password": "required",
+							"captcha": self.getCaptchaValidationRules.call(self)
+						};
+						if ($form.find(".scSelectorCompanyIds").length) {
+							registerRules["company_ids[]"] = { companyIdsRequired: true };
+						}
+						$form.validate({
+							ignore: ":hidden:not(.select2-hidden-accessible)",
+							rules: registerRules,
 							messages: {
 								"email": {
 									required: $form.find("input[name='email']").attr('data-err'),
@@ -827,6 +885,7 @@
 								"client_name": $form.find("input[name='client_name']").attr('data-err'),
 								"phone": $form.find("input[name='phone']").attr('data-err'),
 								"url": $form.find("input[name='url']").attr('data-err'),
+								"company_ids[]": $form.find(".scSelectorCompanyIds").data("msg-required") || $form.attr("data-company-err") || "Please select at least one company.",
 								"captcha": {
 									required: $form.find("input[name='captcha']").attr('data-err'),
 									remote: $form.find("input[name='captcha']").attr('data-captcha')
@@ -837,6 +896,10 @@
 							onfocusout: false,
 							errorPlacement: function (error, element) {
 								var $parent = element.parent();
+								if (element.hasClass("scSelectorCompanyIds")) {
+									self.placeCompanyFieldError.call(self, error, element);
+									return;
+								}
 								if (element.attr('name') == 'captcha') {
 									error.insertAfter(element.parent().parent());
 								} else {
@@ -884,6 +947,7 @@
 										$form.find("input[name='client_name']").val("");
 										$form.find("input[name='phone']").val("");
 										$form.find("input[name='url']").val("");
+										self.clearCompanyMultiselect.call(self, $form);
 										$form.find("input[name='captcha']").val("").removeData("previousValue");
 										var $captcha = $form.find(".scSelectorCaptcha").eq(0);
 										$captcha.attr("src", $captcha.attr("src").replace(/(&rand=)\d+/g, '\$1' + Math.ceil(Math.random() * 99999)));
@@ -912,6 +976,65 @@
 		},
 		enableButtons: function () {
 			this.$container.find(".scSelectorButton").removeAttr("disabled");
+		},
+		initCompanyMultiselect: function () {
+			if (typeof pjQ.$.fn.select2 !== "function") {
+				if (typeof window.pjFrontSelect2Bridge === "function") {
+					window.pjFrontSelect2Bridge();
+				} else if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.select2 === "function") {
+					pjQ.$.fn.select2 = window.jQuery.fn.select2;
+				}
+			}
+			if (typeof pjQ.$.fn.select2 !== "function") {
+				return;
+			}
+			if (typeof pjQ.$.validator !== "undefined" && !pjQ.$.validator.methods.companyIdsRequired) {
+				pjQ.$.validator.addMethod("companyIdsRequired", function (value, element) {
+					var val = pjQ.$(element).val();
+					if (val === null || val === undefined || val === "") {
+						return false;
+					}
+					return !pjQ.$.isArray(val) || val.length > 0;
+				}, function (params, element) {
+					return pjQ.$(element).data("msg-required") || "Please select at least one company.";
+				});
+			}
+			this.$container.find(".scSelectorCompanyIds").each(function () {
+				var $el = pjQ.$(this);
+				if ($el.data("select2")) {
+					$el.select2("destroy");
+				}
+				$el.select2({
+					placeholder: $el.data("placeholder") || "Select companies",
+					allowClear: true,
+					width: "100%",
+					closeOnSelect: false,
+					dropdownParent: $el.closest("[id^='pjWrapper']").length ? $el.closest("[id^='pjWrapper']") : pjQ.$("body")
+				}).on("change.companySelect", function () {
+					pjQ.$(this).valid();
+					pjQ.$(this).closest(".pjScCompanyField").removeClass("has-error");
+				});
+			});
+		},
+		placeCompanyFieldError: function (error, element) {
+			var $el = pjQ.$(element),
+				$field = $el.closest(".pjScCompanyField");
+			if ($field.length === 0) {
+				$field = $el.closest(".form-group");
+			}
+			var $container = $el.next(".select2-container");
+			if ($container.length) {
+				error.insertAfter($container);
+			} else {
+				error.insertAfter($el);
+			}
+			$field.addClass("has-error");
+		},
+		clearCompanyMultiselect: function ($form) {
+			var $el = $form.find(".scSelectorCompanyIds");
+			if ($el.length) {
+				$el.val(null).trigger("change");
+			}
 		},
 		addToFavs: function () {
 			var self = this,
@@ -1095,6 +1218,14 @@
 			this.disableButtons.call(this);
 			pjQ.$.post([this.options.folder, "index.php?controller=pjFrontCart&action=pjActionAdd", "&session_id=", self.options.session_id].join(""), qs).done(function (data) {
 				var prefix = (self.options.pagePrefix) ? self.options.pagePrefix + "-" : "";
+				if (data && data.status === "ERR") {
+					window.alert(data.text || "Unable to add this product.");
+					if (parseInt(data.code, 10) === 903) {
+						self.hashBang("/" + prefix + "login");
+					}
+					self.enableButtons.call(self);
+					return;
+				}
 				self.hashBang("/" + prefix + "cart");
 			}).fail(function () {
 				self.enableButtons.call(self);
@@ -1480,6 +1611,100 @@
 				log("Deferred is rejected");
 			});
 		},
+		_restoreVariantSelection: function () {
+			var self = this;
+			var params = new URLSearchParams(window.location.search || '');
+
+			function normalize(value) {
+				return String(value || '').trim().toLowerCase();
+			}
+
+			function getParamValue($select) {
+				var label = normalize($select.closest('.form-group').find('label').first().text());
+
+				if (label === 'size' && params.has('size')) {
+					return params.get('size');
+				}
+
+				if (label === 'color' && params.has('color')) {
+					return params.get('color');
+				}
+
+				return null;
+			}
+
+			function setSelectByText($select, value) {
+				var wanted = normalize(value);
+
+				$select.find('option').each(function () {
+					if (normalize(pjQ.$(this).text()) === wanted) {
+						$select.val(pjQ.$(this).val());
+						return false;
+					}
+				});
+			}
+
+			function processSelect(index) {
+				var $selects = self.$container.find('.scSelectorAttr');
+
+				if (index >= $selects.length) {
+					return;
+				}
+
+				var $select = pjQ.$($selects[index]);
+				var paramValue = getParamValue($select);
+
+				if (paramValue) {
+					setSelectByText($select, paramValue);
+				}
+
+				if ($select.val()) {
+					$select.trigger('change');
+
+					setTimeout(function () {
+						processSelect(index + 1);
+					}, 100);
+				} else {
+					processSelect(index + 1);
+				}
+			}
+
+			setTimeout(function () {
+				processSelect(0);
+			}, 100);
+		},
+
+		_updateAttrUrlParams: function () {
+			if (!window.history || !window.history.replaceState) {
+				return;
+			}
+
+			var params = new URLSearchParams(window.location.search || '');
+
+			this.$container.find('.scSelectorAttr').each(function () {
+				var $select = pjQ.$(this);
+				var label = String($select.closest('.form-group').find('label').first().text() || '').trim().toLowerCase();
+
+				if (label !== 'size' && label !== 'color') {
+					return;
+				}
+
+				params.delete(label);
+
+				if ($select.val()) {
+					var text = $select.find('option:selected').text().trim();
+
+					if (text) {
+						params.set(label, text);
+					}
+				}
+			});
+
+			var query = params.toString();
+			var newUrl = window.location.pathname + (query ? '?' + query : '');
+
+			window.history.replaceState({}, '', newUrl);
+		},
 		priceStock: function () {
 			var m, $el, qs, i, iCnt, j, productObj = {}, $qty,
 				$thumb, src, href,
@@ -1782,6 +2007,7 @@
 				self.loopAttr.call(self, this);
 				self.priceStock.call(self);
 				self.checkFavs.call(self);
+				self._updateAttrUrlParams.call(self);
 			}).on("click.sc", ".scSelectorSpin", function (e) {
 				if (e && e.preventDefault) {
 					e.preventDefault();
@@ -2537,6 +2763,8 @@
 					self.priceStocks = parseFloat(pjQ.$('.scInputMinPrice').val());
 					self.unitPrice = self.priceStocks;
 					self.checkFavs.call(self);
+					// self._updateAttrUrlParams.call(self);
+					self._restoreVariantSelection.call(self);
 					pjQ.$('.modal-dialog').css("z-index", "9999");
 					if (fancybox) {
 						self.$container.find("a[rel=fancy_group]").fancybox();

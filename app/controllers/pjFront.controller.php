@@ -11,6 +11,12 @@ class pjFront extends pjAppController
 
 	public $defaultUser = 'SCart_Client';
 
+	/**
+	 * Stores selected company IDs for the logged client.
+	 * Array of integers.
+	 */
+	public $defaultClientCompanies = 'SCart_ClientCompanies';
+
 	public $defaultVoucher = 'SCart_Voucher';
 
 	public $defaultCookie = 'SCart_Cookie';
@@ -86,10 +92,19 @@ class pjFront extends pjAppController
 
 			$this->set('locale_arr', $locale_arr);
 		}
-		if (isset($company_id)) {
-			$hidden_ids_arr = pjProductModel::factory()->where('t1.company_id', $company_id)->where('t1.status', 2)->findAll()->getDataPair('id', 'id');
+		// Guest: do not restrict product visibility by company.
+		// Logged client: restrict to current active company (which is enforced to be allowed).
+		if ($this->isLoged() && isset($company_id) && (int) $company_id > 0) {
+			$hidden_ids_arr = pjProductModel::factory()
+				->where('t1.company_id', (int) $company_id)
+				->where('t1.status', 2)
+				->findAll()
+				->getDataPair('id', 'id');
 		} else {
-			$hidden_ids_arr = pjProductModel::factory()->where('t1.status', 2)->findAll()->getDataPair('id', 'id');
+			$hidden_ids_arr = pjProductModel::factory()
+				->where('t1.status', 2)
+				->findAll()
+				->getDataPair('id', 'id');
 		}
 		$this->set('hidden_ids_arr', $hidden_ids_arr);
 	}
@@ -100,6 +115,11 @@ class pjFront extends pjAppController
 
 		$result = parent::beforeFilter();
 
+		// If client is logged and has selected companies, make sure current company is one of them.
+		if ($this->isLoged()) {
+			$this->pjActionEnforceSelectedCompanies();
+		}
+
 		if (!empty($this->option_arr['o_install_url']))
 		{
 			$this->option_arr['o_install_url'] = pjUtil::getStorefrontBaseUrl($this->option_arr['o_install_url']);
@@ -108,6 +128,84 @@ class pjFront extends pjAppController
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Returns array of allowed company IDs for current logged client.
+	 * Falls back to client.company_id for legacy accounts.
+	 *
+	 * @return int[]
+	 */
+	protected function pjActionGetClientCompanyIds($forceReload = false)
+	{
+		if (!$this->isLoged()) {
+			return array();
+		}
+
+		if (!$forceReload && isset($_SESSION[$this->defaultClientCompanies]) && is_array($_SESSION[$this->defaultClientCompanies])) {
+			return $_SESSION[$this->defaultClientCompanies];
+		}
+
+		$client_id = (int) $this->getUserId();
+		$ids = pjClientCompanyModel::factory()
+			->where('t1.client_id', $client_id)
+			->findAll()
+			->getDataPair(null, 'company_id');
+
+		$ids = array_values(array_unique(array_filter(array_map('intval', (array) $ids))));
+
+		// Fallback for old data (single company_id in clients table)
+		if (empty($ids) && !empty($_SESSION[$this->defaultUser]['company_id'])) {
+			$ids = array((int) $_SESSION[$this->defaultUser]['company_id']);
+		}
+
+		$_SESSION[$this->defaultClientCompanies] = $ids;
+		return $ids;
+	}
+
+	/**
+	 * Ensure current active company (admin_selected_company) is allowed for the logged client.
+	 * If not, automatically switch it to the first allowed company.
+	 *
+	 * @return void
+	 */
+	protected function pjActionEnforceSelectedCompanies()
+	{
+		$allowed = $this->pjActionGetClientCompanyIds();
+		if (empty($allowed)) {
+			return;
+		}
+
+		$current_company_id = pjUtil::getActiveCompanyId($this->defaultCompany);
+		$current_company_id = (int) $current_company_id;
+
+		if ($current_company_id > 0 && in_array($current_company_id, $allowed, true)) {
+			return;
+		}
+
+		// Switch session+cookie to the first allowed company
+		$first = (int) $allowed[0];
+		if ($first > 0) {
+			pjUtil::bootstrapPreviewCompanySession($first, $this->defaultCompany);
+		}
+	}
+
+	/**
+	 * Ensure quote cart only contains products from companies selected on register/profile.
+	 *
+	 * @return array{ok:bool,code?:int,label?:string}
+	 */
+	protected function pjActionValidateQuoteCartCompanies()
+	{
+		if (!$this->isLoged()) {
+			return array(
+				'ok'    => false,
+				'code'  => 903,
+				'label' => 'front_login_required',
+			);
+		}
+
+		return pjAppController::validateClientCartCompanies((int) $this->getUserId(), $this->get('cart_arr'));
 	}
 
 	public function beforeRender()
@@ -806,6 +904,8 @@ class pjFront extends pjAppController
 			array('file' => 'pjQuery.fancybox.css', 'path' => $dm->getPath('pj_fancybox')),
 			array('file' => 'assets/owl.carousel.min.css', 'path' => $dm->getPath('pj_owlcarousel')),
 			array('file' => 'css/swiper-bundle.min.css', 'path' => $dm->getPath('pj_swiper'), 'replace' => false),
+			array('file' => 'css/select2.min.css', 'path' => $dm->getPath('select2'), 'replace' => false),
+			array('file' => 'storefront-company-select.css', 'path' => PJ_CSS_PATH),
 			array('file' => $theme . '.css', 'path' => PJ_CSS_PATH)
 		);
 		header("Content-Type: text/css; charset=utf-8");

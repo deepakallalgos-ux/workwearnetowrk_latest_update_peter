@@ -102,6 +102,18 @@ class pjFrontPublic extends pjFront
 				$this->set('status', 'IP_BLOCKED');
 			} else {
 				if ($this->_post->check('sc_checkout')) {
+					// Require login before checkout/quote/order
+					if (!$this->isLoged()) {
+						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 903, 'text' => __('front_login_required', true)));
+					}
+					$cart_company_check = $this->pjActionValidateQuoteCartCompanies();
+					if (!$cart_company_check['ok']) {
+						pjAppController::jsonResponse(array(
+							'status' => 'ERR',
+							'code'   => $cart_company_check['code'],
+							'text'   => __($cart_company_check['label'], true),
+						));
+					}
 					if ((int) $this->option_arr['o_bf_captcha'] === 3 && $this->option_arr['o_captcha_type_front'] == 'system') {
 						if (
 							!$this->_post->check('captcha') || !pjValidation::pjActionNotEmpty($this->_post->toString('captcha')) ||
@@ -115,8 +127,17 @@ class pjFrontPublic extends pjFront
 					$_SESSION[$this->defaultForm] = $this->_post->raw();
 					pjAppController::jsonResponse(array('status' => 'OK', 'code' => 211, 'text' => __('system_211', true)));
 				} else {
-					if (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
-						if (
+					if (!$this->isLoged()) {
+						$this->set('status', 'ERR');
+						$this->set('code', 'LOGIN_REQUIRED');
+						$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
+					} elseif (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
+						$cart_company_check = $this->pjActionValidateQuoteCartCompanies();
+						if (!$cart_company_check['ok']) {
+							$this->set('status', 'ERR');
+							$this->set('code', $cart_company_check['code']);
+							$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
+						} elseif (
 							$this->pjActionShowShipping() && (!isset($_SESSION[$this->defaultTax]) || empty($_SESSION[$this->defaultTax])) &&
 							0 < pjTaxModel::factory()->findCount()->getData()
 						) {
@@ -240,6 +261,20 @@ class pjFrontPublic extends pjFront
 			if ($is_ip_blocked == true) {
 				$this->set('status', 'IP_BLOCKED');
 			} else {
+				// Require login before preview/order processing
+				if (!$this->isLoged()) {
+					$this->set('status', 'ERR');
+					$this->set('code', 'LOGIN_REQUIRED');
+					$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
+					return;
+				}
+				$cart_company_check = $this->pjActionValidateQuoteCartCompanies();
+				if (!$cart_company_check['ok']) {
+					$this->set('status', 'ERR');
+					$this->set('code', $cart_company_check['code']);
+					$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
+					return;
+				}
 				if (!$this->cart->isEmpty() && !pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
 					if (
 						$this->pjActionShowShipping() && (!isset($_SESSION[$this->defaultTax]) || empty($_SESSION[$this->defaultTax])) &&
@@ -312,10 +347,6 @@ class pjFrontPublic extends pjFront
 
 					$pjClientModel = pjClientModel::factory();
 
-					if (isset($company_id) && (int)$company_id > 0) {
-						$pjClientModel->where('t1.company_id', $company_id);
-					}
-
 					$arr = $pjClientModel->where('t1.email', $this->_post->toString('email'))->limit(1)->findAll()->getData();
 					if (empty($arr)) {
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 121, 'text' => __('system_121', true)));
@@ -331,6 +362,18 @@ class pjFrontPublic extends pjFront
 					$pjClientModel->reset()->set('id', $arr['id'])->modify(array('last_login' => ':NOW()'));
 
 					$_SESSION[$this->defaultUser] = $arr;
+					// Load selected companies for this client
+					$allowed = pjClientCompanyModel::factory()
+						->where('t1.client_id', (int) $arr['id'])
+						->findAll()
+						->getDataPair(null, 'company_id');
+					$allowed = array_values(array_unique(array_filter(array_map('intval', (array) $allowed))));
+					if (empty($allowed) && !empty($arr['company_id'])) {
+						$allowed = array((int) $arr['company_id']);
+					}
+					$_SESSION[$this->defaultClientCompanies] = $allowed;
+					// Ensure current active company is allowed (auto-switch if not)
+					$this->pjActionEnforceSelectedCompanies();
 					# ---
 					$hash = md5(PJ_SALT . $this->getUserId());
 					$this->cart->transform($hash);
@@ -443,10 +486,16 @@ class pjFrontPublic extends pjFront
 				$company_id = isset($_SESSION[$this->defaultCompany]['id']) ? (int) $_SESSION[$this->defaultCompany]['id'] : null;
 
 				$pjClientModel = pjClientModel::factory();
-				if (isset($company_id) && (int)$company_id > 0) {
-					$pjClientModel->where('t1.company_id', $company_id);
-				}
+
 				if ($this->_post->check('sc_profile')) {
+					$post_raw = $this->_post->raw();
+					$company_ids = isset($post_raw['company_ids']) && is_array($post_raw['company_ids'])
+						? array_values(array_unique(array_filter(array_map('intval', $post_raw['company_ids']))))
+						: array();
+					if (empty($company_ids)) {
+						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 901, 'text' => __('front_company_selection_required', true)));
+					}
+
 					$pjClientModel->beforeValidate($this->option_arr);
 
 					if (!$pjClientModel->validates($this->_post->raw())) {
@@ -457,7 +506,32 @@ class pjFrontPublic extends pjFront
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 127, 'text' => __('system_127', true)));
 					}
 
-					$pjClientModel->reset()->set('id', $this->getUserId())->modify($this->_post->raw());
+					$client_update = $this->_post->raw();
+					// Keep legacy clients.company_id populated (first selected company)
+					$client_update['company_id'] = (int) $company_ids[0];
+					unset($client_update['company_ids']);
+					$pjClientModel->reset()->set('id', $this->getUserId())->modify($client_update);
+
+					// Replace selected companies mapping
+					pjClientCompanyModel::factory()
+						->where('t1.client_id', (int) $this->getUserId())
+						->eraseAll();
+					foreach ($company_ids as $cid) {
+						pjClientCompanyModel::factory()
+							->reset()
+							->setAttributes(array(
+								'client_id' => (int) $this->getUserId(),
+								'company_id' => (int) $cid
+							))
+							->insert();
+					}
+					// Update session cache
+					$_SESSION[$this->defaultClientCompanies] = $company_ids;
+					if (isset($_SESSION[$this->defaultUser]) && is_array($_SESSION[$this->defaultUser])) {
+						$_SESSION[$this->defaultUser]['company_id'] = (int) $company_ids[0];
+					}
+					// Ensure current active company is still allowed
+					$this->pjActionEnforceSelectedCompanies();
 
 					$pjAddressModel = pjAddressModel::factory();
 					if (isset($company_id) && (int)$company_id > 0) {
@@ -514,6 +588,16 @@ class pjFrontPublic extends pjFront
 				} else {
 					$this->set('arr', $pjClientModel->find($this->getUserId())->getData());
 
+					// Companies list + current selection
+					$company_arr = pjCompanyModel::factory()
+						->where('t1.status', 'T')
+						->where('t1.is_deleted', 0)
+						->orderBy('t1.name ASC')
+						->findAll()
+						->getData();
+					$this->set('company_arr', $company_arr);
+					$this->set('selected_company_ids', $this->pjActionGetClientCompanyIds(true));
+
 					$this->set('address_arr', pjAddressModel::factory()
 						->where('t1.client_id', $this->getUserId())
 						->orderBy('FIELD(`is_default_shipping`,1,0), FIELD(`is_default_billing`,1,0), t1.id ASC')
@@ -539,8 +623,26 @@ class pjFrontPublic extends pjFront
 			if ($is_ip_blocked == true) {
 				$this->set('status', 'IP_BLOCKED');
 			} else {
+				// Companies list (for register form)
+				$company_arr = pjCompanyModel::factory()
+					->where('t1.status', 'T')
+					->where('t1.is_deleted', 0)
+					->orderBy('t1.name ASC')
+					->findAll()
+					->getData();
+				$this->set('company_arr', $company_arr);
+
 				if ($this->_post->check('sc_register')) {
 					$pjClientModel = pjClientModel::factory();
+
+					// Validate selected companies (required, multiple)
+					$post_raw = $this->_post->raw();
+					$company_ids = isset($post_raw['company_ids']) && is_array($post_raw['company_ids'])
+						? array_values(array_unique(array_filter(array_map('intval', $post_raw['company_ids']))))
+						: array();
+					if (empty($company_ids)) {
+						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 901, 'text' => __('front_company_selection_required', true)));
+					}
 
 					if (
 						!$this->_post->check('captcha') || !pjValidation::pjActionNotEmpty($this->_post->toString('captcha')) ||
@@ -566,10 +668,23 @@ class pjFrontPublic extends pjFront
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 130, 'text' => __('system_130', true)));
 					}
 					$data = $this->_post->raw();
-					$data['company_id'] = $company_id;
+					// Keep legacy clients.company_id populated (first selected company)
+					$data['company_id'] = (int) $company_ids[0];
+					unset($data['company_ids']);
 					$client_id = pjClientModel::factory()->reset()->setAttributes($data)->insert()->getInsertId();
 					if ($client_id === FALSE || (int) $client_id <= 0) {
 						pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 131, 'text' => __('system_131', true)));
+					}
+
+					// Save selected companies
+					foreach ($company_ids as $cid) {
+						pjClientCompanyModel::factory()
+							->reset()
+							->setAttributes(array(
+								'client_id' => (int) $client_id,
+								'company_id' => (int) $cid
+							))
+							->insert();
 					}
 
 					$notificationModel = pjNotificationModel::factory()
@@ -616,13 +731,24 @@ class pjFrontPublic extends pjFront
 							// 	->setSubject($subject_client)
 							// 	->send(pjUtil::textToHtml($message_client));
 							if (isset($r) && $r) {
-								pjAppController::jsonResponse(array('status' => 'OK', 'code' => 216, 'text' => __('system_216', true)));
+								$register_ok = true;
 							} else {
-								pjAppController::jsonResponse(array('status' => 'OK', 'code' => 215, 'text' => __('system_215', true)));
+								$register_ok = true;
 							}
 						}
 					}
-					pjAppController::jsonResponse(array('status' => 'OK', 'code' => 216, 'text' => __('system_216', true)));
+					$register_ok = isset($register_ok) ? $register_ok : true;
+					if ($register_ok) {
+						$arr = $pjClientModel->reset()->find($client_id)->getData();
+						$_SESSION[$this->defaultUser] = $arr;
+						$_SESSION[$this->defaultClientCompanies] = $company_ids;
+						$this->pjActionEnforceSelectedCompanies();
+						$hash = md5(PJ_SALT . $client_id);
+						$this->cart->transform($hash);
+						$_SESSION[$this->defaultHash] = $hash;
+						pjAppController::jsonResponse(array('status' => 'OK', 'code' => 216, 'text' => __('system_216', true)));
+					}
+					pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 131, 'text' => __('system_131', true)));
 				}
 				$this->set('category_arr', pjCategoryModel::factory()->getNode($this->getLocaleId(), 1));
 			}
@@ -632,8 +758,8 @@ class pjFrontPublic extends pjFront
 	public function pjActionProduct()
 	{
 		if ($this->isXHR() || $this->_get->check('_escaped_fragment_')) {
-			$company_id = pjUtil::getActiveCompanyId($this->defaultCompany);
-			// echo "<pre>"; print_r($company_id); die;
+			// Guests and logged clients browse all products; company rules apply when adding to cart / quoting.
+			$company_id = null;
 			// ini_set('display_errors', '1');
 			// ini_set('display_startup_errors', '1');
 			// error_reporting(E_ALL);
@@ -667,7 +793,7 @@ class pjFrontPublic extends pjFront
 				$pjStockModel = pjStockModel::factory();
 				$pjProductCategoryModel = pjProductCategoryModel::factory();
 
-				$arr = pjProductModel::factory()
+				$productQuery = pjProductModel::factory()
 					->select(sprintf("t1.*, t2.content AS name, t3.content AS full_desc, t4.content AS short_desc,
 						(SELECT MIN(`price`) FROM `%2\$s`
 							WHERE `product_id` = `t1`.`id` AND (`qty` > 0 OR `t1`.is_digital='1')
@@ -688,10 +814,18 @@ class pjFrontPublic extends pjFront
 					->join('pjMultiLang', "t2.model='pjProduct' AND t2.foreign_id=t1.id AND t2.locale='" . $this->getLocaleId() . "' AND t2.field='name'", 'left outer')
 					->join('pjMultiLang', "t3.model='pjProduct' AND t3.foreign_id=t1.id AND t3.locale='" . $this->getLocaleId() . "' AND t3.field='full_desc'", 'left outer')
 					->join('pjMultiLang', "t4.model='pjProduct' AND t4.foreign_id=t1.id AND t4.locale='" . $this->getLocaleId() . "' AND t4.field='short_desc'", 'left outer')
-					// ->where('t1.company_id', $company_id)
-					->find($id)
+					->where('t1.id', (int) $id);
+
+				// Restrict product by active company for logged clients
+				if (!is_null($company_id) && (int) $company_id > 0) {
+					$productQuery->where('t1.company_id', (int) $company_id);
+				}
+
+				$arr = $productQuery
+					->limit(1)
+					->findAll()
 					->toArray('category_ids', ',')
-					->getData();
+					->getDataIndex(0);
 
 				if (!empty($arr)) {
 					if ($arr['status'] != 2) {
@@ -1101,11 +1235,8 @@ class pjFrontPublic extends pjFront
 
 		if ($this->isXHR() || $this->_get->check('_escaped_fragment_')) {
 
-			// Ensure company_id is integer or null
-			$company_id = isset($_SESSION[$this->defaultCompany]['id']) ? (int) $_SESSION[$this->defaultCompany]['id'] : null;
-			// echo "<pre>";
-			// print_r($company_id);
-			// die;
+			// All visitors see the full catalog; company restrictions apply at cart/quote time.
+			$company_id = null;
 
 			$is_ip_blocked = pjBase::isBlockedIp(pjUtil::getClientIp(), $this->option_arr);
 			if ($is_ip_blocked == true) {
@@ -1269,7 +1400,10 @@ class pjFrontPublic extends pjFront
 								->findAll()
 								->getData();
 							if (!empty($model_image)) {
-								$product_image_arr[$val['id']] = array($model_image[0]);
+								if (!isset($product_image_arr[$val['id']]) || !is_array($product_image_arr[$val['id']])) {
+									$product_image_arr[$val['id']] = array();
+								}
+								array_unshift($product_image_arr[$val['id']], $model_image[0]);
 							}
 						}
 					}

@@ -1,18 +1,16 @@
 <div class="table-responsive table-responsive-secondary stockContainer">
 	<?php
-	$table_width = 420;
+	$table_width = 1120;
+
 	if (isset($tpl['attr_arr'])) {
 		foreach ($tpl['attr_arr'] as $attr) {
-			if (isset($attr['child']) && count(($attr['child'])) > 0) {
-				$table_width += 150;
+			if (isset($attr['child']) && count($attr['child']) > 0) {
+				$table_width += 160;
 			}
 		}
 	}
-	if ($table_width < 742) {
-		$table_width = 742;
-	}
 	?>
-	<table class="table table-striped table-hover tblStocks">
+	<table class="table table-striped table-hover tblStocks" style="min-width: <?php echo (int) $table_width; ?>px;">
 		<thead>
 			<tr>
 				<th><?php __('product_stock_image'); ?></th>
@@ -51,8 +49,8 @@
 							<?php
 							if (!empty($stock['small_path'])) {
 							?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btnImageStock s-Pic" rel="<?php echo $stock['image_id']; ?>"><img src="<?php echo PJ_INSTALL_URL . $stock['small_path']; ?>" alt="" class="in-stock s-Img" /></a><?php
-																																																									} else {
-																																																										?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary btn-outline btn-sm btnImageStock"><?php __('product_stock_choose_image'); ?></a><?php
+																																																												} else {
+																																																													?><a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary btn-outline btn-sm btnImageStock"><?php __('product_stock_choose_image'); ?></a><?php
 																																																																																															}
 																																																																																																?>
 							<div class="boxStockImageId">

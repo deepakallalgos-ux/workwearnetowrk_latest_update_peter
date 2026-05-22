@@ -125,15 +125,36 @@ var pjQ = pjQ || {},
 					loadScript("<?php echo PJ_INSTALL_URL . $dm->getPath('pj_fancybox'); ?>pjQuery.fancybox.js", function () {
 						loadScript("<?php echo PJ_INSTALL_URL . $dm->getPath('pj_owlcarousel'); ?>owl.carousel.min.js", function () {
 							loadScript("<?php echo PJ_INSTALL_URL . $dm->getPath('pj_swiper'); ?>js/swiper-bundle.min.js", function () {
-								<?php if($tpl['option_arr']['o_captcha_type_front'] == 'google'): ?>
-							    loadScript('https://www.google.com/recaptcha/api.js', function () {
-	                            <?php endif; ?>
-            						loadScript("<?php echo PJ_INSTALL_URL . PJ_JS_PATH; ?>pjShoppingCart.js?v=<?php echo PJ_SCRIPT_VERSION; ?>", function () {
-            							ShoppingCart_<?php echo $index; ?> = new ShoppingCart(options);
-            						});
-        						<?php if($tpl['option_arr']['o_captcha_type_front'] == 'google'): ?>
-	                            });
-							    <?php endif; ?>
+								var pjSelect2Saved = {
+									jQuery: window.jQuery,
+									$: window.$,
+									hadJQuery: typeof window.jQuery !== "undefined"
+								};
+								window.jQuery = pjQ.$ || pjQ.jQuery;
+								window.$ = pjQ.$ || pjQ.jQuery;
+								loadScript("<?php echo PJ_INSTALL_URL . $dm->getPath('select2'); ?>js/select2.full.min.js", function () {
+									loadScript("<?php echo PJ_INSTALL_URL . PJ_JS_PATH; ?>pjFrontSelect2.bridge.js?v=<?php echo PJ_SCRIPT_VERSION; ?>", function () {
+										if (typeof pjFrontSelect2Bridge === "function") {
+											pjFrontSelect2Bridge();
+										}
+										if (pjSelect2Saved.hadJQuery) {
+											window.jQuery = pjSelect2Saved.jQuery;
+											window.$ = pjSelect2Saved.$;
+										} else {
+											try { delete window.jQuery; } catch (e) { window.jQuery = undefined; }
+											try { delete window.$; } catch (e) { window.$ = undefined; }
+										}
+										<?php if($tpl['option_arr']['o_captcha_type_front'] == 'google'): ?>
+										loadScript('https://www.google.com/recaptcha/api.js', function () {
+										<?php endif; ?>
+										loadScript("<?php echo PJ_INSTALL_URL . PJ_JS_PATH; ?>pjShoppingCart.js?v=<?php echo PJ_SCRIPT_VERSION; ?>", function () {
+											ShoppingCart_<?php echo $index; ?> = new ShoppingCart(options);
+										});
+										<?php if($tpl['option_arr']['o_captcha_type_front'] == 'google'): ?>
+										});
+										<?php endif; ?>
+									});
+								});
 							});
 						});
 					});

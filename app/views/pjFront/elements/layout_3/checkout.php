@@ -2,7 +2,30 @@
 <div class="container-fluid pjScCheckout">
 	<h2 class="text-uppercase text-primary pjScCheckoutTitle"><strong><?php __('front_checkout'); ?></strong></h2><br>
 	<?php
-	if (isset($tpl['status']) && $tpl['status'] == 'OK')
+	if (isset($tpl['status']) && $tpl['status'] == 'ERR' && isset($tpl['code']) && $tpl['code'] == 'LOGIN_REQUIRED')
+	{
+		?>
+		<div class="alert alert-warning" role="alert">
+			<?php __('front_login_required'); ?>
+			<a href="<?php echo pjUtil::getReferer(); ?>#!/Login" class="alert-link"><?php __('front_login'); ?></a>
+			<?php __('front_or'); ?>
+			<a href="<?php echo pjUtil::getReferer(); ?>#!/Register" class="alert-link"><?php __('front_register'); ?></a>
+		</div>
+		<?php
+	}
+	elseif (isset($tpl['status']) && $tpl['status'] == 'ERR' && isset($tpl['code']) && (int) $tpl['code'] === 901)
+	{
+		?>
+		<div class="alert alert-warning" role="alert"><?php __('front_company_selection_required'); ?></div>
+		<?php
+	}
+	elseif (isset($tpl['status']) && $tpl['status'] == 'ERR' && isset($tpl['code']) && (int) $tpl['code'] === 902)
+	{
+		?>
+		<div class="alert alert-warning" role="alert"><?php __('front_company_not_selected_error'); ?></div>
+		<?php
+	}
+	elseif (isset($tpl['status']) && $tpl['status'] == 'OK')
 	{
 		$bSaveReady = $sSaveReady = $bSaveChecked = $sSaveChecked = false;
 		
@@ -686,6 +709,15 @@
 		{
 			switch ($tpl['code'])
 			{
+				case 'LOGIN_REQUIRED':
+					?><div class="alert alert-warning" role="alert"><?php __('front_login_required'); ?> <a href="<?php echo pjUtil::getReferer(); ?>#!/Login" class="alert-link"><?php __('front_login'); ?></a> <?php __('front_or'); ?> <a href="<?php echo pjUtil::getReferer(); ?>#!/Register" class="alert-link"><?php __('front_register'); ?></a></div><?php
+					break;
+				case 901:
+					?><div class="alert alert-warning" role="alert"><?php __('front_company_selection_required'); ?></div><?php
+					break;
+				case 902:
+					?><div class="alert alert-warning" role="alert"><?php __('front_company_not_selected_error'); ?></div><?php
+					break;
 				case 100:
 					?><div class="alert alert-warning" role="alert"><?php __('front_empty_shipping_location'); ?></div><?php
 					break;

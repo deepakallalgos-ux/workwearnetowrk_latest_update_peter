@@ -6,7 +6,7 @@
 		</div>
 	</div>
 	<div class="col-sm-8">
-		<form action="" method="post" class="scSelectorProfileForm">
+		<form action="" method="post" class="scSelectorProfileForm" data-company-err="<?php echo pjSanitize::html(__('front_company_selection_required', true, true)); ?>">
 			<input type="hidden" name="sc_profile" value="1" />
 			
 			<div class="alert scSelectorNoticeMsg" role="alert" style="display:none;"></div>
@@ -91,7 +91,20 @@
 					ob_end_clean();
 					?>
 					<div class="row"><?php echo $ob_fields; ?></div>
-					
+					<?php
+					$selected_company_ids = isset($tpl['selected_company_ids']) && is_array($tpl['selected_company_ids'])
+						? array_map('intval', $tpl['selected_company_ids'])
+						: array();
+					if (!empty($tpl['company_arr']) && is_array($tpl['company_arr'])) {
+						?>
+					<div class="row">
+						<div class="col-sm-12">
+							<?php include dirname(__FILE__) . '/company_multiselect.php'; ?>
+						</div>
+					</div>
+						<?php
+					}
+					?>
 					<button type="submit" class="btn btn-primary scSelectorButton"><?php __('front_save_changes', false, true); ?></button>
 					
 				</div><!-- panel-body -->
