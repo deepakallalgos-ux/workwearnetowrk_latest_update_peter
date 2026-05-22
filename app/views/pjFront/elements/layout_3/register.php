@@ -8,7 +8,7 @@
 					<p><?php __('front_register_note'); ?></p>
 				</div>
 				<div class="col-sm-8">
-					<form action="" method="post" class="scForm scSelectorRegisterForm">
+					<form action="" method="post" class="scForm scSelectorRegisterForm" data-company-err="<?php echo pjSanitize::html(__('front_company_selection_required', true, true)); ?>">
 						<input type="hidden" name="sc_register" value="1" />
 						<div class="row">
 							<div class="col-sm-6">
@@ -74,6 +74,28 @@
 								<?php
 							} 
 							?>
+						</div>
+						<?php
+						$selected_company_ids = array();
+						if (isset($tpl['selected_company_ids']) && is_array($tpl['selected_company_ids'])) {
+							$selected_company_ids = array_map('intval', $tpl['selected_company_ids']);
+						} elseif ($controller->_post->check('company_ids')) {
+							$post_raw = $controller->_post->raw();
+							if (isset($post_raw['company_ids']) && is_array($post_raw['company_ids'])) {
+								$selected_company_ids = array_map('intval', $post_raw['company_ids']);
+							}
+						}
+						if (!empty($tpl['company_arr']) && is_array($tpl['company_arr'])) {
+							?>
+						<div class="row">
+							<div class="col-sm-12">
+								<?php include dirname(__FILE__) . '/company_multiselect.php'; ?>
+							</div>
+						</div>
+							<?php
+						}
+						?>
+						<div class="row">
 							<?php
 							$captcha_mode = isset($tpl['option_arr']['o_captcha_mode_front']) ? $tpl['option_arr']['o_captcha_mode_front'] : 'string';
 							$captcha_maxlength = in_array($captcha_mode, array('addition', 'subtraction', 'random_math'), true)

@@ -83,7 +83,7 @@ function getPaymentStatusBadgeClass($payment_status) {
                     <th><?php echo __('front_quote_address', true) ?: 'Quote address'; ?></th>
                     <th><?php echo __('front_order_tab_billing_details', true) ?: 'Billing details'; ?></th>
                     <th><?php echo __('front_order_total', true) ?: 'Total'; ?></th>
-                    <th><?php echo __('front_order_payment_status', true) ?: 'Payment status'; ?></th>
+                    <!-- <th><?php echo __('front_order_payment_status', true) ?: 'Payment status'; ?></th> -->
                     <th><?php echo __('front_order_status', true) ?: 'Status'; ?></th>
                     <th></th>
                 </tr>
@@ -165,14 +165,14 @@ function getPaymentStatusBadgeClass($payment_status) {
                     <td><strong><?php echo pjCurrency::formatPrice(isset($order['total']) ? $order['total'] : 0); ?></strong></td>
 
                     <!-- Betaalstatus -->
-                    <td>
+                    <!-- <td>
                         <?php
                         $payment_status = isset($order['payment_status']) ? $order['payment_status'] : 'pending';
                         $payment_status_label = isset($payment_status_labels[$payment_status]) ? $payment_status_labels[$payment_status] : ucfirst(str_replace('_', ' ', $payment_status));
                         $payment_badge_class = getPaymentStatusBadgeClass($payment_status);
                         ?>
                         <span class="sc-status-label <?php echo $payment_badge_class; ?>"><?php echo pjSanitize::html($payment_status_label); ?></span>
-                    </td>
+                    </td> -->
 
                     <!-- Bestelstatus -->
                     <td>

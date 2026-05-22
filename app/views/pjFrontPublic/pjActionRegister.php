@@ -6,6 +6,15 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 } else {
 	include PJ_VIEWS_PATH . 'pjFront/elements/header.php';
 	$validate = str_replace(array('"', "'"), array('\"', "\'"), __('validate', true, true));
+	$selected_company_ids = array();
+	if (isset($tpl['selected_company_ids']) && is_array($tpl['selected_company_ids'])) {
+		$selected_company_ids = array_map('intval', $tpl['selected_company_ids']);
+	} elseif ($controller->_post->check('company_ids')) {
+		$post_raw = $controller->_post->raw();
+		if (isset($post_raw['company_ids']) && is_array($post_raw['company_ids'])) {
+			$selected_company_ids = array_map('intval', $post_raw['company_ids']);
+		}
+	}
 	if($controller->_get->toInt('layout') != 3)
 	{
 		?>
@@ -45,6 +54,11 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 							<label class="scTitle"><?php __('client_url'); ?><?php if ((int) $tpl['option_arr']['o_bf_c_url'] === 3) : ?> <span class="scRequired">*</span><?php endif; ?>:</label>
 							<input type="text" name="url" class="scText<?php echo (int) $tpl['option_arr']['o_bf_c_url'] === 3 ? ' required' : NULL; ?>" placeholder="<?php __('front_placeholder_url', false, true); ?>" value="<?php echo $controller->_post->check('url') ? pjSanitize::html($controller->_post->toString('url')) : NULL; ?>" data-err="<?php echo $validate['url'];?>" />
 						</p>
+						<?php endif; ?>
+						<?php if (!empty($tpl['company_arr']) && is_array($tpl['company_arr'])) : ?>
+						<div class="scPaperChain">
+							<?php include PJ_VIEWS_PATH . 'pjFront/elements/layout_3/company_multiselect.php'; ?>
+						</div>
 						<?php endif; ?>
 						<?php
 						$captcha_mode = isset($tpl['option_arr']['o_captcha_mode_front']) ? $tpl['option_arr']['o_captcha_mode_front'] : 'string';

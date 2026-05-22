@@ -154,6 +154,8 @@ class pjJabbApi extends pjAppController
 
         unset($client_details['password']);
 
+        $company_ids = pjAppController::getClientAllowedCompanyIds((int) $client['id']);
+
         // ---------------- SUCCESS RESPONSE ----------------
         pjAppController::jsonResponse([
             'status'  => 'OK',
@@ -164,6 +166,7 @@ class pjJabbApi extends pjAppController
                 'id'              => $client['id'],
                 'email'           => $client['email'],
                 'company_id'      => $client['company_id'],
+                'company_ids'     => $company_ids,
                 'api_login_token' => $api_login_token,
                 'current_login'   => $current_login
             ]
@@ -182,10 +185,22 @@ class pjJabbApi extends pjAppController
         $password    = isset($input['password']) ? $input['password'] : $this->_post->toString('password');
         $phone       = isset($input['phone']) ? trim($input['phone']) : trim($this->_post->toString('phone'));
 
-        $company_id = $_SESSION[$this->defaultCompany]['id'] ?? NULL;
+        $company_ids = array();
+        if (isset($input['company_ids']) && is_array($input['company_ids'])) {
+            $company_ids = array_values(array_unique(array_filter(array_map('intval', $input['company_ids']))));
+        } elseif ($this->_post->check('company_ids')) {
+            $post_raw = $this->_post->raw();
+            if (isset($post_raw['company_ids']) && is_array($post_raw['company_ids'])) {
+                $company_ids = array_values(array_unique(array_filter(array_map('intval', $post_raw['company_ids']))));
+            }
+        }
 
         // ---------------- VALIDATION ----------------
         $errors = [];
+
+        if (empty($company_ids)) {
+            $errors[] = __('front_company_selection_required', true);
+        }
 
         if (!pjValidation::pjActionNotEmpty($client_name)) {
             $errors[] = "Name is required";
@@ -227,11 +242,11 @@ class pjJabbApi extends pjAppController
         $data = [
             'client_name' => $client_name,
             'email'       => $email,
-            'password'    =>  $password,
-            'phone'      => $phone,
-            'company_id' => $company_id,
-            'status'     => 'T',
-            'created'    => date("Y-m-d H:i:s")
+            'password'    => $password,
+            'phone'       => $phone,
+            'company_id'  => (int) $company_ids[0],
+            'status'      => 'T',
+            'created'     => date('Y-m-d H:i:s'),
         ];
 
         $client_id = $pjClientModel
@@ -247,6 +262,16 @@ class pjJabbApi extends pjAppController
                 'message' => 'Registration failed'
             ]);
             exit;
+        }
+
+        foreach ($company_ids as $cid) {
+            pjClientCompanyModel::factory()
+                ->reset()
+                ->setAttributes(array(
+                    'client_id'  => (int) $client_id,
+                    'company_id' => (int) $cid,
+                ))
+                ->insert();
         }
 
         // ---------------- TOKEN ----------------
@@ -266,8 +291,8 @@ class pjJabbApi extends pjAppController
             ->where('transport', 'email')
             ->where('variant', 'account');
 
-        if ((int)$company_id > 0) {
-            $notificationModel->where('t1.company_id', $company_id);
+        if (!empty($company_ids[0])) {
+            $notificationModel->where('t1.company_id', (int) $company_ids[0]);
         }
 
         $notification = $notificationModel
@@ -328,6 +353,8 @@ class pjJabbApi extends pjAppController
                 'id'              => $client_id,
                 'client_name'     => $client_name,
                 'email'           => $email,
+                'company_id'      => (int) $company_ids[0],
+                'company_ids'     => $company_ids,
                 'api_login_token' => $api_login_token,
                 'current_login'   => $current_login
             ]
@@ -1846,11 +1873,40 @@ class pjJabbApi extends pjAppController
         if (isset($params['email']))       $update_data['email']       = $params['email'];
         if (isset($params['phone']))       $update_data['phone']       = $params['phone'];
 
+        $company_ids = null;
+        if (isset($params['company_ids']) && is_array($params['company_ids'])) {
+            $company_ids = array_values(array_unique(array_filter(array_map('intval', $params['company_ids']))));
+            if (empty($company_ids)) {
+                echo json_encode([
+                    'status'  => 'ERR',
+                    'code'    => 901,
+                    'message' => __('front_company_selection_required', true),
+                ]);
+                exit;
+            }
+            $update_data['company_id'] = (int) $company_ids[0];
+        }
+
         if (!empty($update_data)) {
             $pjClientModel
                 ->reset()
                 ->set('id', $client_id)
                 ->modify($update_data);
+        }
+
+        if (is_array($company_ids)) {
+            pjClientCompanyModel::factory()
+                ->where('t1.client_id', $client_id)
+                ->eraseAll();
+            foreach ($company_ids as $cid) {
+                pjClientCompanyModel::factory()
+                    ->reset()
+                    ->setAttributes(array(
+                        'client_id'  => $client_id,
+                        'company_id' => (int) $cid,
+                    ))
+                    ->insert();
+            }
         }
 
         /* ================= DEFAULT ADDRESS ================= */
@@ -1945,15 +2001,18 @@ class pjJabbApi extends pjAppController
 
         /* ================= RESPONSE ================= */
 
+        $allowed_company_ids = pjAppController::getClientAllowedCompanyIds($client_id);
+
         echo json_encode([
             'status'  => 'OK',
             'code'    => 200,
             'message' => 'Profile updated successfully.',
             'client'  => $updated_client[0] ?? null,
             'data'    => [
-                'id'         => $updated_client[0]['id'] ?? null,
-                'email'      => $updated_client[0]['email'] ?? null,
-                'company_id' => $updated_client[0]['company_id'] ?? null
+                'id'          => $updated_client[0]['id'] ?? null,
+                'email'       => $updated_client[0]['email'] ?? null,
+                'company_id'  => $updated_client[0]['company_id'] ?? null,
+                'company_ids' => $allowed_company_ids,
             ]
         ]);
 
@@ -2064,6 +2123,20 @@ class pjJabbApi extends pjAppController
                 'status'  => 'ERR',
                 'code'    => 400,
                 'message' => 'Quantity must be greater than 0.'
+            ]);
+            exit;
+        }
+
+        $check = pjAppController::validateClientProductCompany(
+            $client_id,
+            isset($params['product_id']) ? $params['product_id'] : null,
+            isset($params['stock_id']) ? $params['stock_id'] : null
+        );
+        if (!$check['ok']) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => $check['code'],
+                'message' => __($check['label'], true),
             ]);
             exit;
         }
@@ -2975,6 +3048,18 @@ class pjJabbApi extends pjAppController
             exit;
         }
 
+        $cart_company_check = pjAppController::validateClientCartCompanies($client_id, $cart_items);
+        if (!$cart_company_check['ok']) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => $cart_company_check['code'],
+                'message' => __($cart_company_check['label'], true),
+            ]);
+            exit;
+        }
+
+        $allowed_company_ids = pjAppController::getClientAllowedCompanyIds($client_id);
+
         /* ================= CALCULATE CART ================= */
 
         $cart_data = $this->buildCartData($cart_items);
@@ -3170,13 +3255,22 @@ class pjJabbApi extends pjAppController
 
 
 
-        $company_id = (int)0;
+        if (empty($params['client_id'])) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'client_id is required.'
+            ]);
+            exit;
+        }
+
+        $client_id = (int) $params['client_id'];
 
         /* ================= BASE QUERY ================= */
 
         $pjQuoteModel = pjQuoteModel::factory()
             ->join('pjClient', 't2.id=t1.client_id', 'left outer')
-            ->where('t1.company_id', $company_id);
+            ->where('t1.client_id', $client_id);
 
         /* ================= SEARCH ================= */
 

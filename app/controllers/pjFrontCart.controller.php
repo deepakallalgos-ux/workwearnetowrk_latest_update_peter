@@ -68,6 +68,23 @@ class pjFrontCart extends pjFront
 				$post = $this->_post->raw();
 				// echo "<pre>"; print_r($post); die;
 
+				// Logged clients may quote only products from companies selected at register/profile
+				if ($this->isLoged()) {
+					$this->pjActionEnforceSelectedCompanies();
+					$check = pjAppController::validateClientProductCompany(
+						(int) $this->getUserId(),
+						isset($post['product_id']) ? $post['product_id'] : null,
+						isset($post['stock_id']) ? $post['stock_id'] : null
+					);
+					if (!$check['ok']) {
+						pjAppController::jsonResponse(array(
+							'status' => 'ERR',
+							'code'   => $check['code'],
+							'text'   => __($check['label'], true),
+						));
+					}
+				}
+
 				$qty = $post['qty'];
 				unset($post['qty']);
 				if (isset($post['extra']) && (empty($post['extra']))) {
@@ -229,7 +246,20 @@ class pjFrontCart extends pjFront
 	public function pjActionProcessOrder()
 	{
 		$this->setAjax(true);
-		$company_id = $_SESSION[$this->defaultCompany]['id'];
+		if (!$this->isLoged()) {
+			pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 903, 'text' => __('front_login_required', true)));
+		}
+		$this->pjActionEnforceSelectedCompanies();
+		$cart_company_check = $this->pjActionValidateQuoteCartCompanies();
+		if (!$cart_company_check['ok']) {
+			pjAppController::jsonResponse(array(
+				'status' => 'ERR',
+				'code'   => $cart_company_check['code'],
+				'text'   => __($cart_company_check['label'], true),
+			));
+		}
+		$allowed_company_ids = $this->pjActionGetClientCompanyIds();
+		$company_id = !empty($allowed_company_ids) ? (int) $allowed_company_ids[0] : (int) $_SESSION[$this->defaultCompany]['id'];
 		$_SESSION[$this->defaultForm]['company_id'] =  $company_id;
 		if ($this->isXHR()) {
 			if (pjUtil::isOptionEnumYes($this->option_arr, 'o_disable_orders')) {
@@ -347,10 +377,6 @@ class pjFrontCart extends pjFront
 				pjAppController::jsonResponse(array('status' => 'ERR', 'code' => 115, 'text' => __('system_115', true)));
 			}
 			$pjStockModel = pjStockModel::factory();
-				// ->where('t1.status', 'T');
-			if (isset($company_id) && (int)$company_id > 0) {
-				$pjStockModel->where('t1.company_id', $company_id);
-			}
 			$stock_arr = $pjStockModel->whereIn('t1.id', $stock_id)->findAll()->getData();
 			foreach ($stock_arr as $stock) {
 				$stocks[$stock['id']] = $stock;
@@ -361,9 +387,6 @@ class pjFrontCart extends pjFront
 			}
 
 			$pjExtraItemModel = pjExtraItemModel::factory();
-			if (isset($company_id) && (int)$company_id > 0) {
-				$pjExtraItemModel->where('t1.company_id', $company_id);
-			}
 			$extra_arr = pjExtraModel::factory()->whereIn('t1.product_id', $product_id)->findAll()->getDataPair('id', 'price');
 			foreach ($extra_arr as $e_id => $e_price) {
 				$extra_arr[$e_id] = array(

@@ -184,3 +184,53 @@
     font-weight: 600;
     padding: 2px 6px;
 }
+/* Stock tab wide table scroll */
+#frmUpdateProduct.sc-product-update #product-stock .stockContainer {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #0a5114 #e8e4ef;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .stockContainer::-webkit-scrollbar {
+    height: 12px;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .stockContainer::-webkit-scrollbar-track {
+    background: #e8e4ef;
+    border-radius: 8px;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .stockContainer::-webkit-scrollbar-thumb {
+    background: #0a5114;
+    border-radius: 8px;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    table-layout: auto;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks th,
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks input.form-control,
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks select.form-control {
+    min-width: 120px;
+}
+
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks td:first-child,
+#frmUpdateProduct.sc-product-update #product-stock .tblStocks th:first-child {
+    min-width: 90px;
+}

@@ -6,6 +6,9 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 } else {
 	include PJ_VIEWS_PATH . 'pjFront/elements/header.php';
 	$validate = str_replace(array('"', "'"), array('\"', "\'"), __('validate', true, true));
+	$selected_company_ids = isset($tpl['selected_company_ids']) && is_array($tpl['selected_company_ids'])
+		? array_map('intval', $tpl['selected_company_ids'])
+		: array();
 	if($controller->_get->toInt('layout') != 3)
 	{
 		?>
@@ -46,6 +49,11 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 							<label class="scTitle"><?php __('client_url'); ?><?php if ((int) $tpl['option_arr']['o_bf_c_url'] === 3) : ?> <span class="scRequired">*</span><?php endif; ?>:</label>
 							<input type="text" name="url" class="scText<?php echo (int) $tpl['option_arr']['o_bf_c_url'] === 3 ? ' required' : NULL; ?>" placeholder="<?php __('front_placeholder_url', false, true); ?>" value="<?php echo isset($tpl['arr']['url']) ? pjSanitize::html($tpl['arr']['url']) : NULL; ?>" data-err="<?php echo $validate['url'];?>"/>
 						</p>
+						<?php endif; ?>
+						<?php if (!empty($tpl['company_arr']) && is_array($tpl['company_arr'])) : ?>
+						<div class="scPaperChain">
+							<?php include PJ_VIEWS_PATH . 'pjFront/elements/layout_3/company_multiselect.php'; ?>
+						</div>
 						<?php endif; ?>
 						<p class="scPaperChain">
 							<label class="scTitle">&nbsp;</label>

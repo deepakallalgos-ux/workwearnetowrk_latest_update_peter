@@ -18,6 +18,17 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 			$STORAGE = @$_SESSION[$controller->defaultForm];
 			$billing = $shipping = $STORAGE;
 			$isLoged = $controller->isLoged();
+			if (!$isLoged) {
+				?>
+				<div class="scNotice scNoticeError">
+					<?php __('front_login_required'); ?>
+					<a href="<?php echo pjUtil::getReferer(); ?>#!/Login" class="scLink"><?php __('front_login'); ?></a>
+					<?php __('front_or'); ?>
+					<a href="<?php echo pjUtil::getReferer(); ?>#!/Register" class="scLink"><?php __('front_register'); ?></a>
+				</div>
+				<?php
+				return;
+			}
 			if ($isLoged && is_null($STORAGE))
 			{
 				if (isset($tpl['address_arr']) && !empty($tpl['address_arr']))
@@ -444,6 +455,15 @@ if (isset($tpl['status']) && $tpl['status'] == 'IP_BLOCKED') {
 			{
 				switch ($tpl['code'])
 				{
+					case 'LOGIN_REQUIRED':
+						?><div class="scMessage"><div class="scMessageIcon"></div><?php __('front_login_required'); ?> <a href="<?php echo pjUtil::getReferer(); ?>#!/Login" class="scLink"><?php __('front_login'); ?></a> <?php __('front_or'); ?> <a href="<?php echo pjUtil::getReferer(); ?>#!/Register" class="scLink"><?php __('front_register'); ?></a></div><?php
+						break;
+					case 901:
+						?><div class="scMessage"><div class="scMessageIcon"></div><?php __('front_company_selection_required'); ?></div><?php
+						break;
+					case 902:
+						?><div class="scMessage"><div class="scMessageIcon"></div><?php __('front_company_not_selected_error'); ?></div><?php
+						break;
 					case 100:
 						?><div class="scMessage"><div class="scMessageIcon"></div><?php __('front_empty_shipping_location'); ?></div><?php
 						break;

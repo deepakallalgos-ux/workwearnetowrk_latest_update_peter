@@ -1224,3 +1224,76 @@ body.mini-navbar .navbar-default .nav > li.nav-header .admin-sidebar-logo-img {
     max-width: 52px;
     max-height: 48px;
 }
+/* Global admin wide-table horizontal scroll */
+.wrapper-content .table-responsive:not(.table-responsive-actions),
+.wrapper-content .table-responsive-secondary,
+.wrapper-content .table-responsive-tertiary,
+.wrapper-content .table-responsive-quaternary,
+.wrapper-content .pj-grid > .table-responsive {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--admin-primary, #0a5114) var(--wj-border, #e8e4ef);
+}
+
+.wrapper-content .table-responsive:not(.table-responsive-actions)::-webkit-scrollbar,
+.wrapper-content .table-responsive-secondary::-webkit-scrollbar,
+.wrapper-content .table-responsive-tertiary::-webkit-scrollbar,
+.wrapper-content .table-responsive-quaternary::-webkit-scrollbar,
+.wrapper-content .pj-grid > .table-responsive::-webkit-scrollbar {
+    height: 12px;
+}
+
+.wrapper-content .table-responsive:not(.table-responsive-actions)::-webkit-scrollbar-track,
+.wrapper-content .table-responsive-secondary::-webkit-scrollbar-track,
+.wrapper-content .table-responsive-tertiary::-webkit-scrollbar-track,
+.wrapper-content .table-responsive-quaternary::-webkit-scrollbar-track,
+.wrapper-content .pj-grid > .table-responsive::-webkit-scrollbar-track {
+    background: var(--wj-border, #e8e4ef);
+    border-radius: 8px;
+}
+
+.wrapper-content .table-responsive:not(.table-responsive-actions)::-webkit-scrollbar-thumb,
+.wrapper-content .table-responsive-secondary::-webkit-scrollbar-thumb,
+.wrapper-content .table-responsive-tertiary::-webkit-scrollbar-thumb,
+.wrapper-content .table-responsive-quaternary::-webkit-scrollbar-thumb,
+.wrapper-content .pj-grid > .table-responsive::-webkit-scrollbar-thumb {
+    background: var(--admin-primary, #0a5114);
+    border-radius: 8px;
+}
+
+.wrapper-content .table-responsive:not(.table-responsive-actions) > .table,
+.wrapper-content .table-responsive-secondary > .table,
+.wrapper-content .table-responsive-tertiary > .table,
+.wrapper-content .table-responsive-quaternary > .table,
+.wrapper-content .pj-grid > .table-responsive > .table {
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+}
+
+.wrapper-content .table-responsive:not(.table-responsive-actions) > .table th,
+.wrapper-content .table-responsive:not(.table-responsive-actions) > .table td,
+.wrapper-content .table-responsive-secondary > .table th,
+.wrapper-content .table-responsive-secondary > .table td,
+.wrapper-content .table-responsive-tertiary > .table th,
+.wrapper-content .table-responsive-tertiary > .table td,
+.wrapper-content .table-responsive-quaternary > .table th,
+.wrapper-content .table-responsive-quaternary > .table td,
+.wrapper-content .pj-grid > .table-responsive > .table th,
+.wrapper-content .pj-grid > .table-responsive > .table td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.wrapper-content .table-responsive input.form-control,
+.wrapper-content .table-responsive select.form-control {
+    min-width: 110px;
+}

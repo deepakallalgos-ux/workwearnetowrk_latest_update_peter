@@ -1,5 +1,8 @@
+# Dependencies
 /node_modules/
 /vendor/
+
+# Uploads & Images
 /uploads/
 /upload/
 /images/
@@ -10,6 +13,9 @@
 /storage/
 /cache/
 
+/app/web/upload/
+
+# Image Files
 *.jpg
 *.jpeg
 *.png
@@ -17,7 +23,14 @@
 *.webp
 *.svg
 
+# System Files
 .DS_Store
+
+# Environment Files
 .env
+
+# Logs
 *.log
+
+# Zip Files
 *.zip
