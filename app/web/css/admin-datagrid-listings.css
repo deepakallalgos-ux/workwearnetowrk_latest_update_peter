@@ -3,36 +3,8 @@
  * Loaded for all admin pages — keep in sync when updating list UIs.
  */
 
-/* ---------- CSS variables ---------- */
-:root {
-    --admin-primary: #0a5114;
-    --admin-primary-dark: #06370d;
-    --admin-primary-light: rgba(10, 81, 20, 0.22);
-    --admin-primary-lighter: rgba(10, 81, 20, 0.1);
-    /* Success / “on” controls (checkboxes, toggles) — distinct from deep brand green */
-    --admin-success: #22c55e;
-    --admin-success-hover: #4ade80;
-    --admin-success-soft: rgba(34, 197, 94, 0.16);
-    --admin-success-border-strong: #16a34a;
-    --admin-success-focus-ring: rgba(34, 197, 94, 0.28);
-    --wj-primary: var(--admin-primary);
-    --wj-primary-dark: var(--admin-primary-dark);
-    --wj-primary-light: #eaf4ec;
-    --wj-accent: var(--admin-secondary, #F7148B);
-    --wj-text: #2d3436;
-    --wj-text-muted: #636e72;
-    --wj-border: #e8e4ef;
-    --wj-hover-bg: #f4faf5;
-    --wj-radius: 8px;
-    --wj-radius-lg: 8px;
-    /* Native + iCheck: same footprint and corner radius as Peter-style controls */
-    --wj-checkbox-size: 22px;
-    /* Squircle on small controls — closer to Peter / modern admin ref */
-    --wj-checkbox-radius: 6px;
-    --wj-shadow: 0 2px 8px rgba(10, 81, 20, 0.08);
-    --wj-shadow-hover: 0 4px 16px rgba(10, 81, 20, 0.12);
-    --wj-transition: 0.2s ease;
-}
+/* ---------- CSS variables (imported) ---------- */
+@import "admin-theme.css";
 
 /* ---------- ibox containers ---------- */
 .wrapper-content .ibox {

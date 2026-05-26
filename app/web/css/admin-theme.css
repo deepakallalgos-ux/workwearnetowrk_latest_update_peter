@@ -1,0 +1,98 @@
+/* admin-theme.css
+   Consolidated admin CSS variables (canonical). Generated from latest theme defaults.
+   Components should import this file and use the variables declared here.
+   DO NOT duplicate variable declarations in other files — import this file instead.
+*/
+:root {
+  /* Core */
+  --admin-primary:          #374151;
+  --admin-primary-dark:     #1f2937;
+  --admin-primary-light:    rgba(55,65,81,0.22);
+  --admin-primary-lighter:  rgba(55,65,81,0.10);
+  --admin-primary-safe:     #1f2937;
+  --admin-secondary:        #9CA3AF;
+  --admin-secondary-light:  rgba(156,163,175,0.25);
+  --admin-secondary-lighter:rgba(156,163,175,0.12);
+
+  /* Status */
+  --admin-success:          #059669;
+  --admin-success-light:    rgba(5,150,105,0.20);
+  --admin-success-lighter:  rgba(5,150,105,0.10);
+  --admin-success-hover:    #10b981;
+  --admin-success-border-strong: #047857;
+  --admin-success-focus-ring:    rgba(5,150,105,0.28);
+  --admin-warning:          #D97706;
+  --admin-warning-light:    rgba(217,119,6,0.20);
+  --admin-warning-lighter:  rgba(217,119,6,0.10);
+  --admin-info:             #0284C7;
+  --admin-info-light:       rgba(2,132,199,0.20);
+  --admin-info-lighter:     rgba(2,132,199,0.10);
+  --admin-danger:           #B91C1C;
+  --admin-danger-light:     rgba(185,28,28,0.20);
+  --admin-danger-lighter:   rgba(185,28,28,0.10);
+  --admin-on-primary:       #ffffff;
+  --admin-on-secondary:     #1a1a1a;
+  --admin-on-success:       #ffffff;
+  --admin-on-warning:       #1a1a1a;
+  --admin-on-info:          #ffffff;
+  --admin-on-danger:        #ffffff;
+
+  /* Sidebar */
+  --admin-sidebar:           #1D1D2D;
+  --admin-sidebar-secondary: #282938;
+  --admin-sidebar-active-bg: #353543;
+  --admin-sidebar-text:      #FFFFFF;
+  --admin-sidebar-muted:     #868994;
+  --admin-sidebar-hover-bg:  #2E2F40;
+  --admin-sidebar-hover:     #222232;
+  --admin-on-sidebar:        #FFFFFF;
+  --admin-sidebar-icon:      #FFFFFF;
+
+  /* Content area */
+  --admin-main-bg:      #F7F7F6;
+  --admin-card-bg-solid:#FEFEFE;
+  --admin-card-bg:      rgba(55,65,81,0.05);
+  --admin-main-text:    #2F2F2F;
+  --admin-input-border: #E0E0DF;
+  --admin-accent:       #F9761B;
+  --admin-accent-light: rgba(249,118,27,0.15);
+  --admin-link:         #B9D5F3;
+
+  /* Independent table variables */
+  --admin-table-header-bg:  #374151;
+  --admin-table-header-text:#FFFFFF;
+  --admin-table-border:     #D1D1D0;
+  --admin-table-row-bg:     #FFFFFF;
+  --admin-table-row-alt-bg: #FAFAFA;
+  --admin-table-row-hover:  #F3F4F6;
+  --admin-table-text:       #2F2F2F;
+
+  /* Independent typography */
+  --admin-heading-text: #111827;
+  --admin-muted-text:   #6B7280;
+  --admin-link-text:    #2563EB;
+  --admin-icon-color:   #6B7280;
+  --admin-modal-bg:     rgba(55,65,81,0.06);
+  --admin-alert-bg:     rgba(55,65,81,0.12);
+
+  /* wj-* aliases */
+  --wj-primary:      var(--admin-primary,       #374151);
+  --wj-primary-dark: var(--admin-primary-dark,  #1F2937);
+  --wj-primary-light:var(--admin-primary-light, rgba(55,65,81,0.22));
+  --wj-accent:       var(--admin-accent,        #F9761B);
+  --wj-text:         var(--admin-table-text,    #2F2F2F);
+  --wj-text-muted:   var(--admin-muted-text,    #6B7280);
+  --wj-border:       var(--admin-table-border,  #D1D1D0);
+  --wj-hover-bg:     var(--admin-table-row-hover,#F3F4F6);
+  --wj-bg:           var(--admin-main-bg,       #F7F7F6);
+  --wj-card-bg:      var(--admin-card-bg-solid, #FEFEFE);
+
+  /* Layout constants */
+  --wj-radius:         8px;
+  --wj-radius-lg:      8px;
+  --wj-checkbox-size:  22px;
+  --wj-checkbox-radius:6px;
+  --wj-shadow:         0 2px 8px rgba(0,0,0,0.07);
+  --wj-shadow-hover:   0 4px 16px rgba(0,0,0,0.12);
+  --wj-transition:     0.2s ease;
+}
