@@ -329,7 +329,6 @@ myLabel.delete_confirmation = <?php x__encode('delete_confirmation'); ?>;
 myLabel.choose = "-- <?php __('lblChoose'); ?> --";
 myLabel.months = "<?php echo implode("_", $months);?>";
 myLabel.days = "<?php echo implode("_", $short_days);?>";
-
 myLabel.has_update = <?php echo (int) $tpl['has_update']; ?>;
 myLabel.has_delete = <?php echo (int) $tpl['has_delete']; ?>;
 myLabel.has_delete_bulk = <?php echo (int) $tpl['has_delete_bulk']; ?>;
